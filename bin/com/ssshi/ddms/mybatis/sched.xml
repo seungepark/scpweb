@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper      
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"      
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.ssshi.ddms.mybatis.dao.SchedDaoI"> 
+
+	<select id="getShipTypeList" resultType="domainInfoBean">
+		SELECT VAL, DESCRIPTION FROM DOMAININFO
+		WHERE DOMAINUID = (SELECT UID FROM DOMAIN WHERE DOMAIN = 'SHIPTYPE')
+	</select>
+
+	<select id="getCrewKindList" resultType="domainInfoBean">
+		SELECT VAL, DESCRIPTION FROM DOMAININFO
+		WHERE DOMAINUID = (SELECT UID FROM DOMAIN WHERE DOMAIN = 'CREWKIND')
+	</select>
+	
+	<select id="getLastIfDate" resultType="string">
+		SELECT IFNULL(MAX(DATE_FORMAT(IFDATE, '%y-%m-%d %H:%i')), ' ') AS IFDATE
+		FROM IFLOG
+		WHERE KIND = 'PJTEVNT'
+	</select>
+
+	<select id="getEventColumnInfo" parameterType="int" resultType="pjtEvntColumnBean">
+		SELECT UID, ISLC, ISSP, ISBT, ISGT, ISCMR, ISMT, ISIE, ISAC, ISST, ISCOLD, ISLNG, ISGAS, ISWF, ISDL
+		FROM PJTEVNTCOLUMN
+		WHERE USERINFOUID = #{userUid}
+	</select>
+
+	<select id="getEventList" parameterType="paramBean" resultType="pjtEvntBean">
+		SELECT 
+			E.UID, E.PJT, 
+			E.PLANLC, E.PLANSP, E.PLANBT, E.PLANGT, E.PLANCMR, E.PLANMT, E.PLANIE, E.PLANACFROM, E.PLANACTO, E.PLANSTFROM, E.PLANSTTO,
+			E.PLANCOLDFROM, E.PLANCOLDTO, E.PLANLNGFROM, E.PLANLNGTO, E.PLANGASFROM, E.PLANGASTO, E.PLANWF, E.PLANDL,
+			E.PROSLC, E.PROSSP, E.PROSBT, E.PROSGT, E.PROSCMR, E.PROSMT, E.PROSIE, E.PROSACFROM, E.PROSACTO, E.PROSSTFROM, E.PROSSTTO,
+			E.PROSCOLDFROM, E.PROSCOLDTO, E.PROSLNGFROM, E.PROSLNGTO, E.PROSGASFROM, E.PROSGASTO, E.PROSWF, E.PROSDL,
+			E.PERFLC, E.PERFSP, E.PERFBT, E.PERFGT, E.PERFCMR, E.PERFMT, E.PERFIE, E.PERFACFROM, E.PERFACTO, E.PERFSTFROM , E.PERFSTTO,
+			E.PERFCOLDFROM, E.PERFCOLDTO, E.PERFLNGFROM, E.PERFLNGTO, E.PERFGASFROM, E.PERFGASTO, E.PERFWF, E.PERFDL,
+			S.SHIPTYPE, S.TYPEMODEL, S.REGOWNER, S.PROJSEQ, S.ISOUTSIDE,
+			S.CREW1PRO, S.CREW1LEAD, S.CREW2PRO, S.CREW2LEAD, S.CREW3PRO, S.CREW3LEAD, S.COMMAIN, S.COMSUB, S.OPERATE
+		FROM PJTEVNT E LEFT OUTER JOIN SHIPINFO S ON (E.PJT = S.SHIPNUM)
+		<where>
+			<if test="kind != null and kind != 'ALL'">
+				(
+					(
+						DATE_FORMAT(DATE_SUB(E.PLANLC, INTERVAL 14 DAY), '%Y-%m-%d') <![CDATA[ <= ]]> DATE_FORMAT(SYSDATE(), '%Y-%m-%d')
+						AND DATE_FORMAT(E.PLANDL, '%Y-%m-%d') <![CDATA[ >= ]]> DATE_FORMAT(SYSDATE(), '%Y-%m-%d')
+					)
+					OR
+					(
+						DATE_FORMAT(DATE_SUB(E.PROSLC, INTERVAL 14 DAY), '%Y-%m-%d') <![CDATA[ <= ]]> DATE_FORMAT(SYSDATE(), '%Y-%m-%d')
+						AND DATE_FORMAT(E.PROSDL, '%Y-%m-%d') <![CDATA[ >= ]]> DATE_FORMAT(SYSDATE(), '%Y-%m-%d')
+					)
+					OR
+					(
+						DATE_FORMAT(DATE_SUB(E.PERFLC, INTERVAL 14 DAY), '%Y-%m-%d') <![CDATA[ <= ]]> DATE_FORMAT(SYSDATE(), '%Y-%m-%d')
+						AND DATE_FORMAT(E.PERFDL, '%Y-%m-%d') <![CDATA[ >= ]]> DATE_FORMAT(SYSDATE(), '%Y-%m-%d')
+					)
+				)
+			</if>
+			<if test="valArr != null and valArr.length > 0">
+				AND (
+					DATE_FORMAT(E.PLANDL, '%Y') IN 
+					<foreach open="(" close=")" collection="valArr" item="item" separator="," index="index">
+						#{item}
+					</foreach>
+					OR 
+					DATE_FORMAT(E.PROSDL, '%Y') IN 
+					<foreach open="(" close=")" collection="valArr" item="item" separator="," index="index">
+						#{item}
+					</foreach>
+					OR 
+					DATE_FORMAT(E.PERFDL, '%Y') IN 
+					<foreach open="(" close=")" collection="valArr" item="item" separator="," index="index">
+						#{item}
+					</foreach>
+				)
+			</if>
+		</where>
+		ORDER BY E.PLANLC IS NULL ASC, E.PLANLC, E.PROSLC IS NULL ASC, E.PROSLC, E.PJT
+	</select>
+	
+	<delete id="deletePjtEvntColumn" parameterType="int">
+		DELETE FROM PJTEVNTCOLUMN WHERE USERINFOUID = #{userInfoUid}
+	</delete>
+	
+	<insert id="insertPjtEvntColumn" parameterType="pjtEvntColumnBean">
+		INSERT INTO PJTEVNTCOLUMN (USERINFOUID, ISLC, ISSP, ISBT, ISGT, ISCMR, ISMT, ISIE, ISAC, ISST, ISCOLD, ISLNG, ISGAS, ISWF, ISDL, INSERTDATE, INSERTBY, UPDATEDATE, UPDATEBY)
+		VALUES (#{userInfoUid}, #{isLc}, #{isSp}, #{isBt}, #{isGt}, #{isCmr}, #{isMt}, #{isIe}, #{isAc}, #{isSt}, #{isCold}, #{isLng}, #{isGas}, #{isWf}, #{isDl}, SYSDATE(), #{userInfoUid}, SYSDATE(), #{userInfoUid}) 
+	</insert>
+	
+	<insert id="insertPjtEvntLog" parameterType="pjtEvntBean">
+		INSERT INTO PJTEVNTLOG (
+			REVDATE, REVBY, ORGUID, PJT, 
+			PLANLC, PLANSP, PLANBT, PLANGT, PLANCMR, PLANMT, PLANIE, PLANACFROM, PLANACTO, PLANSTFROM, PLANSTTO,
+			PLANCOLDFROM, PLANCOLDTO, PLANLNGFROM, PLANLNGTO, PLANGASFROM, PLANGASTO, PLANWF, PLANDL,
+		
+			PROSLC, PROSSP, PROSBT, PROSGT, PROSCMR, PROSMT, PROSIE, PROSACFROM, PROSACTO, PROSSTFROM, PROSSTTO,
+			PROSCOLDFROM, PROSCOLDTO, PROSLNGFROM, PROSLNGTO, PROSGASFROM, PROSGASTO, PROSWF, PROSDL,
+		
+			PERFLC, PERFSP, PERFBT, PERFGT, PERFCMR, PERFMT, PERFIE, PERFACFROM, PERFACTO, PERFSTFROM , PERFSTTO,
+			PERFCOLDFROM, PERFCOLDTO, PERFLNGFROM, PERFLNGTO, PERFGASFROM, PERFGASTO, PERFWF, PERFDL, 
+			INSERTDATE, INSERTBY, UPDATEDATE, UPDATEBY
+		)
+		SELECT 
+			SYSDATE(), #{userInfoUid}, UID, PJT, 
+			PLANLC, PLANSP, PLANBT, PLANGT, PLANCMR, PLANMT, PLANIE, PLANACFROM, PLANACTO, PLANSTFROM, PLANSTTO,
+			PLANCOLDFROM, PLANCOLDTO, PLANLNGFROM, PLANLNGTO, PLANGASFROM, PLANGASTO, PLANWF, PLANDL,
+		
+			PROSLC, PROSSP, PROSBT, PROSGT, PROSCMR, PROSMT, PROSIE, PROSACFROM, PROSACTO, PROSSTFROM, PROSSTTO,
+			PROSCOLDFROM, PROSCOLDTO, PROSLNGFROM, PROSLNGTO, PROSGASFROM, PROSGASTO, PROSWF, PROSDL,
+		
+			PERFLC, PERFSP, PERFBT, PERFGT, PERFCMR, PERFMT, PERFIE, PERFACFROM, PERFACTO, PERFSTFROM , PERFSTTO,
+			PERFCOLDFROM, PERFCOLDTO, PERFLNGFROM, PERFLNGTO, PERFGASFROM, PERFGASTO, PERFWF, PERFDL, 
+			INSERTDATE, INSERTBY, UPDATEDATE, UPDATEBY
+		FROM PJTEVNT
+		WHERE UID = #{uid}
+	</insert>
+	
+	<update id="updatePjtEvnt" parameterType="pjtEvntBean">
+		UPDATE PJTEVNT SET UPDATEDATE = SYSDATE(), UPDATEBY = #{userInfoUid}
+			<if test="isLc == 1 and prosLc != null and prosLc.length() == 10"> , PROSLC = #{prosLc} </if>
+			<if test="isSp == 1 and prosSp != null and prosSp.length() == 10"> , PROSSP = #{prosSp} </if>
+			<if test="isBt == 1 and prosBt != null and prosBt.length() == 10"> , PROSBT = #{prosBt} </if>
+			<if test="isGt == 1 and prosGt != null and prosGt.length() == 10"> , PROSGT = #{prosGt} </if>
+			<if test="isCmr == 1 and prosCmr != null and prosCmr.length() == 10"> , PROSCMR = #{prosCmr} </if>
+			<if test="isMt == 1 and prosMt != null and prosMt.length() == 10"> , PROSMT = #{prosMt} </if>
+			<if test="isIe == 1 and prosIe != null and prosIe.length() == 10"> , PROSIE = #{prosIe} </if>
+			<if test="isAc == 1 and prosAcFrom != null and prosAcFrom.length() == 10"> , PROSACFROM = #{prosAcFrom} </if>
+			<if test="isAc == 1 and prosAcTo != null and prosAcTo.length() == 10"> , PROSACTO = #{prosAcTo} </if>
+			<if test="isSt == 1 and prosStFrom != null and prosStFrom.length() == 10"> , PROSSTFROM = #{prosStFrom} </if>
+			<if test="isSt == 1 and prosStTo != null and prosStTo.length() == 10"> , PROSSTTO = #{prosStTo} </if>
+			<if test="isCold == 1 and prosColdFrom != null and prosColdFrom.length() == 10"> , PROSCOLDFROM = #{prosColdFrom} </if>
+			<if test="isCold == 1 and prosColdTo != null and prosColdTo.length() == 10"> , PROSCOLDTO = #{prosColdTo} </if>
+			<if test="isLng == 1 and prosLngFrom != null and prosLngFrom.length() == 10"> , PROSLNGFROM = #{prosLngFrom} </if>
+			<if test="isLng == 1 and prosLngTo != null and prosLngTo.length() == 10"> , PROSLNGTO = #{prosLngTo} </if>
+			<if test="isGas == 1 and prosGasFrom != null and prosGasFrom.length() == 10"> , PROSGASFROM = #{prosGasFrom} </if>
+			<if test="isGas == 1 and prosGasTo != null and prosGasTo.length() == 10"> , PROSGASTO = #{prosGasTo} </if>
+			<if test="isWf == 1 and prosWf != null and prosWf.length() == 10"> , PROSWF = #{prosWf} </if>
+			<if test="isDl == 1 and prosDl != null and prosDl.length() == 10"> , PROSDL = #{prosDl} </if>
+		WHERE UID = #{uid}
+	</update>
+	
+	<select id="isExistShipNum" parameterType="string" resultType="int">
+		SELECT COUNT(UID) FROM SHIPINFO
+		WHERE SHIPNUM = #{shipNum}
+	</select>
+	
+	<insert id="insertShipInfo" parameterType="shipInfoBean">
+		INSERT INTO SHIPINFO (SHIPNUM, REGOWNER, SHIPTYPE, TYPEMODEL, IMO, ISOUTSIDE, STATUS, INSERTDATE, INSERTBY, UPDATEDATE, UPDATEBY)
+		VALUES (#{shipNum}, #{regOwner}, #{shipType}, #{typeModel}, '', 'Y', 'ACT', SYSDATE(), #{userUid}, SYSDATE(), #{userUid}) 
+	</insert>
+	
+	<insert id="insertPjtEvnt" parameterType="pjtEvntBean">
+		INSERT INTO PJTEVNT (PJT, INSERTDATE, INSERTBY, UPDATEDATE, UPDATEBY
+			<if test="prosLc != null and prosLc.length() == 10"> , PROSLC </if>
+			<if test="prosSp != null and prosSp.length() == 10"> , PROSSP </if>
+			<if test="prosBt != null and prosBt.length() == 10"> , PROSBT </if>
+			<if test="prosGt != null and prosGt.length() == 10"> , PROSGT </if>
+			<if test="prosCmr != null and prosCmr.length() == 10"> , PROSCMR </if>
+			<if test="prosMt != null and prosMt.length() == 10"> , PROSMT </if>
+			<if test="prosIe != null and prosIe.length() == 10"> , PROSIE </if>
+			<if test="prosAcFrom != null and prosAcFrom.length() == 10"> , PROSACFROM </if>
+			<if test="prosAcTo != null and prosAcTo.length() == 10"> , PROSACTO </if>
+			<if test="prosStFrom != null and prosStFrom.length() == 10"> , PROSSTFROM </if>
+			<if test="prosStTo != null and prosStTo.length() == 10"> , PROSSTTO </if>
+			<if test="prosColdFrom != null and prosColdFrom.length() == 10"> , PROSCOLDFROM </if>
+			<if test="prosColdTo != null and prosColdTo.length() == 10"> , PROSCOLDTO </if>
+			<if test="prosLngFrom != null and prosLngFrom.length() == 10"> , PROSLNGFROM </if>
+			<if test="prosLngTo != null and prosLngTo.length() == 10"> , PROSLNGTO </if>
+			<if test="prosGasFrom != null and prosGasFrom.length() == 10"> , PROSGASFROM </if>
+			<if test="prosGasTo != null and prosGasTo.length() == 10"> , PROSGASTO </if>
+			<if test="prosWf != null and prosWf.length() == 10"> , PROSWF </if>
+			<if test="prosDl != null and prosDl.length() == 10"> , PROSDL </if>
+			)
+		VALUES (#{pjt}, SYSDATE(), #{userInfoUid}, SYSDATE(), #{userInfoUid}
+			<if test="prosLc != null and prosLc.length() == 10"> , #{prosLc} </if>
+			<if test="prosSp != null and prosSp.length() == 10"> , #{prosSp} </if>
+			<if test="prosBt != null and prosBt.length() == 10"> , #{prosBt} </if>
+			<if test="prosGt != null and prosGt.length() == 10"> , #{prosGt} </if>
+			<if test="prosCmr != null and prosCmr.length() == 10"> , #{prosCmr} </if>
+			<if test="prosMt != null and prosMt.length() == 10"> , #{prosMt} </if>
+			<if test="prosIe != null and prosIe.length() == 10"> , #{prosIe} </if>
+			<if test="prosAcFrom != null and prosAcFrom.length() == 10"> , #{prosAcFrom} </if>
+			<if test="prosAcTo != null and prosAcTo.length() == 10"> , #{prosAcTo} </if>
+			<if test="prosStFrom != null and prosStFrom.length() == 10"> , #{prosStFrom} </if>
+			<if test="prosStTo != null and prosStTo.length() == 10"> , #{prosStTo} </if>
+			<if test="prosColdFrom != null and prosColdFrom.length() == 10"> , #{prosColdFrom} </if>
+			<if test="prosColdTo != null and prosColdTo.length() == 10"> , #{prosColdTo} </if>
+			<if test="prosLngFrom != null and prosLngFrom.length() == 10"> , #{prosLngFrom} </if>
+			<if test="prosLngTo != null and prosLngTo.length() == 10"> , #{prosLngTo} </if>
+			<if test="prosGasFrom != null and prosGasFrom.length() == 10"> , #{prosGasFrom} </if>
+			<if test="prosGasTo != null and prosGasTo.length() == 10"> , #{prosGasTo} </if>
+			<if test="prosWf != null and prosWf.length() == 10"> , #{prosWf} </if>
+			<if test="prosDl != null and prosDl.length() == 10"> , #{prosDl} </if>
+			) 
+	</insert>
+	
+	<select id="getShipBbsList" parameterType="string" resultType="shipBbsBean">
+		SELECT B.UID, B.KIND, B.REMARK, DATE_FORMAT(B.INSERTDATE, '%y/%m/%d') AS INSERTDATE,
+			CONCAT(U.LASTNAME, ' ', U.FIRSTNAME) AS NAME
+		FROM SHIPBBS B LEFT OUTER JOIN USERINFO U ON (B.INSERTBY = U.UID)
+		WHERE B.PJT = #{pjt}
+		ORDER BY B.UID DESC
+	</select>
+	
+	<select id="getShipBbsFileList" parameterType="int" resultType="shipBbsFileInfoBean">
+		SELECT UID, FILENAME, SAVENAME
+		FROM SHIPBBSFILEINFO
+		WHERE SHIPBBSUID = #{shipBbsUid}
+	</select>
+	
+	<insert id="insertShipBbs" parameterType="shipBbsBean">
+		INSERT INTO SHIPBBS (PJT, KIND, REMARK, INSERTDATE, INSERTBY)
+		VALUES (#{pjt}, #{kind}, #{remark}, SYSDATE(), #{insertBy}) 
+		<selectKey resultType="int" keyProperty="uid" order="AFTER">
+	        SELECT LAST_INSERT_ID()
+	    </selectKey>
+	</insert>
+	
+	<insert id="insertShipBbsFileInfo" parameterType="shipBbsFileInfoBean">
+		INSERT INTO SHIPBBSFILEINFO (SHIPBBSUID, FILENAME, SAVENAME, FILESIZE, FILETYPE, INSERTDATE, INSERTBY)
+		VALUES (#{shipBbsUid}, #{fileName}, #{saveName}, #{fileSize}, #{fileType}, SYSDATE(), #{insertBy}) 
+	</insert>
+	
+	<delete id="deleteShipBbsFileAll" parameterType="int">
+		DELETE FROM SHIPBBSFILEINFO WHERE SHIPBBSUID = #{shipBbsUid}
+	</delete>
+	
+	<delete id="deleteShipBbs" parameterType="int">
+		DELETE FROM SHIPBBS WHERE UID = #{uid}
+	</delete>
+	
+	<select id="getShipBbsFile" parameterType="int" resultType="shipBbsFileInfoBean">
+		SELECT FILENAME, SAVENAME
+		FROM SHIPBBSFILEINFO
+		WHERE UID = #{uid}
+	</select>
+	
+	<select id="getStatusList" resultType="domainInfoBean">
+		SELECT VAL, DESCRIPTION FROM DOMAININFO
+		WHERE DOMAINUID = (SELECT UID FROM DOMAIN WHERE DOMAIN = 'STATUS')
+		ORDER BY VAL
+	</select>
+	
+	<select id="getScenarioList" parameterType="scenarioBean" resultType="scenarioBean">
+		SELECT SQL_CALC_FOUND_ROWS
+			S.UID, S.TITLE, S.DESCRIPTION, S.SHIPTYPE, S.STATUS, S.PROJEVENT, S.WORKTIME, 
+			S.LNGTOTAL, S.LN2TOTAL, S.MARGIN, S.MARGINCURRENCY, DI.DESCRIPTION AS SHIPTYPEDESC
+		FROM SCENARIO S
+			LEFT OUTER JOIN DOMAININFO DI ON (S.SHIPTYPE = DI.VAL AND DI.DOMAINUID = (SELECT UID FROM DOMAIN WHERE DOMAIN = 'SHIPTYPE'))
+		<where>
+			<if test="title != null and title.length() > 0">
+				LOWER(S.TITLE) LIKE CONCAT('%', LOWER(#{title}), '%')
+			</if>
+			<if test="description != null and description.length() > 0">
+				AND LOWER(S.DESCRIPTION) LIKE CONCAT('%', LOWER(#{description}), '%')
+			</if>
+			<if test="shipType != null and shipType != 'ALL'">
+				AND S.SHIPTYPE = #{shipType}
+			</if>
+		</where>
+		ORDER BY S.INSERTDATE DESC
+		LIMIT #{start}, #{limit}
+	</select>
+	
+	<select id="getScenarioListCnt" resultType="int">
+		SELECT FOUND_ROWS()
+	</select>
+	
+	<update id="updateScenarioStatus" parameterType="paramBean">
+		UPDATE SCENARIO SET STATUS = #{status}, UPDATEDATE = SYSDATE(), UPDATEBY = #{userUid}
+		WHERE UID = #{uid}
+	</update>
+	
+	<delete id="deleteScenario" parameterType="int">
+		DELETE FROM SCENARIO WHERE UID = #{uid}
+	</delete>
+	
+	<delete id="deleteScenarioDetailList" parameterType="int">
+		DELETE FROM SCENARIODETAIL WHERE SCENARIOUID = #{uid}
+	</delete>
+	
+	<select id="getProjEventList" resultType="domainInfoBean">
+		SELECT VAL, DESCRIPTION FROM DOMAININFO
+		WHERE DOMAINUID = (SELECT UID FROM DOMAIN WHERE DOMAIN = 'PROJEVENT')
+		ORDER BY UID
+	</select>
+	
+	<select id="getCurrencyList" resultType="domainInfoBean">
+		SELECT VAL, DESCRIPTION FROM DOMAININFO
+		WHERE DOMAINUID = (SELECT UID FROM DOMAIN WHERE DOMAIN = 'CURRENCY')
+		ORDER BY UID
+	</select>
+	
+	<select id="getColorList" resultType="domainInfoBean">
+		SELECT VAL, DESCRIPTION FROM DOMAININFO
+		WHERE DOMAINUID = (SELECT UID FROM DOMAIN WHERE DOMAIN = 'COLOR')
+		ORDER BY UID
+	</select>
+	
+	<select id="getScenarioOptionList" resultType="domainInfoBean">
+		SELECT VAL, DESCRIPTION FROM DOMAININFO
+		WHERE DOMAINUID = (SELECT UID FROM DOMAIN WHERE DOMAIN = 'SCENARIOOPTION')
+		ORDER BY UID
+	</select>
+	
+	<select id="getWorkStdSearchList" parameterType="paramBean" resultType="workStdBean">
+		SELECT UID, DESCRIPTION, COLOR, ISOPTION 
+		FROM WORKSTD
+		<if test="description != null and description.length() > 0">
+			WHERE LOWER(DESCRIPTION) LIKE CONCAT('%', LOWER(#{description}), '%')
+		</if>
+		ORDER BY DESCRIPTION
+	</select>
+	
+	<select id="isExistScenario" parameterType="string" resultType="int">
+		SELECT COUNT(UID)
+		FROM SCENARIO
+		WHERE LOWER(TITLE) = LOWER(#{title})
+	</select>
+	
+	<insert id="insertScenario" parameterType="scenarioBean">
+		INSERT INTO SCENARIO (TITLE, DESCRIPTION, SHIPTYPE, PROJEVENT, WORKTIME, LNGTOTAL, LN2TOTAL, 
+			MARGIN, MARGINCURRENCY, REVENUE, REVENUECURRENCY, COST, COSTCURRENCY, EXRATE, STATUS, INSERTDATE, INSERTBY, UPDATEDATE, UPDATEBY)
+		VALUES (#{title}, #{description}, #{shipType}, #{projEvent}, #{workTime}, #{lngTotal}, #{ln2Total},
+			#{margin}, #{marginCurrency}, #{revenue}, #{revenueCurrency}, #{cost}, #{costCurrency}, #{exRate}, 'ACT', SYSDATE(), #{userUid}, SYSDATE(), #{userUid})
+		<selectKey resultType="int" keyProperty="uid" order="AFTER">
+	        SELECT LAST_INSERT_ID()
+	    </selectKey>
+	</insert>
+	
+	<insert id="insertScenarioDetail" parameterType="scenarioDetailBean">
+		INSERT INTO SCENARIODETAIL (SCENARIOUID, SEQ, DESCRIPTION, COLOR, ISOPTION, OPTIONDATA, WORKTIME, LNG, LN2, INSERTDATE, INSERTBY, UPDATEDATE, UPDATEBY)
+		VALUES (#{scenarioUid}, #{seq}, #{description}, #{color}, #{isOption}, #{optionData}, #{workTime}, #{lng}, #{ln2}, SYSDATE(), #{userUid}, SYSDATE(), #{userUid})
+	</insert>
+	
+	<select id="getScenario" parameterType="int" resultType="scenarioBean">
+		SELECT S.UID, S.TITLE, S.DESCRIPTION, S.SHIPTYPE, S.PROJEVENT, S.WORKTIME, S.LNGTOTAL, S.LN2TOTAL, 
+			S.MARGIN, S.MARGINCURRENCY, S.REVENUE, S.REVENUECURRENCY, S.COST, S.COSTCURRENCY, S.EXRATE, DI.DESCRIPTION AS SHIPTYPEDESC
+		FROM SCENARIO S
+			LEFT OUTER JOIN DOMAININFO DI ON (S.SHIPTYPE = DI.VAL AND DI.DOMAINUID = (SELECT UID FROM DOMAIN WHERE DOMAIN = 'SHIPTYPE'))
+		WHERE S.UID = #{uid}
+	</select>
+	
+	<select id="getScenarioDetail" parameterType="int" resultType="scenarioDetailBean">
+		SELECT UID, SEQ, DESCRIPTION, COLOR, ISOPTION, OPTIONDATA, WORKTIME, LNG, LN2
+		FROM SCENARIODETAIL
+		WHERE SCENARIOUID = #{uid}
+		ORDER BY SEQ
+	</select>
+	
+	<update id="updateScenario" parameterType="scenarioBean">
+		UPDATE SCENARIO SET DESCRIPTION = #{description}, SHIPTYPE = #{shipType}, PROJEVENT = #{projEvent}, WORKTIME = #{workTime}, LNGTOTAL = #{lngTotal}, LN2TOTAL = #{ln2Total}, 
+			MARGIN = #{margin}, MARGINCURRENCY = #{marginCurrency}, REVENUE = #{revenue}, REVENUECURRENCY = #{revenueCurrency}, 
+			COST = #{cost}, COSTCURRENCY = #{costCurrency}, EXRATE = #{exRate}, UPDATEDATE = SYSDATE(), UPDATEBY = #{userUid}
+		WHERE UID = #{uid}
+	</update>
+	
+	<select id="getWorkStdLv1List" resultType="workStdBean">
+		SELECT UID, PARENTUID, CODELEVEL, DESCRIPTION, ISOPTION, COLOR 
+		FROM WORKSTD
+		WHERE CODELEVEL = 1
+		ORDER BY DESCRIPTION
+	</select>
+	
+	<select id="getWorkStdLv2List" parameterType="int" resultType="workStdBean">
+		SELECT UID, PARENTUID, CODELEVEL, DESCRIPTION, ISOPTION, COLOR 
+		FROM WORKSTD
+		WHERE CODELEVEL = 2 AND PARENTUID = #{parentUid}
+		ORDER BY DESCRIPTION
+	</select>
+	
+	<update id="updateWorkStd" parameterType="workStdBean">
+		UPDATE WORKSTD SET PARENTUID = #{parentUid}, CODELEVEL = #{codeLevel}, DESCRIPTION = #{description}, ISOPTION = #{isOption}, COLOR = #{color}
+		WHERE UID = #{uid}
+	</update>
+	
+	<insert id="insertWorkStd" parameterType="workStdBean">
+		INSERT INTO WORKSTD (PARENTUID, CODELEVEL, DESCRIPTION, ISOPTION, COLOR)
+		VALUES (#{parentUid}, #{codeLevel}, #{description}, #{isOption}, #{color})
+	</insert>
+	
+	<delete id="deleteWorkStd" parameterType="int">
+		DELETE FROM WORKSTD WHERE UID = #{uid}
+	</delete>
+</mapper>

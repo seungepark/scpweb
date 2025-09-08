@@ -1,0 +1,319 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ include file="/WEB-INF/jsp/share/conf.jsp" %>
+<c:forEach var="at" items="${auth}">
+	<c:if test="${at eq 'P_GREEN_SCHE_W'}">
+		<c:set var="P_GREEN_SCHE_W" value="true" />
+	</c:if>
+</c:forEach>
+<c:if test="${empty P_GREEN_SCHE_W}">
+	<c:redirect url="/index.html" />
+</c:if>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<!-- Meta, title, CSS, favicons, etc. -->
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<title>Smart Commissioning Platform</title>
+	<!-- jQuery -->
+	<link href="${pageContext.request.contextPath}/vendors/jquery/jqueryui/jquery-ui.min.css" rel="stylesheet">
+	<!-- Bootstrap -->
+	<link href="${pageContext.request.contextPath}/vendors/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<link href="${pageContext.request.contextPath}/vendors/bootstrap/css/bootstrap-table.min.css" rel="stylesheet">
+	<!-- Font Awesome -->
+	<link href="${pageContext.request.contextPath}/vendors/fontawesome/css/all.min.css" rel="stylesheet">
+	<link href="${pageContext.request.contextPath}/vendors/fontawesome/css/v4-shims.min.css" rel="stylesheet">
+	<link href="${pageContext.request.contextPath}/css/custom.min.css" rel="stylesheet">
+	<link href="${pageContext.request.contextPath}/css/common.css" rel="stylesheet">
+</head>
+
+<body>
+	<div class="body-wrap">
+        <%@ include file="/WEB-INF/jsp/include/menu/sidebar_6_3.jsp"%>
+        <div id="contentWrap" class="collapsed-content-wrap">
+            <%@ include file="/WEB-INF/jsp/include/menu/header_6_3.jsp"%>
+            <div class="main-container">
+<%-- 				<%@ include file="/WEB-INF/jsp/include/menu/bread_6_3.jsp"%> --%>
+				<div class="btn-option-hide pointer" id="dParentDataHide" data-i18n="showParent"></div>
+				<div id="dParentData" class="sec-option-card">
+					<div class="row">
+						<div class="col-md-3 col-sm-12">
+							<div class="lb-title" data-i18n="title"></div>
+							<input id="title" type="text">
+						</div>
+						<div class="col-md-4 col-sm-12">
+							<div class="lb-title" data-i18n="desc"></div>
+							<input id="desc" type="text" class="w-100">
+						</div>
+						<div class="col-md-3 col-sm-12">
+							<div class="lb-title" data-i18n="shipType"></div>
+							<select id="shipType">
+								<c:forEach var="shipType" items="${listShipType}">
+									<option value="${shipType.val}">${shipType.description}</option>
+								</c:forEach>
+							</select>
+						</div>
+						<div class="col-md-2 col-sm-12">
+							<div class="lb-title" data-i18n="projEvent"></div>
+							<select id="projEvent">
+								<option value="">-</option>
+								<c:forEach var="projEvent" items="${listProjEvent}">
+									<option value="${projEvent.val}">${projEvent.description}</option>
+								</c:forEach>
+							</select>
+						</div>
+					</div>
+					<div class="sp-16"></div>
+					<div class="row">
+						<div class="col-md-2 col-sm-12">
+							<div class="lb-title" data-i18n="workTime"></div>
+							<input id="workTime" type="text" disabled>
+						</div>
+						<div class="col-md-2 col-sm-12">
+							<div class="lb-title" data-i18n="lngTotal"></div>
+							<input id="lngTotal" type="text" disabled>
+						</div>
+						<div class="col-md-3 col-sm-12">
+							<div class="lb-title" data-i18n="ln2Total"></div>
+							<input id="ln2Total" type="text" disabled>
+						</div>
+						<div class="col-md-3 col-sm-12">
+							<div class="lb-title" data-i18n="margin"></div>
+							<input id="margin" type="text" disabled>
+						</div>
+						<div class="col-md-2 col-sm-12">
+							<div class="lb-title" data-i18n="marginCur"></div>
+							<select id="marginCur" onchange="setMargin(null, false)">
+								<c:forEach var="marginCur" items="${listMarginCur}">
+									<option value="${marginCur.val}">${marginCur.description}</option>
+								</c:forEach>
+							</select>
+						</div>
+					</div>
+					<div class="sp-16"></div>
+					<div class="row">
+						<div class="col-md-3 col-sm-12">
+							<div class="lb-title" data-i18n="revenue"></div>
+							<input id="revenue" type="text" onkeyup="setMargin(this, false)">
+						</div>
+						<div class="col-md-2 col-sm-12">
+							<div class="lb-title" data-i18n="revenueCur"></div>
+							<select id="revenueCur" onchange="setMargin(null, false)">
+								<c:forEach var="revenueCur" items="${listRevenueCur}">
+									<option value="${revenueCur.val}">${revenueCur.description}</option>
+								</c:forEach>
+							</select>
+						</div>
+						<div class="col-md-3 col-sm-12">
+							<div class="lb-title" data-i18n="cost"></div>
+							<input id="cost" type="text" onkeyup="setMargin(this, false)">
+						</div>
+						<div class="col-md-2 col-sm-12">
+							<div class="lb-title" data-i18n="costCur"></div>
+							<select id="costCur" onchange="setMargin(null, false)">
+								<c:forEach var="costCur" items="${listCostCur}">
+									<option value="${costCur.val}">${costCur.description}</option>
+								</c:forEach>
+							</select>
+						</div>
+						<div class="col-md-2 col-sm-12">
+							<div class="lb-title" data-i18n="exRate"></div>
+							<input id="exRate" type="text" onkeyup="setMargin(this, true)">
+						</div>
+					</div>
+				</div>
+				<div class="sp-24"></div>
+				<div class="tb-area">
+					<div class="d-flex flex-wrap flex-row-reverse">
+						<button class="bt-obj bt-primary" onClick="saveScenario()">
+							<img src="${pageContext.request.contextPath}/img/i_btn_save.svg" class="bt-icon" height="16px">
+							<span data-i18n="btnSave"></span>
+						</button>
+						<a href="${pageContext.request.contextPath}/sched/scenario/scenarioList.html">
+							<button class="bt-obj bt-secondary svg">
+								<img src="${pageContext.request.contextPath}/img/i_btn_return.svg" class="bt-icon" height="16px">
+								<span data-i18n="btnCancel"></span>
+							</button>
+						</a>
+						<button class="bt-obj bt-secondary svg" onClick="showWorkStdPop()">
+							<img src="${pageContext.request.contextPath}/img/i_btn_add.svg" class="bt-icon" height="16px">
+							<span data-i18n="btnAdd"></span>
+						</button>					
+						<button class="bt-obj bt-secondary svg" onclick="showCopyPop()">
+							<img src="${pageContext.request.contextPath}/img/i_logout.svg" class="bt-icon" height="16px">
+							<span data-i18n="btnCopy"></span>
+						</button>
+                   	</div>
+                   	<div class="sp-16"></div>
+					<div id="tbWrap" class="tb-wrap scroll-area-scenario-head">
+						<table class="tb-style">
+							<thead>
+								<tr>
+									<th><div class="tb-th-col"><span class="tb-th-content">&nbsp;</span></div></th>
+									<th><div class="tb-th-col"><span class="tb-th-content" data-i18n="list.seq"></span></div></th>
+									<th><div class="tb-th-col"><span class="tb-th-content" data-i18n="list.desc"></span></div></th>
+									<th><div class="tb-th-col"><span class="tb-th-content" data-i18n="list.color"></span></div></th>
+									<th><div class="tb-th-col"><span class="tb-th-content" data-i18n="list.option"></span></div></th>
+									<th><div class="tb-th-col"><span class="tb-th-content" data-i18n="list.workTime"></span></div></th>
+									<th><div class="tb-th-col"><span class="tb-th-content" data-i18n="list.lng"></span></div></th>
+									<th><div class="tb-th-col"><span class="tb-th-content" data-i18n="list.ln2"></span></div></th>
+									<th><div class="tb-th-col-last"><span class="tb-th-content">&nbsp;</span></div></th>
+								</tr>
+							</thead>
+							<tbody id="list">
+								<tr>
+									<td class="text-center" colspan="9" data-i18n="share:noList"></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+            </div>
+		</div>
+	</div>
+	
+	<!-- workStd search modal -->
+	<div class="modal fade" id="workStdPop" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" data-i18n="workStdPop.title"></h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div class="d-flex pop-op-area">
+        				<div class="pop-op-obj">
+        					<div class="pop-inner-title" data-i18n="workStdPop.desc"></div>
+        					<input id="workStdPopDesc" type="text">
+        				</div>
+        				<div class="ml-auto">
+        					<div class="pop-inner-title">&nbsp;</div>
+        					<button class="bt-obj bt-primary" onclick="getWorkStdSearchList()">
+								<img src="${pageContext.request.contextPath}/img/i_btn_search.svg" class="bt-icon" height="16px">
+								<span data-i18n="workStdPop.btnSearch"></span>
+							</button>
+        				</div>
+        			</div>
+        			<div class="tb-wrap multi-add-pop-op-tb-scroll-area border-bottom border-dark">
+						<table class="tb-style">
+							<thead>
+	         					<tr>
+	         						<th class="th-w-90"><div class="tb-th-col"><span class="tb-th-content"><input type="checkbox" id="workStdPopListAllChk"></span></div></th>
+			           				<th><div class="tb-th-col"><span class="tb-th-content" data-i18n="workStdPop.list.desc"></span></div></th>
+			           				<th class="th-w-120"><div class="tb-th-col"><span class="tb-th-content" data-i18n="workStdPop.list.color"></span></div></th>
+			           				<th class="th-w-120"><div class="tb-th-col-last"><span class="tb-th-content" data-i18n="workStdPop.list.option"></span></div></th>
+	         					</tr>
+							</thead>
+							<tbody id="workStdPopList"></tbody>
+						</table>
+					</div>
+					<div class="sp-32"></div>
+					<div id="workStdPopSelectList" class="multi-add-select-list-area inner-scroll-container"></div>
+				</div>
+				<div class="modal-footer">
+					<button class="bt-obj bt-primary" onclick="workStdPopAddList()" data-i18n="workStdPop.btnAdd"></button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- copy scenario modal -->
+	<div class="modal fade" id="copyPop" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" data-i18n="copyPop.title"></h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div class="d-flex pop-op-area">
+        				<div class="pop-op-obj">
+        					<div class="pop-inner-title" data-i18n="copyPop.code"></div>
+        					<input id="copyPopTitle" type="text">
+        				</div>
+        				<div class="pop-op-obj">
+        					<div class="pop-inner-title" data-i18n="copyPop.desc"></div>
+        					<input id="copyPopDesc" type="text">
+        				</div>
+        				<div class="pop-op-obj">
+        					<div class="pop-inner-title" data-i18n="copyPop.shipType"></div>
+        					<select id="copyPopShipType" class="">
+								<option value="ALL" data-i18n="copyPop.shipTypeAll"></option>
+								<c:forEach var="shipType" items="${listShipType}">
+                                    <option value="${shipType.val}">${shipType.description}</option>
+                                </c:forEach>
+							</select>
+        				</div>
+        				<div>
+        					<div class="pop-inner-title">&nbsp;</div>
+        					<button class="bt-obj bt-primary" onclick="getCopyPopScenarioList(1)">
+								<img src="${pageContext.request.contextPath}/img/i_btn_search.svg" class="bt-icon" height="16px">
+								<span data-i18n="copyPop.btnSearch"></span>
+							</button>
+        				</div>
+        			</div>
+        			<div class="tb-wrap pop-op-tb-scroll-area">
+						<table class="tb-style">
+							<thead>
+	         					<tr>
+			           				<th class="th-w-40"><div class="tb-th-col"><span class="tb-th-content">&nbsp;</span></div></th>
+			           				<th><div class="tb-th-col"><span class="tb-th-content" data-i18n="copyPop.list.title"></span></div></th>
+			           				<th><div class="tb-th-col"><span class="tb-th-content" data-i18n="copyPop.list.desc"></span></div></th>
+			           				<th><div class="tb-th-col-last"><span class="tb-th-content" data-i18n="copyPop.list.shipType"></span></div></th>
+	         					</tr>
+							</thead>
+							<tbody id="copyPopList">
+								<tr>
+									<td class="text-center" colspan="4" data-i18n="share:noList"></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="sp-16"></div>
+                    <div class="pg-area" id="copyPopPagination"></div>
+				</div>
+				<div class="modal-footer">
+					<button class="bt-obj bt-secondary" data-dismiss="modal" data-i18n="copyPop.btnClose"></button>
+					<button class="bt-obj bt-primary" onclick="copyScenario()" data-i18n="copyPop.btnCopy"></button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<script>
+		let _colorList = [];
+		let _optionList = [];
+		
+		<c:forEach var="item" items="${listColor}">
+	  		_colorList.push("${item.val}");
+	  	</c:forEach>
+		
+		<c:forEach var="item" items="${listOption}">
+	  		_optionList.push("${item.val}");
+	  	</c:forEach>
+	</script>
+	<!-- jQuery -->
+	<script src="${pageContext.request.contextPath}/vendors/jquery/jquery.min.js"></script>
+	<script src="${pageContext.request.contextPath}/vendors/jquery/jqueryui/jquery-ui.min.js"></script>
+	<!-- Bootstrap -->
+	<script src="${pageContext.request.contextPath}/vendors/bootstrap/js/bootstrap.bundle.min.js"></script>
+	<script src="${pageContext.request.contextPath}/vendors/bootstrap/js/bootstrap-table.min.js"></script>
+	<!-- Font Awesome -->
+	<script src="${pageContext.request.contextPath}/vendors/fontawesome/js/all.min.js"></script>
+	<script src="${pageContext.request.contextPath}/vendors/fontawesome/js/v4-shims.min.js"></script>
+	<script src="${pageContext.request.contextPath}/vendors/i18n/i18next-1.11.2.min.js"></script>
+	<script src="${pageContext.request.contextPath}/vendors/i18n/lang.js"></script>
+	<script src="${pageContext.request.contextPath}/js/custom.min.js"></script>
+	<script src="${pageContext.request.contextPath}/js/common.js"></script>
+	<script src="${pageContext.request.contextPath}/js/sched/scenario/newScenario.js"></script>
+</body>
+</html>

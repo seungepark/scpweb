@@ -1,0 +1,88 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+{
+	"list": [
+		<c:forEach var="tmp" items="${list}" varStatus="status">
+			{
+				"uid": ${tmp.uid},
+				"pjt": "${tmp.pjt}",
+				
+				"planLc": "${tmp.planLc}",
+				"planSp": "${tmp.planSp}",
+				"planBt": "${tmp.planBt}",
+				"planGt": "${tmp.planGt}",
+				"planCmr": "${tmp.planCmr}",
+				"planMt": "${tmp.planMt}",
+				"planIe": "${tmp.planIe}",
+				"planAcFrom": "${tmp.planAcFrom}",
+				"planAcTo": "${tmp.planAcTo}",
+				"planStFrom": "${tmp.planStFrom}",
+				"planStTo": "${tmp.planStTo}",
+				"planColdFrom": "${tmp.planColdFrom}",
+				"planColdTo": "${tmp.planColdTo}",
+				"planLngFrom": "${tmp.planLngFrom}",
+				"planLngTo": "${tmp.planLngTo}",
+				"planGasFrom": "${tmp.planGasFrom}",
+				"planGasTo": "${tmp.planGasTo}",
+				"planWf": "${tmp.planWf}",
+				"planDl": "${tmp.planDl}",
+				
+				"prosLc": "${tmp.prosLc}",
+				"prosSp": "${tmp.prosSp}",
+				"prosBt": "${tmp.prosBt}",
+				"prosGt": "${tmp.prosGt}",
+				"prosCmr": "${tmp.prosCmr}",
+				"prosMt": "${tmp.prosMt}",
+				"prosIe": "${tmp.prosIe}",
+				"prosAcFrom": "${tmp.prosAcFrom}",
+				"prosAcTo": "${tmp.prosAcTo}",
+				"prosStFrom": "${tmp.prosStFrom}",
+				"prosStTo": "${tmp.prosStTo}",
+				"prosColdFrom": "${tmp.prosColdFrom}",
+				"prosColdTo": "${tmp.prosColdTo}",
+				"prosLngFrom": "${tmp.prosLngFrom}",
+				"prosLngTo": "${tmp.prosLngTo}",
+				"prosGasFrom": "${tmp.prosGasFrom}",
+				"prosGasTo": "${tmp.prosGasTo}",
+				"prosWf": "${tmp.prosWf}",
+				"prosDl": "${tmp.prosDl}",
+				
+				"perfLc": "${tmp.perfLc}",
+				"perfSp": "${tmp.perfSp}",
+				"perfBt": "${tmp.perfBt}",
+				"perfGt": "${tmp.perfGt}",
+				"perfCmr": "${tmp.perfCmr}",
+				"perfMt": "${tmp.perfMt}",
+				"perfIe": "${tmp.perfIe}",
+				"perfAcFrom": "${tmp.perfAcFrom}",
+				"perfAcTo": "${tmp.perfAcTo}",
+				"perfStFrom": "${tmp.perfStFrom}",
+				"perfStTo": "${tmp.perfStTo}",
+				"perfColdFrom": "${tmp.perfColdFrom}",
+				"perfColdTo": "${tmp.perfColdTo}",
+				"perfLngFrom": "${tmp.perfLngFrom}",
+				"perfLngTo": "${tmp.perfLngTo}",
+				"perfGasFrom": "${tmp.perfGasFrom}",
+				"perfGasTo": "${tmp.perfGasTo}",
+				"perfWf": "${tmp.perfWf}",
+				"perfDl": "${tmp.perfDl}",
+				
+				"shipType": "${tmp.shipType}",
+				"typeModel": "${tmp.typeModel}",
+				"regOwner": "${tmp.regOwner}",
+				"projSeq": "${tmp.projSeq}",
+				"isOutside": "${tmp.isOutside}",
+				"crew1Pro": "${tmp.crew1Pro}",
+				"crew1Lead": "${tmp.crew1Lead}",
+				"crew2Pro": "${tmp.crew2Pro}",
+				"crew2Lead": "${tmp.crew2Lead}",
+				"crew3Pro": "${tmp.crew3Pro}",
+				"crew3Lead": "${tmp.crew3Lead}",
+				"comMain": "${tmp.comMain}",
+				"comSub": "${tmp.comSub}",
+				"operate": "${tmp.operate}"
+			}
+			<c:if test="${!status.last}">,</c:if>
+		</c:forEach>
+	]
+}

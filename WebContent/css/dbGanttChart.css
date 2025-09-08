@@ -1,0 +1,255 @@
+.ganttHead1, .ganttHead2, .ganttHead3 {
+    height: 20px;
+    font-size: 13px;
+    font-weight: 400;
+}
+
+.ganttTable {
+/* 	width:100%; */
+	position: relative;
+    table-layout: fixed;
+    background-color: #ffffff;
+    border-spacing: 0px;
+    border-collapse: separate !important;
+}
+
+.ganttTable td {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.ganttHead1 th {
+    /* border-left: 1px solid #b0b0b0; */
+    padding: 0;
+    margin: 0;
+    border: 1px solid #FFFFFF;
+    border-top: 1px solid var(--neutral-200);
+    white-space: nowrap;
+    word-break: break-all;
+}
+
+.ganttHead1 th, .ganttHead2 th, .ganttHead3 th {
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: center;
+    font-weight: 400;
+    width: 30px;
+    min-width: 30px;
+    max-width: 30px;
+}
+
+.ganttHead2 th { 
+    padding: 0;
+    margin: 0;
+    border-bottom: 1px solid #FFFFFF;
+    width: 30px;
+    min-width: 30px;
+    max-width: 30px;
+}
+
+
+.ganttHead2 th.bottom {
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.ganttHead2 .bold {
+    font-weight: 700;
+}
+
+.ganttHead2 .head2end {
+    padding: 4px 8px;
+    margin: 0;
+    border: 1px solid #FFFFFF;
+    border-bottom: 1px solid var(--neutral-200);
+    font-weight: 700;
+}
+
+.ganttHead3 th {
+    padding: 0;
+    margin: 0;
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.ganttHead2 th.holy, .ganttHead3 th.holy {
+    background-color: rgba(236, 195, 176, 0.40);
+}
+
+.ganttHead1 th.headSmall, .ganttHead2 th.headSmall {
+    font-size: 10px;
+}
+
+.line_chart_label {
+    position: absolute;
+    font-size: 12px;
+    font-weight: bold;
+    width: 44px;
+    text-align: right;
+}
+
+.ganttTable thead {
+    background: var(--neutral-100);
+	font-weight: 400;
+	line-height: 18px;
+    color: var(--neutral-800);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.ganttTable tbody tr td {
+    height: 60px;
+    border-right: 1px solid var(--neutral-200);
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.td-1st {
+	border-left: 1px solid var(--neutral-200);
+}
+
+.selected-row {
+    background: #b0b0b0 !important;
+}
+
+.hover-row {
+    background: aliceblue;
+}
+
+/* Add Animation */
+@keyframes animatetop {
+    from {top: -300px; opacity: 0}
+    to {top: 0; opacity: 1}
+}
+
+.last-row {
+    border-top: 1px double #000 !important;
+    border-bottom: 1px double #000 !important;
+}
+
+.tooltip {
+    width: 300px;
+    padding: 0px 10px;
+    font-family: Arial, sans-serif;
+    font-size: 10pt;
+    background-color: white;
+    border-radius: 6px;
+    position: absolute;
+    border: 1px solid #c6c6c6;
+    opacity:1;
+    transition: all 0.5s;
+}
+
+.tooltip p {
+    text-align: left;
+}
+
+
+div:focus {
+    outline: 4px dotted rgb(253, 43, 43) !important;
+    outline-offset: 4px !important;
+}
+
+.search-gantt-form {
+    width: 400px;
+}
+
+div.focus-schedule-box {
+    outline: 4px dotted rgb(253, 43, 43) !important;
+    outline-offset: 4px !important;
+}
+
+.over_tr_row {
+    position: absolute;
+    width: 100%;
+    height: 25px;
+    border: 2px solid red;
+    z-index: 10;
+}
+
+.ganttTable .hullnum {
+	width: 156px;
+	min-width: 156px;
+	height: 60px;
+	border-bottom: 1px solid #d0d0d0;
+	padding: 0px 8px;
+	font-weight: 400;
+	text-overflow: ellipsis; 
+	overflow: hidden; 
+	white-space: nowrap;
+}
+
+.ganttTable .own {
+	font-size: 11px;
+}
+
+.ganttTable .punchCnt {
+	width: 100px;
+	text-align: center;
+	border-right: 1px solid #FFFFFF;
+	border-bottom: 1px solid var(--neutral-200);
+}
+
+.ganttTable .nums {
+	width: 40px;
+	min-width: 40px;
+	padding: 0px 8px;
+	text-align: center;
+	border-bottom: 1px solid var(--neutral-200);
+	font-size: 16px;
+	font-weight: 400;
+	line-height: 24px;
+	color: var(--neutral-900);
+}
+
+.ganttTable .numsPer {
+	width: 70px;
+	min-width: 70px;
+	padding: 0px 8px;
+	text-align: center;
+	border-bottom: 1px solid var(--neutral-200);
+	background: var(--secondary-50);
+	font-size: 16px;
+	font-weight: 700;
+	line-height: 24px;
+	color: var(--neutral-900);
+}
+
+.ganttTable .actv {
+	width: 70px;
+	min-width: 70px;
+	padding: 0px 8px;
+	text-align: center;
+	border-bottom: 1px solid var(--neutral-200);
+	background: var(--secondary-50);
+	font-size: 13px;
+	font-weight: 400;
+	line-height: 24px;
+	color: var(--neutral-900);
+}
+
+.ganttTable .quaynm {
+	width: 40px;
+	min-width: 40px;
+	padding: 0px 8px;
+	text-align: center;
+	border-bottom: 1px solid var(--neutral-200);
+	font-size: 13px;
+	font-weight: 400;
+	line-height: 24px;
+	color: var(--neutral-900);
+}
+
+.scroll-area {
+	min-width: 1000px;
+	min-height: 450px;
+	max-height: calc(100vh - 420px);
+	overflow-x: auto; 
+	overflow-y: auto;
+}
+
+.leftFix {
+	position: -webkit-sticky; 
+  	position: sticky; 
+  	left: 0;
+}
+
+/*================================================ media 1920/1080 ================================================*/

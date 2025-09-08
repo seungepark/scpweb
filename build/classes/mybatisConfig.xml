@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<settings>
+		<setting name="cacheEnabled" value="true"/>
+    </settings>
+    
+    <typeAliases>
+    	<typeAlias alias="paramBean" type="com.ssshi.ddms.dto.ParamBean"/>
+    	<typeAlias alias="userInfoBean" type="com.ssshi.ddms.dto.UserInfoBean"/>
+    	<typeAlias alias="authGroupBean" type="com.ssshi.ddms.dto.AuthGroupBean"/>
+    	<typeAlias alias="shipInfoBean" type="com.ssshi.ddms.dto.ShipInfoBean"/>
+    	<typeAlias alias="authInfoBean" type="com.ssshi.ddms.dto.AuthInfoBean"/>
+    	<typeAlias alias="authListBean" type="com.ssshi.ddms.dto.AuthListBean"/>
+    	<typeAlias alias="apprLineBean" type="com.ssshi.ddms.dto.ApprLineBean"/>
+    	<typeAlias alias="codeInfoBean" type="com.ssshi.ddms.dto.CodeInfoBean"/>
+    	<typeAlias alias="authUserBean" type="com.ssshi.ddms.dto.AuthUserBean"/>
+    	<typeAlias alias="fileInfoBean" type="com.ssshi.ddms.dto.FileInfoBean"/>
+    	<typeAlias alias="auditLogBean" type="com.ssshi.ddms.dto.AuditLogBean"/>
+    	<typeAlias alias="domainBean" type="com.ssshi.ddms.dto.DomainBean"/>
+    	<typeAlias alias="domainInfoBean" type="com.ssshi.ddms.dto.DomainInfoBean"/>
+    	<typeAlias alias="cronInfoBean" type="com.ssshi.ddms.dto.CronInfoBean"/>
+    	<typeAlias alias="schedulerInfoBean" type="com.ssshi.ddms.dto.SchedulerInfoBean"/>
+    	<typeAlias alias="scheDetailInfoBean" type="com.ssshi.ddms.dto.SchedulerDetailInfoBean"/>
+    	<typeAlias alias="scheHierarchyBean" type="com.ssshi.ddms.dto.ScheduleHierarchyBean"/>
+    	<typeAlias alias="scheCodeInfoBean" type="com.ssshi.ddms.dto.ScheduleCodeInfoBean"/>
+    	<typeAlias alias="scheCodeDetailBean" type="com.ssshi.ddms.dto.ScheduleCodeDetailBean"/>
+    	<typeAlias alias="scheStdInfoBean" type="com.ssshi.ddms.dto.ScheduleStdInfoBean"/>
+    	<typeAlias alias="scheLoadInfoBean" type="com.ssshi.ddms.dto.ScheduleLoadInfoBean"/>
+    	<typeAlias alias="scheLoadDetailBean" type="com.ssshi.ddms.dto.ScheduleLoadDetailBean"/>
+		<typeAlias alias="stndReqInfoBean" type="com.ssshi.ddms.dto.StandardReqInfoBean" />
+		<typeAlias alias="vsslReqInfoBean" type="com.ssshi.ddms.dto.VesselReqInfoBean" />
+		<typeAlias alias="vsslReqInfoDetailBean" type="com.ssshi.ddms.dto.VesselReqInfoDetailBean" />
+		<typeAlias alias="shipCondBean" type="com.ssshi.ddms.dto.ShipCondBean" />
+	    <typeAlias alias="schedulerCrewInfoBean" type="com.ssshi.ddms.dto.SchedulerCrewInfoBean" />
+	    <typeAlias alias="schedulerCrewDetailBean" type="com.ssshi.ddms.dto.SchedulerCrewDetailBean" />
+	    <typeAlias alias="schedulerVersionInfoBean" type="com.ssshi.ddms.dto.SchedulerVersionInfoBean" />
+	    <typeAlias alias="schedulerReportInfoBean" type="com.ssshi.ddms.dto.SchedulerReportInfoBean" />
+	    <typeAlias alias="scheCrewBean" type="com.ssshi.ddms.dto.ScheCrewBean" />
+	    <typeAlias alias="scheCrewListBean" type="com.ssshi.ddms.dto.ScheCrewListBean" />
+	    <typeAlias alias="scheCrewInOutBean" type="com.ssshi.ddms.dto.ScheCrewInOutBean" />
+	    <typeAlias alias="scheTrialInfoBean" type="com.ssshi.ddms.dto.ScheTrialInfoBean" />
+	    <typeAlias alias="scheMailBean" type="com.ssshi.ddms.dto.ScheMailBean" />
+	    <typeAlias alias="scheMailLogBean" type="com.ssshi.ddms.dto.ScheMailLogBean" />
+	    <typeAlias alias="scheReportDepartureBean" type="com.ssshi.ddms.dto.ScheReportDepartureBean" />
+	    <typeAlias alias="scheReportDailyBean" type="com.ssshi.ddms.dto.ScheReportDailyBean" />
+	    <typeAlias alias="scheReportCompBean" type="com.ssshi.ddms.dto.ScheReportCompBean" />
+	    <typeAlias alias="scheTcNoteBean" type="com.ssshi.ddms.dto.ScheTcNoteBean" />
+	    <typeAlias alias="scheTcNoteFileInfoBean" type="com.ssshi.ddms.dto.ScheTcNoteFileInfoBean" />
+	    <typeAlias alias="scheTcNoteTcInfoBean" type="com.ssshi.ddms.dto.ScheTcNoteTcInfoBean" />
+	    <typeAlias alias="scheduleBean" type="com.ssshi.ddms.dto.ScheduleBean" />
+	    <typeAlias alias="scdvmEvntSchBean" type="com.ssshi.ddms.dto.ScdvmEvntSchBean" />
+	    <typeAlias alias="scheDateTimeBean" type="com.ssshi.ddms.dto.ScheDateTimeBean" />
+	    <typeAlias alias="pjtEvntBean" type="com.ssshi.ddms.dto.PjtEvntBean" />
+	    <typeAlias alias="pjtEvntColumnBean" type="com.ssshi.ddms.dto.PjtEvntColumnBean" />
+	    <typeAlias alias="shipBbsBean" type="com.ssshi.ddms.dto.ShipBbsBean" />
+	    <typeAlias alias="shipBbsFileInfoBean" type="com.ssshi.ddms.dto.ShipBbsFileInfoBean" />
+	    <typeAlias alias="scenarioBean" type="com.ssshi.ddms.dto.ScenarioBean" />
+	    <typeAlias alias="scenarioDetailBean" type="com.ssshi.ddms.dto.ScenarioDetailBean" />
+	    <typeAlias alias="workStdBean" type="com.ssshi.ddms.dto.WorkStdBean" />
+    </typeAliases>
+</configuration>
