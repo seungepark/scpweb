@@ -4,8 +4,8 @@
        >  파일 : jdk-8u202-windows-x64.exe
    
    1-2 tomcat 8.5 설치
-      >  경로 : https://archive.apache.org/dist/tomcat/tomcat-8/v8.5.0/bin/
-      >  파일 : apache-tomcat-8.5.0-windows-x64.zip
+      >  경로 : https://archive.apache.org/dist/tomcat/tomcat-8/v8.5.99/bin/
+      >  파일 : apache-tomcat-8.5.99-windows-x64.zip   
       >
 
    1-3 mysql
