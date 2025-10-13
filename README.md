@@ -10,6 +10,8 @@
 
    1-3 mysql
       > 참고사이트 : https://webobj.tistory.com/49
+      > https://downloads.mysql.com/archives/installer/
+      > 
       >  mysql-5.7.44-winx64.zip   (32비트로 받아지는듯...)
 
    1-4 eclipse
