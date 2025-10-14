@@ -1,0 +1,19 @@
+ <!-- 프로젝트 정보 목록 조회 쿼리-->
+    <select id="getProjectInfoList" parameterType="ProjectInfoBean" resultMap="ProjectInfoMap">
+       SELECT 
+	    S.HULLNUM as projNo,        
+	    S.UID as schedulerUid,           
+	    S.TRIALKEY as trialKey,        
+	    SI.REGOWNER as regOwner,         
+	    SI.SHIPTYPE as shipType,          
+	    SI.PROJSEQ as projSeq,          
+	    S.STATUS
+	FROM SCHEDULERINFO S
+	INNER JOIN SCHEDULERVERSIONINFO SVI ON (S.SCHEDULERVERSIONINFOUID = SVI.UID AND S.REVNUM = SVI.PLANREVNUM)
+	LEFT OUTER JOIN SCHETRIALINFO TI ON (S.UID = TI.SCHEDULERINFOUID)
+	LEFT OUTER JOIN SHIPINFO SI ON (S.HULLNUM = SI.SHIPNUM)
+	LEFT OUTER JOIN USERINFO UI ON (S.INSERTBY = UI.UID)
+	-- WHERE S.STATUS = 'ACT'
+	ORDER BY S.INSERTDATE desc
+       
+    </select>    
