@@ -1,0 +1,46 @@
+-- 화면 리스트 조회 쿼리(getAuthList)
+SELECT AI.AUTHCODE 
+		FROM AUTHLIST AL
+			LEFT OUTER JOIN AUTHINFO AI ON (AL.AUTHINFOUID = AI.UID AND AI.STATUS = 'ACT')
+		WHERE AL.STATUS = 'ACT' 
+			AND AL.AUTHGROUPUID IN (
+				SELECT AU.AUTHGROUPUID FROM AUTHUSER AU WHERE AU.STATUS = 'ACT' AND AU.USERINFOUID = 2
+			)
+;
+
+-- 권한그룹(uid 1 : system Developer / uid 2 : Captain)
+select *
+from AUTHGROUP; 
+
+-- 그룹별 권한 목록(authinfouid : 권한기준정보 uid)
+select *
+from AUTHLIST; 
+
+INSERT INTO scp_db.authlist
+(UID, AUTHGROUPUID, AUTHINFOUID, STATUS, INSERTBY, INSERTDATE, UPDATEBY, UPDATEDATE)
+VALUES(523, 1, 104, 'ACT', 1, SYSDATE(), 1, SYSDATE());
+
+INSERT INTO scp_db.authlist
+(UID, AUTHGROUPUID, AUTHINFOUID, STATUS, INSERTBY, INSERTDATE, UPDATEBY, UPDATEDATE)
+VALUES(524, 1, 105, 'ACT', 1, SYSDATE(), 1, SYSDATE());
+
+-- 권한 기준정보
+-- 승선자 관리 > 시운전 승선 신청[읽기] : P_REG_CREW_R : 1310
+-- 승선자 관리 > 시운전 승선 신청[쓰기] : P_REG_CREW_W : 1320
+select * 
+from AUTHINFO;
+
+INSERT INTO scp_db.authinfo
+(UID, SHIPINFOUID, AUTHCODE, KIND, DESCRIPTION, UPAUTHINFOUID, ORD, STATUS, INSERTBY, INSERTDATE, UPDATEBY, UPDATEDATE)
+VALUES(104, 2, 'P_REG_CREW_R', 'PAGE', '승선자 관리 > 시운전 승선 신청[읽기]', 0, 1310, 'ACT', 1, SYSDATE(), 1, SYSDATE());
+INSERT INTO scp_db.authinfo
+(UID, SHIPINFOUID, AUTHCODE, KIND, DESCRIPTION, UPAUTHINFOUID, ORD, STATUS, INSERTBY, INSERTDATE, UPDATEBY, UPDATEDATE)
+VALUES(105, 2, 'P_REG_CREW_W', 'PAGE', '승선자 관리 > 시운전 승선 신청[쓰기]', 0, 1320, 'ACT', 1, SYSDATE(), 1, SYSDATE());
+
+-- 사용자 권한정보
+select *
+from AUTHUSER;
+
+-- 사용자 정보(uid 2 : admin)
+select *
+from USERINFO;

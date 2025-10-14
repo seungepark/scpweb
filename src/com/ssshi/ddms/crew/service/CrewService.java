@@ -1,4 +1,4 @@
-package com.ssshi.ddms.sche.service;
+package com.ssshi.ddms.crew.service;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -48,11 +48,14 @@ import com.ssshi.ddms.dto.SchedulerInfoBean;
 import com.ssshi.ddms.dto.SchedulerVersionInfoBean;
 import com.ssshi.ddms.dto.ShipCondBean;
 import com.ssshi.ddms.dto.UserInfoBean;
+import com.ssshi.ddms.dto.RegistrationCrewBean;
+import com.ssshi.ddms.dto.RegistrationCrewListBean;
 import com.ssshi.ddms.mybatis.dao.DbDaoI;
 import com.ssshi.ddms.mybatis.dao.ManagerDaoI;
 import com.ssshi.ddms.mybatis.dao.RevDaoI;
 import com.ssshi.ddms.mybatis.dao.ScheDaoI;
 import com.ssshi.ddms.mybatis.dao.SystemDaoI;
+import com.ssshi.ddms.mybatis.dao.CrewDaoI;
 import com.ssshi.ddms.util.CommonUtil;
 import com.ssshi.ddms.util.ExcelUtil;
 import com.ssshi.ddms.util.FileUtil;
@@ -60,13 +63,13 @@ import com.ssshi.ddms.util.SmtpUtil;
 import com.ssshi.ddms.util.ValidUtil;
 
 /********************************************************************************
- * 프로그램 개요 : Sche
+ * 프로그램 개요 : Crew
  * 
- * 최초 작성자 : KHJ
- * 최초 작성일 : 2024-02-28
+ * 최초 작성자 : GMJ
+ * 최초 작성일 : 2025-09-01
  * 
- * 최종 수정자 : KHJ
- * 최종 수정일 : 2025-05-12
+ * 최종 수정자 : GMJ
+ * 최종 수정일 : 2025-09-01
  * 
  * 메모 : 없음
  * 
@@ -78,7 +81,7 @@ import com.ssshi.ddms.util.ValidUtil;
  ********************************************************************************/
 
 @Service
-public class ScheService implements ScheServiceI {
+public class CrewService implements CrewServiceI {
 
 	@Autowired
 	private ScheDaoI dao;
@@ -95,6 +98,123 @@ public class ScheService implements ScheServiceI {
 	@Autowired
 	private RevDaoI revDao;
 	
+	@Autowired
+	private CrewDaoI crewDao;
+	
+	@Override
+	public Map<String, Object> registrationCrew(HttpServletRequest request, RegistrationCrewBean bean) throws Exception {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		List<RegistrationCrewBean> crewList = crewDao.getRegistrationCrewList(bean);
+		
+		if(crewList != null) {
+			for(int i = 0; i < crewList.size(); i++) {
+				crewList.get(i).setInOutList(dao.getCrewInOutList(crewList.get(i).getUid()));
+			}
+		}
+		
+		resultMap.put(Const.BEAN, dao.getScheduler(bean.getUid()));
+		resultMap.put(Const.LIST, crewList);
+		resultMap.put("status", dao.getTrialStatus(bean.getUid()));
+		
+		resultMap.put(Const.LIST + "Ship", crewDao.getShipList());
+		return resultMap;
+	}
+	
+	@Override
+	public Map<String, Object> getRegistrationCrewList(HttpServletRequest request, RegistrationCrewBean bean) throws Exception {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		List<RegistrationCrewBean> crewList = crewDao.getRegistrationCrewList(bean);
+		resultMap.put(Const.LIST_CNT, crewDao.getRegistrationCrewListCnt());
+		
+		if(crewList != null) {
+			for(int i = 0; i < crewList.size(); i++) {
+				crewList.get(i).setInOutList(dao.getCrewInOutList(crewList.get(i).getUid()));
+			}
+		}
+
+		resultMap.put(Const.BEAN, dao.getScheduler(bean.getUid()));
+		resultMap.put(Const.LIST, crewList);
+		resultMap.put("status", dao.getTrialStatus(bean.getUid()));
+		
+		resultMap.put(Const.LIST + "Ship", crewDao.getShipList());
+		return resultMap;
+	}
+	
+	@Override
+	public Map<String, Object> registrationCrewSave(HttpServletRequest request, RegistrationCrewListBean bean) throws Exception {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		System.out.println("registrationCrewSave1");
+		boolean isResult = DBConst.FAIL;
+		String status = dao.getTrialStatus(bean.getSchedulerInfoUid());
+		
+		if(DBConst.SCHE_TRIAL_INFO_TRIALSTATUS_ONGOING.equals(status) || DBConst.SCHE_TRIAL_INFO_TRIALSTATUS_ARRIVAL.equals(status)) {
+			resultMap.put(Const.ERRCODE, status);
+		}else {
+			if(DBConst.Y.equals(dao.isOfflineMode(bean.getSchedulerInfoUid()))) {
+				resultMap.put(Const.ERRCODE, Const.ERRCODE_IS_OFFLINE);
+			}else {
+				int userUid = ((UserInfoBean)(request.getSession().getAttribute(Const.SS_USERINFO))).getUid();
+				
+				List<Integer> crewUidList = dao.getCrewUidList(bean.getSchedulerInfoUid());
+				dao.deleteCrewList(bean.getSchedulerInfoUid());
+				
+				if(crewUidList != null) {
+					for(int i = 0; i < crewUidList.size(); i++) {
+						dao.deleteCrewInoutList(crewUidList.get(i));
+					}
+				}
+				
+				for(int i = 0; i < bean.getKind().length; i++) {
+					RegistrationCrewBean crew = new RegistrationCrewBean();
+					crew.setSchedulerInfoUid(bean.getSchedulerInfoUid());
+					crew.setKind(bean.getKind()[i]);
+					crew.setCompany(bean.getCompany()[i]);
+					crew.setDepartment(bean.getDepartment()[i]);
+					crew.setName(bean.getName()[i]);
+					crew.setRank(bean.getRank()[i]);
+					crew.setIdNo(bean.getIdNo()[i]);
+					crew.setWorkType1(bean.getWorkType1()[i]);
+					crew.setWorkType2(bean.getWorkType2()[i]);
+					crew.setMainSub(bean.getMainSub()[i]);
+					crew.setFoodStyle(bean.getFoodStyle()[i]);
+					crew.setPersonNo(bean.getPersonNo()[i]);
+					crew.setPhone(bean.getPhone()[i]);
+					crew.setIsPlan(DBConst.Y);
+					crew.setUserUid(userUid);
+					
+					if(crewDao.insertRegistrationCrew(crew) > DBConst.ZERO) {
+						if(!bean.getInDate()[i].isEmpty()) {
+							ScheCrewInOutBean inOut = new ScheCrewInOutBean();
+							inOut.setScheCrewUid(crew.getUid());
+							inOut.setInOutDate(bean.getInDate()[i]);
+							inOut.setSchedulerInOut(DBConst.SCHE_CREW_INOUT_IN);
+							inOut.setPerformanceInOut(DBConst.SCHE_CREW_INOUT_NONE);
+							inOut.setUserUid(userUid);
+							dao.insertCrewInOut(inOut);
+						}
+						
+						if(!bean.getOutDate()[i].isEmpty()) {
+							ScheCrewInOutBean inOut = new ScheCrewInOutBean();
+							inOut.setScheCrewUid(crew.getUid());
+							inOut.setInOutDate(bean.getOutDate()[i]);
+							inOut.setSchedulerInOut(DBConst.SCHE_CREW_INOUT_OUT);
+							inOut.setPerformanceInOut(DBConst.SCHE_CREW_INOUT_NONE);
+							inOut.setUserUid(userUid);
+							dao.insertCrewInOut(inOut);
+						}
+					}
+				}
+				
+				isResult = DBConst.SUCCESS;
+			}
+		}
+		
+		resultMap.put(Const.RESULT, isResult);
+		
+		return resultMap;
+	}
+	
+	
 	// ManagerServiceI.getSchedulerDepartureList
 	@Override
 	public Map<String, Object> getScheList(SchedulerInfoBean bean) throws Exception {
@@ -102,8 +222,11 @@ public class ScheService implements ScheServiceI {
 		bean.setStart(CommonUtil.getListStart(bean.getPage()));
 		bean.setLimit(CommonUtil.LIST_LIMIT);
 
+		System.out.println("오나요1");
 		resultMap.put(Const.LIST, dao.getScheList(bean));
+		System.out.println("오나요2");
 		resultMap.put(Const.LIST_CNT, dao.getScheListCnt());
+
 
 		return resultMap;
 	}
@@ -231,23 +354,7 @@ public class ScheService implements ScheServiceI {
 		return resultMap;
 	}
 
-	@Override
-	public Map<String, Object> planCrew(HttpServletRequest request, ParamBean bean) throws Exception {
-		Map<String, Object> resultMap = new HashMap<String, Object>();
-		List<ScheCrewBean> crewList = dao.getCrewList(bean.getUid());
-		
-		if(crewList != null) {
-			for(int i = 0; i < crewList.size(); i++) {
-				crewList.get(i).setInOutList(dao.getCrewInOutList(crewList.get(i).getUid()));
-			}
-		}
-		
-		resultMap.put(Const.BEAN, dao.getScheduler(bean.getUid()));
-		resultMap.put(Const.LIST, crewList);
-		resultMap.put("status", dao.getTrialStatus(bean.getUid()));
-		
-		return resultMap;
-	}
+
 	
 	@Override
 	public void downCrewExcel(HttpServletResponse response, ParamBean bean) throws Exception {
@@ -706,9 +813,9 @@ public class ScheService implements ScheServiceI {
 	@Override
 	public Map<String, Object> planCrewSave(HttpServletRequest request, ScheCrewListBean bean) throws Exception {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		System.out.println("planCrewSave1");
 		boolean isResult = DBConst.FAIL;
 		String status = dao.getTrialStatus(bean.getSchedulerInfoUid());
+		
 		
 		if(DBConst.SCHE_TRIAL_INFO_TRIALSTATUS_ONGOING.equals(status) || DBConst.SCHE_TRIAL_INFO_TRIALSTATUS_ARRIVAL.equals(status)) {
 			resultMap.put(Const.ERRCODE, status);

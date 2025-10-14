@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper      
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"      
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.ssshi.ddms.mybatis.dao.CrewDaoI"> 
+
+	<select id="getShipList" resultType="domainInfoBean">		SELECT SHIPNUM AS VAL, SHIPNUM AS DESCRIPTION FROM SHIPINFO WHERE TITLE <![CDATA[ <> ]]> '';
+	</select>
+	
+	<select id="getRegistrationCrewList" parameterType="RegistrationCrewBean" resultType="RegistrationCrewBean">
+		SELECT UID, `KEY`, PROJECT AS PROJECTNO, KIND, COMPANY, DEPARTMENT, NAME, RANK, IDNO, WORKTYPE1,
+	   		   WORKTYPE2, `WORK`, MAINSUB, FOODSTYLE, PERSONNO, GENDER, PHONE, ISPLAN, TERMINAL,
+	   		   ORDERER, ORDERING_DATE, `ORDERING`, ISNONE, DEL_YN
+  		  FROM SCHECREW
+		 <!-- WHERE PROJECT = #{ship} -->
+	</select>
+	
+	<select id="getRegistrationCrewListCnt" resultType="int">
+		SELECT FOUND_ROWS()
+	</select>
+	
+	<insert id="insertRegistrationCrew" parameterType="RegistrationCrewBean">
+		INSERT INTO SCHECREW (SCHEDULERINFOUID, KIND, PROJECTNO, COMPANY, DEPARTMENT, NAME, RANK, IDNO, WORKTYPE1, WORKTYPE2, 
+			MAINSUB, FOODSTYLE, PERSONNO, PHONE, ISPLAN, ISNONE, INSERTDATE, INSERTBY, UPDATEDATE, UPDATEBY)
+		VALUES (#{schedulerInfoUid}, #{kind}, #{company}, #{department}, #{name}, #{rank}, #{idNo}, #{workType1}, #{workType2}, 
+			#{mainSub}, #{foodStyle}, #{personNo}, #{phone}, #{isPlan}, 'N', SYSDATE(), #{userUid}, SYSDATE(), #{userUid})
+		<selectKey resultType="int" keyProperty="uid" order="AFTER">
+	        SELECT LAST_INSERT_ID()
+	    </selectKey>
+	</insert>
+	
+</mapper>

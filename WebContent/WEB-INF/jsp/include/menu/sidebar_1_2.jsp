@@ -88,6 +88,14 @@
 	<c:if test="${at eq 'P_SYS_CRON_W'}">
 		<c:set var="M_P_SYS_CRON_W" value="true" />
 	</c:if>
+	
+	<c:if test="${at eq 'P_REG_CREW_R'}">
+		<c:set var="M_P_REG_CREW_R" value="true" />
+	</c:if>
+	<c:if test="${at eq 'P_REG_CREW_W'}">
+		<c:set var="M_P_REG_CREW_W" value="true" />
+	</c:if>
+	
 </c:forEach>
 <div class="sidebar-wrap">
 	<div class="sidebar">
@@ -129,7 +137,7 @@
 	       		</c:if>
 	   		</div>
 	   	</c:if>
-	   	<c:if test="${M_P_GREEN_SCHE_R or M_P_GREEN_SCHE_W}">
+	   	<c:if test="${M_P_PLAN_SCHE_R or M_P_PLAN_SCHE_W or M_P_RESULT_SCHE_R or M_P_RESULT_SCHE_W or M_P_SHIP_INFO_R or M_P_SHIP_INFO_W}">
 	   		<div class="main-item" data-toggle="collapse" data-target="#main-6-collapse" aria-expanded="false">
 	        	<div class="main-item-icon-area">
 	            	<svg class="main-item-icon" width="32" height="33" viewBox="0 0 32 33" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -154,7 +162,7 @@
        			</a>
 	   		</div>
 	   	</c:if>
-   		<c:if test="${M_P_PLAN_SCHE_R or M_P_PLAN_SCHE_W or M_P_RESULT_SCHE_R or M_P_RESULT_SCHE_W}">
+   		<c:if test="${M_P_REG_CREW_R or M_P_REG_CREW_W}">
 	   		<div class="main-item" data-toggle="collapse" data-target="#main-2-collapse" aria-expanded="false">
 	       		<div class="main-item-icon-area">
 	           		<svg class="main-item-icon" width="32" height="33" viewBox="0 0 32 33" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -164,13 +172,13 @@
 	       		<div class="main-item-title" data-i18n="share:sidebar.main2.title"></div>
 	   		</div>
 	   		<div id="main-2-collapse" class="collapse hide">
-	   			<a onclick="delSearchCookie()" href="#">
+	   			<a onclick="delSearchCookie()" href="${pageContext.request.contextPath}/crew/registrationCrew.html">
 		       		<div class="sub-item-wrap sub-item" data-i18n="share:sidebar.main2.sub1"></div>
 		       	</a>
-		       	<a onclick="delSearchCookie()" href="#">
+		       	<a onclick="delSearchCookie()" href="${pageContext.request.contextPath}/crew/anchorageMealRequest.html">
 		       		<div class="sub-item-wrap sub-item" data-i18n="share:sidebar.main2.sub2"></div>
 		       	</a>
-		       	<a onclick="delSearchCookie()" href="#">
+		       	<a onclick="delSearchCookie()" href="${pageContext.request.contextPath}/crew/resultMeal.html">
 		       		<div class="sub-item-wrap sub-item" data-i18n="share:sidebar.main2.sub3"></div>
 		       	</a>
 	   		</div>

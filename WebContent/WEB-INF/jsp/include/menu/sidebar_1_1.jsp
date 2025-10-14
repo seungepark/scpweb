@@ -164,7 +164,7 @@
 	       		<div class="main-item-title" data-i18n="share:sidebar.main2.title"></div>
 	   		</div>
 	   		<div id="main-2-collapse" class="collapse hide">
-	   			<a onclick="delSearchCookie()" href="#">
+	   			<a onclick="delSearchCookie()" href="${pageContext.request.contextPath}/crew/crewInfo.html">
 		       		<div class="sub-item-wrap sub-item" data-i18n="share:sidebar.main2.sub1"></div>
 		       	</a>
 		       	<a onclick="delSearchCookie()" href="#">

@@ -3,18 +3,6 @@
 <div class="header-container">
    	<div class="header-title-area">
    		<span class="header-bread" data-i18n="share:sidebar.main2.sub1"></span>
-   		<c:if test="${not empty bean and bean['class'].simpleName == 'SchedulerInfoBean'}">
-			<span class="header-title">
-				<c:choose>
-					<c:when test="${not empty bean.trialKey}">${bean.trialKey}</c:when>
-					<c:otherwise>
-						<c:if test="${not empty bean.hullnum}">${bean.hullnum}</c:if>
-					</c:otherwise>
-				</c:choose>
-				<c:if test="${not empty bean.shiptype}"> / ${bean.shiptype}</c:if>
-				<c:if test="${not empty bean.description}"> / ${bean.description}</c:if>
-			</span>
-		</c:if>
    	</div>
 	<div class="header-avatar-area">
      	<img src="${pageContext.request.contextPath}/getProImgStream.html" class="header-avatar">

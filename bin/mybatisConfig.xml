@@ -62,5 +62,7 @@
 	    <typeAlias alias="scenarioBean" type="com.ssshi.ddms.dto.ScenarioBean" />
 	    <typeAlias alias="scenarioDetailBean" type="com.ssshi.ddms.dto.ScenarioDetailBean" />
 	    <typeAlias alias="workStdBean" type="com.ssshi.ddms.dto.WorkStdBean" />
+	    <!-- Bean 추가 -->
+	    <typeAlias alias="RegistrationCrewBean" type="com.ssshi.ddms.dto.RegistrationCrewBean" />
     </typeAliases>
 </configuration>

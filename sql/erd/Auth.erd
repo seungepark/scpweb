@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<diagram version="1" name="Auth.erd">
+	<entities>
+		<data-source id="mysql8-19946fbad9d-51ff22a7d1854d29">
+			<entity id="1" name="authgroup" fq-name="scp_db.authgroup" order="0" font="Segoe UI:9:0" x="867" y="40">
+				<path name="scp_db"/>
+			</entity>
+			<entity id="2" name="authinfo" fq-name="scp_db.authinfo" order="1" font="Segoe UI:9:0" x="40" y="340">
+				<path name="scp_db"/>
+			</entity>
+			<entity id="3" name="authlist" fq-name="scp_db.authlist" order="2" font="Segoe UI:9:0" x="40" y="60">
+				<path name="scp_db"/>
+			</entity>
+			<entity id="4" name="authuser" fq-name="scp_db.authuser" order="3" font="Segoe UI:9:0" x="466" y="60">
+				<path name="scp_db"/>
+			</entity>
+			<entity id="5" name="userinfo" fq-name="scp_db.userinfo" order="4" font="Segoe UI:9:0" x="468" y="334">
+				<path name="scp_db"/>
+			</entity>
+		</data-source>
+	</entities>
+	<relations/>
+</diagram>

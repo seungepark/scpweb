@@ -2862,7 +2862,7 @@ var RES_LANG = {
 				},
 				'main2': {
 					'title': '승선자 관리',
-					'sub1': '승선자 등록',
+					'sub1': '시운전 승선 신청', //승선자 등록
 					'sub2': '업무 관리',
 					'sub3': '식수 관리'
 				},
@@ -4611,6 +4611,71 @@ var RES_LANG = {
 				'errorRequire': '필수값을 입력해 주세요 (부서, 성명, 전화번호)'
 			}
 		},
+		//시운전 승선자 등록
+		registrationCrew: {
+					'statusBtnPlan': '계획',
+					'statusBtnResult': '결과',
+					'tabCrew': '승선자 등록',
+					'btnDownload': '양식 다운로드',
+					'btnUpload': '양식 업로드',
+					'btnSave': '저장',
+					'errorNoList': '승선자를 추가해 주세요.',
+					'errorRequired': '필수 값을 입력해 주세요.',
+					'compSave': '저장되었습니다.',
+					'error': {
+						'upload': '출항 보고 후에는 양식 업로드가 불가합니다.',
+						'add': '출항 보고 후에는 추가할 수 없습니다.',
+						'del': '출항 보고 후에는 삭제할 수 없습니다.',
+						'save': '출항 보고 후에는 업데이트할 수 없습니다.'
+					},
+					'listOp': {
+						'ship': '호선번호',
+						'date': '기간',
+						'desc': '설명',
+						'status': '상태',
+						'shipAll': '전체',
+						'statusAll': '전체',
+						'typeAll': '전체',
+						'btnSearch': '검색'
+					},
+					'list': {
+						'no': 'No.',
+						'key': 'Key',
+						'pjt': 'PJT',
+						'kind': '구분',
+						'company': '회사',
+						'department': '부서',
+						'name': '성명',
+						'rank': '직급',
+						'idNo': '사번',
+						'workType1': '역할 1',
+						'workType2': '역할 2',
+						'work': '업무',
+						'mainSub': '정/부',
+						'foodStyle': '한식/양식',
+						'personNo': '생년월일',
+						'gender': '성별',
+						'phone': '전화번호',
+						'none': '미승선',
+						'in': '승선일',
+						'out': '하선일',
+						'terminal': '터미널',
+						'ordering':'발주',
+						'btnInOut': '반영',
+						'errInOutDate': '날짜를 입력해 주세요'
+					},
+					'delPop': {
+						'title': '승선자 삭제',
+						'msg': '선택한 승선자를 삭제할까요?',
+						'btnDel': '삭제',
+						'btnClose': '취소',
+						'selectMsg': '승선자를 선택해 주세요.'
+					},
+					'excelUp': {
+						'errorListMin': '입력된 승선자가 없습니다.',
+						'errorRequire': '필수값을 입력해 주세요 (부서, 성명, 전화번호)'
+					}
+				},
 		planInfo: {
 			'statusBtnPlan': '계획',
 			'statusBtnResult': '결과',

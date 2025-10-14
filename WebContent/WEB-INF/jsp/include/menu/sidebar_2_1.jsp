@@ -87,7 +87,15 @@
 	</c:if>
 	<c:if test="${at eq 'P_SYS_CRON_W'}">
 		<c:set var="M_P_SYS_CRON_W" value="true" />
+
 	</c:if>
+		<c:if test="${at eq 'P_CREW_REG_R'}">
+		<c:set var="M_P_CREW_REG_R" value="true" />
+	</c:if>
+	<c:if test="${at eq 'P_CREW_REG_W'}">
+		<c:set var="M_P_CREW_REG_W" value="true" />
+	</c:if>
+	
 </c:forEach>
 <div class="sidebar-wrap">
 	<div class="sidebar">
@@ -151,7 +159,7 @@
        			</a>
 	   		</div>
 	   	</c:if>
-	   	<c:if test="${M_P_PLAN_SCHE_R or M_P_PLAN_SCHE_W or M_P_RESULT_SCHE_R or M_P_RESULT_SCHE_W}">
+	   	<c:if test="${M_P_CREW_REG_R or M_P_CREW_REG_W or M_P_RESULT_SCHE_R or M_P_RESULT_SCHE_W}">
 	   		<div class="main-item active" data-toggle="collapse" data-target="#main-2-collapse" aria-expanded="true">
 	       		<div class="main-item-icon-area">
 	           		<svg class="main-item-icon active" width="32" height="33" viewBox="0 0 32 33" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -161,16 +169,16 @@
 	       		<div class="main-item-title active" data-i18n="share:sidebar.main2.title"></div>
 	   		</div>
 	   		<div id="main-2-collapse" class="collapse show">
-	   			<a onclick="delSearchCookie()" href="#">
+	   			<a onclick="delSearchCookie()"href="${pageContext.request.contextPath}/crew/registrationCrew.html">
 	   				<div class="sub-item-wrap sub-item-active">
 		           		<span class="sub-item-active-bar"></span>
 		           		<span class="sub-item-active-title" data-i18n="share:sidebar.main2.sub1"></span>
 		       		</div>
 		       	</a>
-		       	<a onclick="delSearchCookie()" href="#">
+		       	<a onclick="delSearchCookie()" href="${pageContext.request.contextPath}/crew/anchorageMealRequest.html">
 		       		<div class="sub-item-wrap sub-item" data-i18n="share:sidebar.main2.sub2"></div>
 		       	</a>
-		       	<a onclick="delSearchCookie()" href="#">
+		       	<a onclick="delSearchCookie()" href="${pageContext.request.contextPath}/crew/resultMeal.html">
 		       		<div class="sub-item-wrap sub-item" data-i18n="share:sidebar.main2.sub3"></div>
 		       	</a>
 	   		</div>

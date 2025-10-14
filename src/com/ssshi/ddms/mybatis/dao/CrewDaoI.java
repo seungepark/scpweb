@@ -1,0 +1,51 @@
+package com.ssshi.ddms.mybatis.dao;
+
+import java.util.List;
+
+import com.ssshi.ddms.dto.DomainInfoBean;
+import com.ssshi.ddms.dto.ParamBean;
+import com.ssshi.ddms.dto.PjtEvntBean;
+import com.ssshi.ddms.dto.PjtEvntColumnBean;
+import com.ssshi.ddms.dto.ScenarioBean;
+import com.ssshi.ddms.dto.ScenarioDetailBean;
+import com.ssshi.ddms.dto.ScheCrewBean;
+import com.ssshi.ddms.dto.ShipBbsBean;
+import com.ssshi.ddms.dto.ShipBbsFileInfoBean;
+import com.ssshi.ddms.dto.ShipInfoBean;
+import com.ssshi.ddms.dto.WorkStdBean;
+import com.ssshi.ddms.dto.RegistrationCrewBean;
+import com.ssshi.ddms.dto.RegistrationCrewListBean;
+
+/********************************************************************************
+ * 프로그램 개요 : Crew
+ * 
+ * 최초 작성자 : 
+ * 최초 작성일 : 
+ * 
+ * 최종 수정자 : 
+ * 최종 수정일 : 
+ * 
+ * 메모 : 없음
+ * 
+ * Copyright 2025 by SiriusB. Confidential and proprietary information
+ * This document contains information, which is the property of SiriusB, 
+ * and is furnished for the sole purpose of the operation and the maintenance.  
+ * Copyright © 2025 SiriusB.  All rights reserved.
+ *
+ ********************************************************************************/
+
+public interface CrewDaoI {
+
+	// 호선 목록.
+	List<DomainInfoBean> getShipList() throws Exception;
+	
+	// 승선자 신청 목록.
+	List<RegistrationCrewBean> getRegistrationCrewList(RegistrationCrewBean bean) throws Exception;
+	
+	// 승선자 신청 목록 개수.
+	int getRegistrationCrewListCnt() throws Exception;
+	
+	// 승선자 저장
+	int insertRegistrationCrew(RegistrationCrewBean bean) throws Exception;
+	
+}

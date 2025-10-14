@@ -1,0 +1,51 @@
+SELECT UID, `KEY` , PROJECT, KIND, COMPANY, DEPARTMENT, NAME, RANK, IDNO, WORKTYPE1,
+	   WORKTYPE2, `WORK`, MAINSUB, FOODSTYLE, PERSONNO, GENDER, PHONE, ISPLAN, TERMINAL,
+	   ORDERER, ORDERING_DATE, `ORDERING`, ISNONE, DEL_YN
+  FROM scp_db.SCHECREW;
+
+select * from scp_db.SCHECREW;
+select * from scp_db.schedulercrewinfo;
+select * from scp_db.schedulercrewdetail;
+select * from scp_db.schecrewinout;
+
+-- 컬럼 순서, 컬럼 타입 변경
+ALTER TABLE scp_db.SCHECREW MODIFY COLUMN SCHEDULERINFOUID bigint(20) not null AFTER UID;
+
+-- 추가 컬럼 : Key, Project, 업무, 성별, 터미널, 발주, 발주일자, 발주자 삭제여부 
+-- 발주정보 테이블 따로 생성 필요
+ALTER TABLE scp_db.SCHECREW ADD COLUMN `KEY` varchar(30) AFTER UID;
+ALTER TABLE scp_db.schecrew MODIFY COLUMN `KEY` varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT 'SCP 스케쥴 KEY';
+
+
+ALTER TABLE scp_db.SCHECREW ADD COLUMN `PROJECT` varchar(20) AFTER `KEY`;
+ALTER TABLE scp_db.schecrew MODIFY COLUMN `PROJECT` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT '호선번호';
+
+
+ALTER TABLE scp_db.SCHECREW ADD COLUMN `WORK` varchar(100) AFTER WORKTYPE2;
+ALTER TABLE scp_db.schecrew MODIFY COLUMN `WORK` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT '업무';
+
+
+ALTER TABLE scp_db.SCHECREW ADD COLUMN `GENDER` varchar(10) AFTER PERSONNO;
+ALTER TABLE scp_db.schecrew MODIFY COLUMN `GENDER` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT '성별';
+
+
+ALTER TABLE scp_db.SCHECREW ADD COLUMN `TERMINAL` char(1) AFTER ISPLAN;
+ALTER TABLE scp_db.schecrew MODIFY COLUMN `TERMINAL` char(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT '터미널';
+
+
+ALTER TABLE scp_db.SCHECREW ADD COLUMN `ORDERING` char(1) AFTER TERMINAL;
+ALTER TABLE scp_db.schecrew MODIFY COLUMN `ORDERING` char(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT '발주';
+
+
+ALTER TABLE scp_db.SCHECREW ADD COLUMN `ORDERING_DATE` varchar(20) AFTER TERMINAL;
+ALTER TABLE scp_db.schecrew MODIFY COLUMN `ORDERING_DATE` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT '발주일자';
+
+
+ALTER TABLE scp_db.SCHECREW ADD COLUMN `ORDERER` varchar(30) AFTER TERMINAL;
+ALTER TABLE scp_db.schecrew MODIFY COLUMN `ORDERER` varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT '발주자';
+
+
+ALTER TABLE scp_db.SCHECREW ADD COLUMN  `DEL_YN` char(1) AFTER ISNONE;
+ALTER TABLE scp_db.schecrew MODIFY COLUMN `DEL_YN` char(1) CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT '삭제여부';
+
+

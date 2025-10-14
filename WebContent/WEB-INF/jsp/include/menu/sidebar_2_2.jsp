@@ -161,16 +161,16 @@
 	       		<div class="main-item-title active" data-i18n="share:sidebar.main2.title"></div>
 	   		</div>
 	   		<div id="main-2-collapse" class="collapse show">
-	   			<a onclick="delSearchCookie()" href="#">
+	   			<a onclick="delSearchCookie()" href="${pageContext.request.contextPath}/crew/registrationCrew.html">
 	   				<div class="sub-item-wrap sub-item" data-i18n="share:sidebar.main2.sub1"></div>
 		       	</a>
-		       	<a onclick="delSearchCookie()" href="#">
+		       	<a onclick="delSearchCookie()" href="${pageContext.request.contextPath}/crew/anchorageMealRequest.html">
 		       		<div class="sub-item-wrap sub-item-active">
 		           		<span class="sub-item-active-bar"></span>
 		           		<span class="sub-item-active-title" data-i18n="share:sidebar.main2.sub2"></span>
 		       		</div>
 		       	</a>
-		       	<a onclick="delSearchCookie()" href="#">
+		       	<a onclick="delSearchCookie()" href="${pageContext.request.contextPath}/crew/resultMeal.html">
 		       		<div class="sub-item-wrap sub-item" data-i18n="share:sidebar.main2.sub3"></div>
 		       	</a>
 	   		</div>
