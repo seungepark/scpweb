@@ -78,7 +78,7 @@
                             </select>
 						</div>
 						
-						<div class="lb-title-no-sp" style="line-height: 44px;">호선번호</div>
+						<!-- <div class="lb-title-no-sp" style="line-height: 44px;">호선번호</div> -->
 						
                   		</div>
                   		
@@ -96,11 +96,11 @@
                    		<button class="bt-obj bt-primary" onclick="popDeleteCrewModal()"><i class="fa-solid fa-minus"></i></button>
                    		<button class="bt-obj bt-primary" onclick="addCrew()"><i class="fa-solid fa-plus"></i></button>
                    		<!-- 엑셀 업로드/다운로드 -->
-                   		<!-- <button class="bt-obj bt-secondary" onclick="downCrewExcel()" data-i18n="btnDownload"></button>
+                   		<button class="bt-obj bt-secondary" onclick="downCrewExcel()" data-i18n="btnDownload"></button>
                    		<div class="bt-obj bt-secondary file-btn">
                    			<span data-i18n="btnUpload"></span>
 							<input class="cursor-pointer" type="file" id="fileInput" onchange="excelUpload(event)" accept=".xlsx">
-                   		</div> -->
+                   		</div>
                    		</div>
                    		
 					    </div>  	

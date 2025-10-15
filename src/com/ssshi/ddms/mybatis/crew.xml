@@ -5,26 +5,63 @@
     
 <mapper namespace="com.ssshi.ddms.mybatis.dao.CrewDaoI"> 
 
-	<select id="getShipList" resultType="domainInfoBean">		SELECT SHIPNUM AS VAL, SHIPNUM AS DESCRIPTION FROM SHIPINFO WHERE TITLE <![CDATA[ <> ]]> '';
+	<select id="getShipList" resultType="domainInfoBean">		<!-- UID, trialKey, shipType -->
+		SELECT 
+		    S.HULLNUM as projNo,        
+		    S.UID as val,           
+		    S.TRIALKEY as description,        
+		    SI.REGOWNER as regOwner,         
+		    SI.SHIPTYPE as shipType,          
+		    SI.PROJSEQ as projSeq,          
+		    S.STATUS
+		FROM scp_db.SCHEDULERINFO S
+		INNER JOIN scp_db.SCHEDULERVERSIONINFO SVI ON (S.SCHEDULERVERSIONINFOUID = SVI.UID AND S.REVNUM = SVI.PLANREVNUM)
+		LEFT OUTER JOIN scp_db.SCHETRIALINFO TI ON (S.UID = TI.SCHEDULERINFOUID)
+		LEFT OUTER JOIN scp_db.SHIPINFO SI ON (S.HULLNUM = SI.SHIPNUM)
+		LEFT OUTER JOIN scp_db.USERINFO UI ON (S.INSERTBY = UI.UID)
+		<!-- WHERE S.STATUS = 'ACT' -->
+		WHERE S.TRIALKEY <![CDATA[ <> ]]> ''
+		ORDER BY S.INSERTDATE desc
+		
+		<!-- 전체 호선리스트 -->
+		<!-- SELECT SHIPNUM AS VAL, SHIPNUM AS DESCRIPTION FROM SHIPINFO WHERE TITLE <![CDATA[ <> ]]> ''; -->
 	</select>
 	
 	<select id="getRegistrationCrewList" parameterType="RegistrationCrewBean" resultType="RegistrationCrewBean">
-		SELECT UID, `KEY`, PROJECT AS PROJECTNO, KIND, COMPANY, DEPARTMENT, NAME, RANK, IDNO, WORKTYPE1,
-	   		   WORKTYPE2, `WORK`, MAINSUB, FOODSTYLE, PERSONNO, GENDER, PHONE, ISPLAN, TERMINAL,
-	   		   ORDERER, ORDERING_DATE, `ORDERING`, ISNONE, DEL_YN
-  		  FROM SCHECREW
-		 <!-- WHERE PROJECT = #{ship} -->
+		SELECT S.UID,  S.KEY , S.PROJECT, S.KIND, S.COMPANY, S.DEPARTMENT, S.NAME, S.RANK, S.IDNO, S.WORKTYPE1,
+			   S.WORKTYPE2, S.WORK, S.MAINSUB, S.FOODSTYLE, S.PERSONNO, S.GENDER, S.PHONE, S.ISPLAN, S.TERMINAL,
+			   S.ORDERER, S.ORDERING_DATE, S.ORDERING, S.ISNONE, S.DEL_YN
+		  FROM scp_db.SCHECREW S
+		WHERE 1=1
+		<if test="ship != null and ship != 'ALL'" >
+			AND S.PROJECT <![CDATA[ = ]]> #{ship}
+		</if>			
+	</select>
+	
+	<select id="getCrewInOutList" parameterType="ParamBean" resultType="scheCrewInOutBean">
+		SELECT UID, INOUTDATE, SCHEDULERINOUT, PERFORMANCEINOUT 
+		FROM SCHECREWINOUT
+		WHERE SCHECREWUID = #{uid}
+		<if test="inDate != null and inDate.length() > 0">
+			AND DATE_FORMAT(SI.INOUTDATE, '%Y-%m-%d') <![CDATA[ >= ]]> #{startDate}
+		</if>
+		<if test="outDate != null and outDate.length() > 0">
+			AND DATE_FORMAT(SI.INOUTDATE, '%Y-%m-%d') <![CDATA[ <= ]]> #{endDate}
+		</if>	
+		<!-- 기간조건을 승선일/하선일에만 적용 -->
+		<!-- AND (SCHEDULERINOUT = 'B' OR PERFORMANCEINOUT = 'B' OR SCHEDULERINOUT = 'U' OR PERFORMANCEINOUT = 'U') -->
+		ORDER BY INOUTDATE
 	</select>
 	
 	<select id="getRegistrationCrewListCnt" resultType="int">
 		SELECT FOUND_ROWS()
 	</select>
-	
+					
 	<insert id="insertRegistrationCrew" parameterType="RegistrationCrewBean">
-		INSERT INTO SCHECREW (SCHEDULERINFOUID, KIND, PROJECTNO, COMPANY, DEPARTMENT, NAME, RANK, IDNO, WORKTYPE1, WORKTYPE2, 
-			MAINSUB, FOODSTYLE, PERSONNO, PHONE, ISPLAN, ISNONE, INSERTDATE, INSERTBY, UPDATEDATE, UPDATEBY)
-		VALUES (#{schedulerInfoUid}, #{kind}, #{company}, #{department}, #{name}, #{rank}, #{idNo}, #{workType1}, #{workType2}, 
-			#{mainSub}, #{foodStyle}, #{personNo}, #{phone}, #{isPlan}, 'N', SYSDATE(), #{userUid}, SYSDATE(), #{userUid})
+		INSERT INTO SCHECREW (SCHEDULERINFOUID, KIND, `KEY`, PROJECT, COMPANY, DEPARTMENT, NAME, RANK, IDNO, WORKTYPE1, WORKTYPE2, WORK 
+			,MAINSUB, FOODSTYLE, PERSONNO, GENDER, PHONE, TERMINAL, ORDERER, ISPLAN, ISNONE, INSERTDATE, INSERTBY, UPDATEDATE, UPDATEBY)
+		VALUES (#{schedulerInfoUid}, #{kind}, #{key}, #{projectNo}, #{company},  #{department}, #{name}, #{rank}, #{idNo}, #{workType1}, #{workType2}, #{work}
+			,#{mainSub}, #{foodStyle}, #{personNo}, #{gender}, #{phone}, #{terminal}, 'N', #{isPlan}, 'N', SYSDATE(), #{userUid}, SYSDATE(), #{userUid})
 		<selectKey resultType="int" keyProperty="uid" order="AFTER">
 	        SELECT LAST_INSERT_ID()
 	    </selectKey>

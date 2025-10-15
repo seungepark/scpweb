@@ -2,8 +2,9 @@ package com.ssshi.ddms.dto;
 
 public class RegistrationCrewListBean {
 
-	private int schedulerInfoUid;
+	private Integer schedulerInfoUid;
 	private String[] kind;
+	private String[] key;
 	private String[] projectNo;
 	private String[] company;
 	private String[] department;
@@ -27,10 +28,10 @@ public class RegistrationCrewListBean {
 	private String[] ordering;
 	private int[] uidArr;
 	
-	public int getSchedulerInfoUid() {
+	public Integer getSchedulerInfoUid() {
 		return schedulerInfoUid;
 	}
-	public void setSchedulerInfoUid(int schedulerInfoUid) {
+	public void setSchedulerInfoUid(Integer schedulerInfoUid) {
 		this.schedulerInfoUid = schedulerInfoUid;
 	}
 	public String[] getKind() {
@@ -38,6 +39,12 @@ public class RegistrationCrewListBean {
 	}
 	public void setKind(String[] kind) {
 		this.kind = kind;
+	}	
+	public String[] getKey() {
+		return key;
+	}
+	public void setKey(String[] key) {
+		this.key = key;
 	}	
 	public String[] getProjectNo() {
 		return projectNo;

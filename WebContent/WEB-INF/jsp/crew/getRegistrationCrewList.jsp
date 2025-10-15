@@ -17,11 +17,19 @@
 				"work": "${tmp.work}",
 				"mainSub": "${tmp.mainSub}",
 				"foodStyle": "${tmp.foodStyle}",
+				"personNo": "${tmp.personNo}",
 				"gender": "${tmp.gender}",
 				"phone": "${tmp.phone}",
-				"inOutList": "${tmp.inOutList}",
-				"inDate": "${tmp.inDate}",
-				"outDate": "${tmp.outDate}",
+				"inOutList": [
+				    <c:forEach var="inout" items="${tmp.inOutList}" varStatus="ioStatus">
+				        {
+				            "inOutDate": "${inout.inOutDate}",
+				            "schedulerInOut": "${inout.schedulerInOut}",
+				            "performanceInOut": "${inout.performanceInOut}"
+				        }
+				        <c:if test="${!ioStatus.last}">,</c:if>
+				    </c:forEach>
+				],
 				"terminal": "${tmp.terminal}",
 				"ordering": "${tmp.ordering}"				
 			}

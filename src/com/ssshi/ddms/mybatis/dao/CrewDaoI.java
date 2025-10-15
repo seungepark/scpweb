@@ -9,6 +9,7 @@ import com.ssshi.ddms.dto.PjtEvntColumnBean;
 import com.ssshi.ddms.dto.ScenarioBean;
 import com.ssshi.ddms.dto.ScenarioDetailBean;
 import com.ssshi.ddms.dto.ScheCrewBean;
+import com.ssshi.ddms.dto.ScheCrewInOutBean;
 import com.ssshi.ddms.dto.ShipBbsBean;
 import com.ssshi.ddms.dto.ShipBbsFileInfoBean;
 import com.ssshi.ddms.dto.ShipInfoBean;
@@ -41,6 +42,9 @@ public interface CrewDaoI {
 	
 	// 승선자 신청 목록.
 	List<RegistrationCrewBean> getRegistrationCrewList(RegistrationCrewBean bean) throws Exception;
+	
+	// 승선자별 승하선 정보
+	List<ScheCrewInOutBean> getCrewInOutList(ParamBean bean) throws Exception;
 	
 	// 승선자 신청 목록 개수.
 	int getRegistrationCrewListCnt() throws Exception;

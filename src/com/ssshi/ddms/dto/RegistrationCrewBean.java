@@ -50,24 +50,21 @@ public class RegistrationCrewBean {
 	public String getShip() {
 		return ship;
 	}	
-	public void setShip() {
+	public void setShip(String ship) {
 		this.ship = ship;
-	}
-	
+	}	
 	public String getInDate() {
 		return inDate;
 	}	
-	public void setInDate() {
+	public void setInDate(String inDate) {
 		this.inDate = inDate;
-	}
-	
+	}	
 	public String getOutDate() {
 		return outDate;
 	}	
-	public void setOutDate() {
+	public void setOutDate(String outDate) {
 		this.outDate = outDate;
-	}
-	
+	}	
 	public int getUid() {
 		return uid;
 	}
@@ -87,7 +84,7 @@ public class RegistrationCrewBean {
 		this.kind = kind;
 	}
 	public String getKey() {
-		return kind;
+		return key;
 	}
 	public void setKey(String key) {
 		this.key = key;

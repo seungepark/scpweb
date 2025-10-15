@@ -9,7 +9,6 @@
 	<c:if test="${at eq 'P_REG_CREW_W'}">
 		<c:set var="P_REG_CREW_W" value="true" />
 	</c:if>
-
 </c:forEach>
 <c:if test="${(empty P_REG_CREW_R and empty P_REG_CREW_W)}">
 	<c:redirect url="/index.html" />
@@ -57,7 +56,7 @@
 							<input type="date" id="inDate"/>
 						<div class="lb-title-no-sp" style="line-height: 44px;">기간&nbsp&nbsp</div>
 					
-					    <!-- 호선번호 조회 -->
+					    <!-- 호선번호 조회(스케줄키) -->
 					    <div class="col-auto" >
 							<select id="ship">
                                 <option value="ALL" data-i18n="listOp.shipAll"></option>
@@ -76,7 +75,7 @@
 						<button class="bt-obj bt-primary" onclick="setInOutDate()">전송</button>
 						<!-- SELECT -->
 					    <div class="col-auto">
-							<select id="ship" class="">
+							<select id="ship_scp" class="">
                                 <option value="ALL">전체</option>
                                 <c:forEach var="ship" items="${listShip}">
                                     <option value="${ship.val}">${ship.description}</option>
@@ -84,7 +83,7 @@
                             </select>
 						</div>
 						
-						<button class="bt-obj bt-primary" onclick="setInOutDate()">발주</button>
+						<button class="bt-obj bt-primary" onclick="orderingSave()">발주</button>
 						<a href="${pageContext.request.contextPath}/mobile/mobileCrewinfo.html?uid=${bean.uid}" class="bt-obj bt-secondary mr-2" target="_blank">
 							<i class="fas fa-mobile-alt"></i> QR발송
 						</a>
@@ -166,7 +165,9 @@
            				
            				<!-- <div style="padding-right: 14%;"></div> -->
            				
-						<button class="bt-obj bt-primary" onclick="setInOutDate()" target="_blank">다운로드</button>
+						<!-- <button class="bt-obj bt-primary" onclick="setInOutDate()" target="_blank">다운로드</button> -->
+						<button class="bt-obj bt-primary" onClick="crewListDownloadAll()"><img src="${pageContext.request.contextPath}/img/i_download.svg" height="16px">다운로드</button>
+                   		
 					
 					</div>
                    	<div class="sp-16"></div>
@@ -214,6 +215,8 @@
 	  	<c:forEach var="item" items="${list}">
 	  		_crewList.push({
 	 			kind: "${item.kind}",
+	 			key: "${item.key}",
+				pjt: "${item.projectNo}",
 	 			company: "${item.company}",
 	 			department: "${item.department}",
 	 			name: "${item.name}",
@@ -221,9 +224,11 @@
 	 			idNo: "${item.idNo}",
 	 			workType1: "${item.workType1}",
 	 			workType2: "${item.workType2}",
+	 			work: "${item.work}",
 	 			mainSub: "${item.mainSub}",
 	 			foodStyle: "${item.foodStyle}",
 	 			personNo: "${item.personNo}",
+	 			gender: "${item.gender}",
 	 			phone: "${item.phone}",
 	 			inOutList: [
 	 				<c:forEach var="inOut" items="${item.inOutList}" varStatus="status">
@@ -234,7 +239,9 @@
 			 			}
 			 			<c:if test="${!status.last}">,</c:if>
 		 			</c:forEach>
-	 			]
+	 			],
+		  		terminal: "${item.terminal}",
+				ordering: "${item.ordering}"	
 	 		});
 	  	</c:forEach>
 	</script>

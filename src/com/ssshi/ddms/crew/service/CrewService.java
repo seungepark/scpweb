@@ -116,6 +116,7 @@ public class CrewService implements CrewServiceI {
 		resultMap.put(Const.LIST, crewList);
 		resultMap.put("status", dao.getTrialStatus(bean.getUid()));
 		
+		/* 조회조건 : 호선리스트 */
 		resultMap.put(Const.LIST + "Ship", crewDao.getShipList());
 		return resultMap;
 	}
@@ -125,7 +126,7 @@ public class CrewService implements CrewServiceI {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		List<RegistrationCrewBean> crewList = crewDao.getRegistrationCrewList(bean);
 		resultMap.put(Const.LIST_CNT, crewDao.getRegistrationCrewListCnt());
-		
+
 		if(crewList != null) {
 			for(int i = 0; i < crewList.size(); i++) {
 				crewList.get(i).setInOutList(dao.getCrewInOutList(crewList.get(i).getUid()));
@@ -135,7 +136,7 @@ public class CrewService implements CrewServiceI {
 		resultMap.put(Const.BEAN, dao.getScheduler(bean.getUid()));
 		resultMap.put(Const.LIST, crewList);
 		resultMap.put("status", dao.getTrialStatus(bean.getUid()));
-		
+		System.out.println(crewList.size()+"요기");
 		resultMap.put(Const.LIST + "Ship", crewDao.getShipList());
 		return resultMap;
 	}
@@ -157,7 +158,7 @@ public class CrewService implements CrewServiceI {
 				
 				List<Integer> crewUidList = dao.getCrewUidList(bean.getSchedulerInfoUid());
 				dao.deleteCrewList(bean.getSchedulerInfoUid());
-				
+				System.out.println("오나용11111"+bean.getSchedulerInfoUid());
 				if(crewUidList != null) {
 					for(int i = 0; i < crewUidList.size(); i++) {
 						dao.deleteCrewInoutList(crewUidList.get(i));
@@ -168,6 +169,8 @@ public class CrewService implements CrewServiceI {
 					RegistrationCrewBean crew = new RegistrationCrewBean();
 					crew.setSchedulerInfoUid(bean.getSchedulerInfoUid());
 					crew.setKind(bean.getKind()[i]);
+					crew.setKey(bean.getKey()[i]);
+					crew.setProjectNo(bean.getProjectNo()[i]);
 					crew.setCompany(bean.getCompany()[i]);
 					crew.setDepartment(bean.getDepartment()[i]);
 					crew.setName(bean.getName()[i]);
@@ -175,13 +178,21 @@ public class CrewService implements CrewServiceI {
 					crew.setIdNo(bean.getIdNo()[i]);
 					crew.setWorkType1(bean.getWorkType1()[i]);
 					crew.setWorkType2(bean.getWorkType2()[i]);
+					crew.setWork(bean.getWork()[i]);
 					crew.setMainSub(bean.getMainSub()[i]);
 					crew.setFoodStyle(bean.getFoodStyle()[i]);
 					crew.setPersonNo(bean.getPersonNo()[i]);
+					crew.setGender(bean.getGender()[i]);
 					crew.setPhone(bean.getPhone()[i]);
+					crew.setTerminal(bean.getTerminal()[i]);
+					//crew.setOrdering(bean.getOrdering()[i]);
 					crew.setIsPlan(DBConst.Y);
 					crew.setUserUid(userUid);
 					
+					
+					
+					//승선자 저장 완료시, 승/하선일 저장
+					//터미널 상세정보 저장
 					if(crewDao.insertRegistrationCrew(crew) > DBConst.ZERO) {
 						if(!bean.getInDate()[i].isEmpty()) {
 							ScheCrewInOutBean inOut = new ScheCrewInOutBean();

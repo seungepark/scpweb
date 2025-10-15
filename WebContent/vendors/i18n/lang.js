@@ -4619,6 +4619,7 @@ var RES_LANG = {
 					'btnDownload': '양식 다운로드',
 					'btnUpload': '양식 업로드',
 					'btnSave': '저장',
+					'errorShip': '호선번호를 선택해 주세요.',
 					'errorNoList': '승선자를 추가해 주세요.',
 					'errorRequired': '필수 값을 입력해 주세요.',
 					'compSave': '저장되었습니다.',

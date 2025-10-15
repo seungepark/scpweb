@@ -16,52 +16,6 @@ $(function(){
 	setSearchOption();
 });
 
-//페이징 처리
-/*function paging(cnt, page){
-    var perPage = 10;
-    var total = Math.ceil(parseInt(cnt) / perPage);
-    var start = Math.floor((page - 1) / perPage) * perPage + 1;
-    var end = start + perPage - 1;
-
-    if(total <= end) {
-        end = total;
-    }
-
-    var paging_init_num = parseInt(start);
-    var paging_end_num = parseInt(end);
-    var total_paging_cnt = parseInt(total);
-    var pre_no = parseInt(page) - 1;
-    var next_no = parseInt(page) + 1;
-    var text = '';
-
-    if(total_paging_cnt != 0 && total_paging_cnt != 1 && pre_no != 0) {
-		text += '<div onclick="getRegistrationCrewList(' + pre_no + ');" class="pg-prev">&nbsp;</div>';
-    }else {
-		text += '<div class="pg-prev-inact">&nbsp;</div>';
-	}
-
-    for(var k = paging_init_num; k <= paging_end_num; k++) {
-        if(parseInt(page) == k) {
-			text += '<div onclick="getRegistrationCrewList(' + k + ');" class="pg-num active">' + k + '</div>';
-        }else {
-			text += '<div onclick="getRegistrationCrewList(' + k + ');" class="pg-num">' + k + '</div>';
-        }
-    }
-
-    if(total_paging_cnt != 0 && total_paging_cnt != 1 && next_no <= total_paging_cnt) {
-		text += '<div onclick="getRegistrationCrewList(' + next_no + ');" class="pg-next">&nbsp;</div>';
-    }else {
-		text += '<div class="pg-next-inact">&nbsp;</div>';
-	}
-	
-	if(total_paging_cnt == 0) {
-		text = '';
-	}
-
-    $('#pagination').empty();
-    $('#pagination').append(text);
-}*/
-
 function initI18n() {
     let lang = initLang();	
 
@@ -123,8 +77,9 @@ function setSearchOption() {
 	today = new Date();
 	today = today.toISOString().slice(0, 10);
 
-	$('#inDate').val(today);
-	$('#outDate').val(today);
+	//기간 Default
+	/*$('#inDate').val(today);
+	$('#outDate').val(today);*/
 	
 	if(page != '') {
 		_isSetPage = true;
@@ -239,8 +194,8 @@ function initData() {
 								
 					text += '</select>' +
 						'</td>' + 
-						'<td class="text-center">' + '<input name="key" type="text" value="' + key + '">' + '</td>' + 
-						'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '">' + '</td>' + 
+						'<td class="text-center">' + '<input name="key" type="text" value="' + key + '" disabled>' + '</td>' + 
+						'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 
 						'<td class="text-center">' + '<input name="company" type="text" value="' + company + '">' + '</td>' + 
 						'<td class="text-center">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 
 						'<td class="text-center">' + '<input name="name" type="text" value="' + name + '">' + '</td>' + 
@@ -343,8 +298,8 @@ function initData() {
 					text += '<td class="text-center">' + '<input name="inDate" class="text-center" type="text" value="' + inDate + '" disabled>' + '</td>' + 
 							'<td class="text-center">' + '<input name="outDate" class="text-center" type="text" value="' + outDate + '" disabled>' + '</td>';
 			
-					text += '<td class="text-center">' + '<input name="terminal" type="text" value="' + terminal + '">' + '</td>' +
-							'<td class="text-center">' + '<input name="ordering" type="text" value="' + ordering + '">' + '</td>';
+					text += '<td class="text-center">' + '<input name="terminal" type="checkbox" onclick="setRowSelected()" value="'+ terminal +'">' + '</td>' +
+							'<td class="text-center">' + '<input name="ordering" type="checkbox" onclick="setRowSelected()" value="'+ ordering +'">' + '</td>';
 		text += '</tr>';
 	
 		$('#tbRowList').append(text);
@@ -360,6 +315,111 @@ function setListEmpty() {
 	if(_crewCnt <= 0) {
 		$('#tbRowList').empty();
 		$("#tbRowList").append('<tr><td class="text-center" colspan="16">' + $.i18n.t('share:noList') + '</td></tr>');
+	}
+}
+
+//전체리스트 엑셀 다운로드
+function crewListDownloadAll() {
+	var search = $("#search").val();
+	var _cnt = 0;
+
+	$.ajax({
+		type : "GET",
+		url : contextPath + "/crew/getRegistrationCrewList.html",
+		dataType : "json",
+		headers : {
+			"content-type" : "application/json"
+		},
+		beforeSend : function() {
+			$('#loading').css("display", "block");
+		},
+		complete : function() {
+			$('#loading').css('display', "none");
+		},
+		data : {
+			isAll: 'Y',
+            sort: listSort,
+            order: listOrder
+		}
+	}).done(function(result, textStatus, xhr) {
+		if(textStatus == "success") {
+			var jsonResult = result.list;
+			var text = '<thead>' +
+							'<tr class="headings">' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.no') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.kind') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.key') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.pjt') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.company') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.department') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.name') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.rank') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.idNo') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.workType1') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.workType2') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.work') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.mainSub') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.foodStyle') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.personNo') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.gender') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.phone') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.in') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.out') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.terminal') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('last') + '</span></div><div class="fht-cell"></div></th>' +
+								'</tr>' +
+						'</thead>' +
+						'<tbody id="getUserList">';
+
+			for(var i in jsonResult) {
+				text += '<tr class="even pointer">';
+				text += '  <td>' + _cnt++ + '</td>';
+				text += '  <td>' + jsonResult[i].kind + '</td>';
+				text += '  <td>' + jsonResult[i].key + '</td>';
+				text += '  <td>' + jsonResult[i].pjt + '</td>';
+				text += '  <td>' + jsonResult[i].company + '</td>';
+				text += '  <td>' + jsonResult[i].department + '</td>';
+				text += '  <td>' + jsonResult[i].name + '</td>';
+				text += '  <td>' + jsonResult[i].rank + '</td>';
+				text += '  <td>' + jsonResult[i].idNo + '</td>';
+				text += '  <td>' + jsonResult[i].workType1 + '</td>';
+				text += '  <td>' + jsonResult[i].workType2 + '</td>';
+				text += '  <td>' + jsonResult[i].work + '</td>';
+				text += '  <td>' + jsonResult[i].mainSub + '</td>';
+				text += '  <td>' + jsonResult[i].foodStyle + '</td>';
+				text += '  <td>' + jsonResult[i].personNo + '</td>';
+				text += '  <td>' + jsonResult[i].gender + '</td>';
+				text += '  <td>' + jsonResult[i].phone + '</td>';
+				text += '  <td>' + jsonResult[i].inDate + '</td>';
+				text += '  <td>' + jsonResult[i].outDate + '</td>';
+				text += '  <td>' + jsonResult[i].terminal + '</td>';
+				text += '  <td>' + jsonResult[i].ordering + '</td>';
+				text += '</tr>';
+			}
+
+			text += '</tbody>';
+			
+			excelDownloadAll(text, 'crew_list');
+		}else {
+			alertPop($.i18n.t('share:tryAgain'));
+		}
+	}).fail(function(data, textStatus, errorThrown) {
+		alertPop($.i18n.t('share:tryAgain'));
+	});
+}
+
+//발주
+function orderingSave() {
+	//alert(1);
+	if(_status == 'ONGO' || _status == 'ARRIVE') {
+		alertPop($.i18n.t('error.del'));
+		return;
+	}
+	
+	if($('input[name=listChk]:checked').length > 0) {
+		alertPop('발주 완료되었습니다.');
+	}else {
+		alertPop('발주할 항목을 선택해주세요.');
 	}
 }
 
@@ -831,7 +891,7 @@ function save() {
 	}
 	
 	let kind = [];
-	//let key = [];
+	let key = [];
 	let pjt = [];
 	let company = [];
 	let department = [];
@@ -851,8 +911,11 @@ function save() {
 	let terminal = [];
 	let ordering = [];
 	
+	//alert($('#ship').val());
+	//alert(document.getElementById('ship').value);
+	
 	let kindVl = document.getElementsByName('kind');
-	//let keyVl = document.getElementsByName('key');
+	let keyVl = document.getElementsByName('key');
 	let pjtVl = document.getElementsByName('pjt');
 	let companyVl = document.getElementsByName('company');
 	let departmentVl = document.getElementsByName('department');
@@ -873,17 +936,29 @@ function save() {
 	let orderingVl = document.getElementsByName('ordering');
 	
 	let isError = false;
-	
+		
 	if(kindVl.length < 1) {
 		alertPop($.i18n.t('errorNoList'));
 		isError = true;
 	}
 	
+	//호선 번호 필수 선택
+	if($('#ship').val() == "ALL") {
+		alertPop($.i18n.t('errorShip'));
+		isError = true;
+	}
+	
+	//터미널값 Y일때 확인	
+
 	for(let i = 0; i < kindVl.length; i++) {
+		if(isEmpty(keyVl[i].value)) {
+			keyVl[i].value = $('#ship').val();
+		}
+				
 		if(isEmpty(companyVl[i].value)) {
 			alertPop($.i18n.t('errorRequired'));
 			companyVl[i].focus();
-			
+			//alert(1);
 			isError = true;
 			break;
 		}
@@ -892,6 +967,7 @@ function save() {
 			nameVl[i].focus();
 			alertPop($.i18n.t('errorRequired'));
 			isError = true;
+			//alert(2);
 			break;
 		}
 		
@@ -899,6 +975,7 @@ function save() {
 			rankVl[i].focus();
 			alertPop($.i18n.t('errorRequired'));
 			isError = true;
+			//alert(3);
 			break;
 		}
 		
@@ -906,6 +983,7 @@ function save() {
 			personNoVl[i].focus();
 			alertPop($.i18n.t('errorRequired'));
 			isError = true;
+			//alert(4);
 			break;
 		}
 		
@@ -913,11 +991,12 @@ function save() {
 			phoneVl[i].focus();
 			alertPop($.i18n.t('errorRequired'));
 			isError = true;
+			//alert(5);
 			break;
-		};;;
+		};
 		
 		kind.push(kindVl[i].value);
-		//key.push(keyVl[i].value);
+		key.push(keyVl[i].value);
 		pjt.push(pjtVl[i].value);
 		company.push(companyVl[i].value);
 		department.push(departmentVl[i].value);
@@ -942,15 +1021,17 @@ function save() {
 		return;
 	}
 	
+	//alert("7"+_scheUid);
+	//alert("7-1"+key);
 	jQuery.ajax({
 		type: 'POST',
-		url: contextPath + '/sche/planCrewSave.html',
+		url: contextPath + '/crew/registrationCrewSave.html',
 		traditional: true,
 		data: {
-			schedulerInfoUid: _scheUid,
+			schedulerInfoUid: _scheUid || key,
 			kind: kind,
-			//key: key,
-			pjt: pjt,
+			key: key,
+			projectNo: pjt,
 			company: company,
 			department: department,
 			name: name,
@@ -967,9 +1048,10 @@ function save() {
 			inDate: inDate,
 			outDate: outDate,
 			terminal: terminal,
-			ordering: ordering
+			ordering: ordering || []
 		},
 		success: function(data) {
+			//alert(8);
 			try {
 				let json = JSON.parse(data);
 			
@@ -977,7 +1059,7 @@ function save() {
 					alertPop($.i18n.t('compSave'));
 				}else{
 					let code = json.code;
-					
+					//alert(code);
 					if(code == 'ONGO' || code == 'ARRIVE') {
 						_status = code;
 						alertPop($.i18n.t('error.save'));
@@ -988,6 +1070,7 @@ function save() {
 					}
 				}
 			}catch(ex) {
+				//alert(9);
 				alertPop($.i18n.t('share:tryAgain'));
 			}
 		},
@@ -1013,23 +1096,25 @@ function setInOutDate() {
 			$('input[name=' + inDate + ']').eq(idx).val(inDate);
 			$('input[name=' + outDate + ']').eq(idx).val(outDate);
 		});
-		alert(inDate +'~'+outDate); //테스트
-		alert('어디1');
+		//alert(inDate +'~'+outDate); //테스트
+		//alert('어디1');
 		getRegistrationCrewList(1);
-		alert('어디2');
-	}else {
-		alertPop($.i18n.t('list.errInOutDate'));
+		//alert('어디2');
+	}
+	else {
+		//alert(inDate +'~'+outDate); //테스트
+		getRegistrationCrewList(1);
+		//alertPop($.i18n.t('list.errInOutDate'));
 	}
 }
 
 // 승선자 리스트 조회
 function getRegistrationCrewList(page) {
-	alert("어디");
     var ship = $('#ship option:selected').val();
     var inDate = $('#inDate').val();
     var outDate = $('#outDate').val();
 	
-	alert(contextPath);
+	//alert(contextPath);
 
 	//페이지 셋팅(현재페이지 저장X)
 	_isSetPage = false;
@@ -1038,7 +1123,6 @@ function getRegistrationCrewList(page) {
     jQuery.ajax({
         type: 'GET',
         url: contextPath + '/crew/getRegistrationCrewList.html',
-		//url: contextPath + '/crew/registrationCrew.html',
 		
         data: {
             page: page,
@@ -1053,97 +1137,182 @@ function getRegistrationCrewList(page) {
             var text = '';
 
             listArr = json.list;
-			alert("요기");
-            for(var i = 0; i < json.list.length; i++) {
-				let trialStatus = json.list[i].trialStatus;
-				let schedtype = json.list[i].schedtype;
-				let insertDate = json.list[i].insertdate;
-				let insertDateDate = insertDate;
-				let insertDateTime = insertDate;
-				let trialKey = json.list[i].trialKey;
-				let isOff = json.list[i].isOff;
-				let checkBoxDisabled = '';
-				
-				if(!isEmpty(insertDate)) {
-					let tempArr = insertDate.split(' ');
+			
+			for(var i = 0; i < json.list.length; i++) {					
+					let rowId = i+1;
+					let kind = json.list[i].kind;
+					let key = json.list[i].key;
+					let pjt = json.list[i].pjt;
+					let company = json.list[i].company;
+					let department = json.list[i].department;
+					let name = json.list[i].name;
+					let rank = json.list[i].rank;
+					let idNo = json.list[i].idNo;
+					let workType1 = json.list[i].workType1;
+					let workType2 = json.list[i].workType2;
+					let work = json.list[i].work;
+					let mainSub = json.list[i].mainSub;
+					let foodStyle = json.list[i].foodStyle;
+					let personNo = json.list[i].personNo;
+					let gender = json.list[i].gender;
+					let phone = json.list[i].phone;
+					let inOutList = json.list[i].inOutList;
+					let inDate = "";
+					let outDate = "";
+					let terminal = json.list[i].terminal;
+					let ordering = json.list[i].ordering;
 					
-					if(tempArr.length == 2) {
-						insertDateDate = tempArr[0];
-						insertDateTime = tempArr[1];
-					}
-				}
-				
-				if(!isEmpty(trialKey)) {
-					let tempArr = trialKey.split('_');
 					
-					if(tempArr.length == 2) {
-						trialKey = tempArr[1];
+					//승선일,하선일 지정
+					for(let x = 0; x < inOutList.length; x++) {
+						let code = inOutList[x].schedulerInOut;
+						let inOutDate = inOutList[x].inOutDate;
+						
+						if(code == 'B') {
+							inDate = inOutDate;
+						}else if(code == 'U') {
+							outDate = inOutDate;
+						}
 					}
+					
+					//승선일,하선일 필터링	
+					if(($('#inDate').val() != null && $('#outDate').val() != null) && ($('#inDate').val() != '' && $('#outDate').val() != '')){
+						
+						if(!($('#inDate').val() <= inDate && inDate <= $('#outDate').val()) &&
+						   !($('#inDate').val() <= outDate && outDate <= $('#outDate').val()))
+						   {
+							continue;
+						   }
+					}
+					
+					text += '<tr id="tbRow_' + rowId + '">' + 
+									'<td class="text-center"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
+									'<td class="text-center"><div name="no">' + rowId + '</div></td>' +
+									'<td class="text-center">' + 
+										'<select name="kind">';
+										
+									text += '<option value="SHI-A"' + (kind == 'SHI-A' ? ' selected' : '') + '>SHI-기술지원직</option>' + 
+											'<option value="SHI-B"' + (kind == 'SHI-B' ? ' selected' : '') + '>SHI-생산직</option>' + 
+											'<option value="SHI-C"' + (kind == 'SHI-C' ? ' selected' : '') + '>SHI-협력사</option>' + 
+											'<option value="OUTSIDE"' + (kind == 'OUTSIDE' ? ' selected' : '') + '>외부</option>';
+											
+								text += '</select>' +
+									'</td>' + 
+									'<td class="text-center">' + '<input name="key" type="text" value="' + key + '">' + '</td>' + 
+									'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '">' + '</td>' + 
+									'<td class="text-center">' + '<input name="company" type="text" value="' + company + '">' + '</td>' + 
+									'<td class="text-center">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 
+									'<td class="text-center">' + '<input name="name" type="text" value="' + name + '">' + '</td>' + 
+									'<td class="text-center">' + '<input name="rank" type="text" value="' + rank + '">' + '</td>' + 
+									'<td class="text-center">' + '<input name="idNo" type="text" value="' + idNo + '">' + '</td>' + 
+									'<td class="text-center">' + 
+										'<select name="workType1" onchange="setWorkType2(' + rowId + ', this.value)">';
+										
+									text += '<option value="A"' + (workType1 == 'A' ? ' selected' : '') + '>시운전</option>' + 
+											'<option value="B"' + (workType1 == 'B' ? ' selected' : '') + '>생산</option>' + 
+											'<option value="C"' + (workType1 == 'C' ? ' selected' : '') + '>설계연구소</option>' + 
+											'<option value="D"' + (workType1 == 'D' ? ' selected' : '') + '>지원</option>' + 
+											'<option value="E"' + (workType1 == 'E' ? ' selected' : '') + '>외부</option>';
+											
+								text += '</select>' +
+									'</td>' + 
+									'<td class="text-center">' + 
+										'<select id="workType2_' + rowId + '" name="workType2">';
+										
+								if(workType1 == 'A') {
+									text += '<option value="A0"' + (workType2 == 'A0' ? ' selected' : '') + '>-</option>' + 
+											'<option value="A1"' + (workType2 == 'A1' ? ' selected' : '') + '>코맨더</option>' + 
+											'<option value="A2"' + (workType2 == 'A2' ? ' selected' : '') + '>기장운전</option>' + 
+											'<option value="A3"' + (workType2 == 'A3' ? ' selected' : '') + '>선장운전</option>' + 
+											'<option value="A4"' + (workType2 == 'A4' ? ' selected' : '') + '>전장운전</option>' + 
+											'<option value="A5"' + (workType2 == 'A5' ? ' selected' : '') + '>항통</option>' + 
+											'<option value="A6"' + (workType2 == 'A6' ? ' selected' : '') + '>안벽의장</option>' + 
+											'<option value="A7"' + (workType2 == 'A7' ? ' selected' : '') + '>기타</option>';
+								}else if(workType1 == 'B') {
+									text += '<option value="B0"' + (workType2 == 'B0' ? ' selected' : '') + '>-</option>' + 
+											'<option value="B1"' + (workType2 == 'B1' ? ' selected' : '') + '>기관과</option>' + 
+											'<option value="B2"' + (workType2 == 'B2' ? ' selected' : '') + '>기타</option>';
+								}else if(workType1 == 'C') {
+									text += '<option value="C0"' + (workType2 == 'C0' ? ' selected' : '') + '>-</option>' + 
+											'<option value="C1"' + (workType2 == 'C1' ? ' selected' : '') + '>종합설계</option>' + 
+											'<option value="C2"' + (workType2 == 'C2' ? ' selected' : '') + '>기장설계</option>' + 
+											'<option value="C3"' + (workType2 == 'C3' ? ' selected' : '') + '>선장설계</option>' + 
+											'<option value="C4"' + (workType2 == 'C4' ? ' selected' : '') + '>전장설계</option>' + 
+											'<option value="C5"' + (workType2 == 'C5' ? ' selected' : '') + '>진동연구</option>' + 
+											'<option value="C6"' + (workType2 == 'C6' ? ' selected' : '') + '>기타</option>';
+								}else if(workType1 == 'D') {
+									text += '<option value="D0"' + (workType2 == 'D0' ? ' selected' : '') + '>-</option>' + 
+											'<option value="D1"' + (workType2 == 'D1' ? ' selected' : '') + '>안전</option>' + 
+											'<option value="D2"' + (workType2 == 'D2' ? ' selected' : '') + '>캐터링</option>' + 
+											'<option value="D3"' + (workType2 == 'D3' ? ' selected' : '') + '>QM</option>' + 
+											'<option value="D4"' + (workType2 == 'D4' ? ' selected' : '') + '>PM</option>' + 
+											'<option value="D5"' + (workType2 == 'D5' ? ' selected' : '') + '>기타</option>';
+								}else if(workType1 == 'E') {
+									text += '<option value="E0"' + (workType2 == 'E0' ? ' selected' : '') + '>-</option>' + 
+											'<option value="E1"' + (workType2 == 'E1' ? ' selected' : '') + '>Owner</option>' + 
+											'<option value="E2"' + (workType2 == 'E2' ? ' selected' : '') + '>Class</option>' + 
+											'<option value="E3"' + (workType2 == 'E3' ? ' selected' : '') + '>S/E</option>' + 
+											'<option value="E4"' + (workType2 == 'E4' ? ' selected' : '') + '>선장</option>' + 
+											'<option value="E5"' + (workType2 == 'E5' ? ' selected' : '') + '>항해사</option>' + 
+											'<option value="E6"' + (workType2 == 'E6' ? ' selected' : '') + '>기관장</option>' + 
+											'<option value="E7"' + (workType2 == 'E7' ? ' selected' : '') + '>라인맨</option>' + 
+											'<option value="E8"' + (workType2 == 'E8' ? ' selected' : '') + '>기타</option>';
+								}
+										
+								text += '</select>' +
+									'</td>' + 
+									'<td class="text-center">' + '<input name="work" type="text" value="' + work + '">' + '</td>' + 
+									'<td class="text-center">' + 
+										'<select name="mainSub">';
+										
+									text += '<option value="N"' + (mainSub == 'N' ? ' selected' : '') + '>-</option>' + 
+											'<option value="M"' + (mainSub == 'M' ? ' selected' : '') + '>정</option>' + 
+											'<option value="S"' + (mainSub == 'S' ? ' selected' : '') + '>부</option>';
+											
+								text += '</select>' +
+									'</td>' + 
+									'<td class="text-center">' + 
+										'<select name="foodStyle">';
+										
+									text += '<option value="K"' + (foodStyle == 'K' ? ' selected' : '') + '>한식</option>' + 
+											'<option value="W"' + (foodStyle == 'W' ? ' selected' : '') + '>양식(Normal Western)</option>' + 	
+											'<option value="W"' + (foodStyle == 'H' ? ' selected' : '') + '>양식(Halal)</option>' + 	
+											'<option value="W"' + (foodStyle == 'V1' ? ' selected' : '') + '>양식(Veg. fruitarian)</option>' + 	
+											'<option value="W"' + (foodStyle == 'V2' ? ' selected' : '') + '>양식(Veg. vegan)</option>' + 	
+											'<option value="W"' + (foodStyle == 'V3' ? ' selected' : '') + '>양식(Veg. lacto-veg.)</option>' + 	
+											'<option value="W"' + (foodStyle == 'V4' ? ' selected' : '') + '>양식(Veg. ovo-veg.)</option>' + 	
+											'<option value="W"' + (foodStyle == 'V5' ? ' selected' : '') + '>양식(Veg. lacto-ovo-veg.)</option>' + 	
+											'<option value="W"' + (foodStyle == 'V6' ? ' selected' : '') + '>양식(Veg. pesco-veg.)</option>' + 	
+											'<option value="W"' + (foodStyle == 'V7' ? ' selected' : '') + '>양식(Veg. pollo-veg.)</option>' + 	
+											'<option value="W"' + (foodStyle == 'V8' ? ' selected' : '') + '>양식(Veg. flexitarian)</option>';
+											
+								text += '</select>' +
+									'</td>' + 
+									'<td class="text-center">' + '<input name="personNo" type="text" placeholder="XXXXXX-X" value="' + personNo + '">' + '</td>' + 
+									'<td class="text-center">' + 
+											'<select name="gender">';
+											
+										text += '<option value="N"' + (mainSub == 'M' ? ' selected' : '') + '>남</option>' + 
+												'<option value="M"' + (mainSub == 'F' ? ' selected' : '') + '>여</option>' ;
+												
+									text += '</select>' +
+									
+									'<td class="text-center">' + '<input name="phone" type="text" value="' + phone + '">' + '</td>';
+									
+								text += '<td class="text-center">' + '<input name="inDate" class="text-center" type="text" value="' + inDate + '" disabled>' + '</td>' + 
+										'<td class="text-center">' + '<input name="outDate" class="text-center" type="text" value="' + outDate + '" disabled>' + '</td>';
+						
+								text += '<td class="text-center">' + '<input name="terminal" type="text" value="' + terminal + '">' + '</td>' +
+										'<td class="text-center">' + '<input name="ordering" type="text" value="' + ordering + '">' + '</td>';
+					text += '</tr>';
 				}
-				
-				if(isOff == 'Y') {
-					checkBoxDisabled = ' disabled';
-				}
-				
-                text += '<tr class="cursor-pointer">';
-                text += '	<td class="text-center"><input type="checkbox" data-uid=' + json.list[i].uid + ' name="listChk" onclick="setRowSelected()"' + checkBoxDisabled + '></td>';
-                text += '	<td class="" onClick="goSchedulerDepartureDetail(' + json.list[i].uid + ')">' + json.list[i].hullnum  + '</td>';
-				text += '	<td class="" onClick="goSchedulerDepartureDetail(' + json.list[i].uid + ')">' + trialKey + '</td>';
-                text += '	<td class="" onClick="goSchedulerDepartureDetail(' + json.list[i].uid + ')">' + json.list[i].regOwner + '</td>';
-                text += '	<td class="" onClick="goSchedulerDepartureDetail(' + json.list[i].uid + ')">' + json.list[i].shiptype + '</td>';
-                text += '	<td class="text-center" onClick="goSchedulerDepartureDetail(' + json.list[i].uid + ')">#' + json.list[i].projSeq + '</td>';
 
-				text += '	<td class="" onClick="goSchedulerDepartureDetail(' + json.list[i].uid + ')">';
-				
-				if(schedtype == 'SEA') {
-					text += $.i18n.t('list.schedTypeSea');
-				}else if(schedtype == 'GAS') {
-					text += $.i18n.t('list.schedTypeGas');
-				}else if(schedtype == 'TOTAL') {
-					text += $.i18n.t('list.schedTypeTotal');
-				}else {
-					text += schedtype;
-				}
-				
-				text += '   </td>';
-
-                text += '	<td class="text-center" onClick="goSchedulerDepartureDetail(' + json.list[i].uid + ')">' + json.list[i].sdate + '</td>';
-                text += '	<td class="text-center" onClick="goSchedulerDepartureDetail(' + json.list[i].uid + ')">' + json.list[i].edate + '</td>';
-
-				text += '	<td class="" onClick="goSchedulerDepartureDetail(' + json.list[i].uid + ')"><div class="d-flex align-items-center">';
-				
-				if(trialStatus == 'ONGO') {
-					text += '<div class="rounded py-1 px-2 trial-status-box-ongo"><i class="fa-solid fa-circle trial-status-prefix-ongo"></i>' + $.i18n.t('list.trialStatusOngo') + '</div>';
-				}else if(trialStatus == 'ARRIVE') {
-					text += '<div class="rounded py-1 px-2 trial-status-box-arrive"><i class="fa-solid fa-circle trial-status-prefix-arrive"></i>' + $.i18n.t('list.trialStatusArrive') + '</div>';
-				}else {
-					text += '<div class="rounded py-1 px-2 trial-status-box-default"><i class="fa-solid fa-circle trial-status-prefix-default"></i>' + $.i18n.t('list.trialStatusDepart') + '</div>';
-				}
-				
-				text += '   </div></td>';
-
-                text += '	<td class="text-center" onClick="goSchedulerDepartureDetail(' + json.list[i].uid + ')">' + json.list[i].insertName + '</td>';
-                text += '	<td class="text-center" onClick="goSchedulerDepartureDetail(' + json.list[i].uid + ')"><div data-toggle="tooltip" data-placement="top" title="' + insertDateTime + '">' + insertDateDate + '</div></td>';
-
-				text += '	<td class=""><div class="d-flex align-items-center">';
-				
-				if(isOff == 'Y') {
-					text += '<i class="fa-solid fa-circle trial-status-prefix-off"></i>' + $.i18n.t('list.trialStatusOffline');
-				}else {
-					text += '<i class="fa-solid fa-circle trial-status-prefix-on"></i>' + $.i18n.t('list.trialStatusOnline');
-				}
-				
-				text += '   </div></td>';
-				
-                text += '</tr>';
-            }
-
-            $('#schedulelist').empty();
+            $('#tbRowList').empty();
 
             if(json.list.length > 0) {
-                $('#schedulelist').append(text);
+                $('#tbRowList').append(text);
             }else {
-                $('#schedulelist').append('<tr><td class="text-center" colspan="13">' + $.i18n.t('share:noList') + '</td></tr>');
+                $('#tbRowList').append('<tr><td class="text-center" colspan="13">' + $.i18n.t('share:noList') + '</td></tr>');
             }
 
             //paging(json.listCnt, page);
@@ -1160,9 +1329,8 @@ function getRegistrationCrewList(page) {
             $('#loading').css('display', 'none');
         }
     });
-	alert("11");
+	//alert("11");
 }
-
 
 // 필터 검색.
 function searchList() {
