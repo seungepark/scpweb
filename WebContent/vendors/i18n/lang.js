@@ -4641,7 +4641,7 @@ var RES_LANG = {
 					},
 					'list': {
 						'no': 'No.',
-						'key': 'Key',
+						'trialKey': 'KEY',
 						'pjt': 'PJT',
 						'kind': '구분',
 						'company': '회사',
@@ -4661,9 +4661,16 @@ var RES_LANG = {
 						'in': '승선일',
 						'out': '하선일',
 						'terminal': '터미널',
-						'ordering':'발주',
+						'orderStatus':'발주',
 						'btnInOut': '반영',
-						'errInOutDate': '날짜를 입력해 주세요'
+						'errInOutDate': '날짜를 입력해 주세요',
+						//팝업메뉴
+						'laptop': '노트북',
+						'modelNm': '모델명',
+						'serialNo': '시리얼번호',
+						'foreigner': '외국인여부',
+						'passportNo': '여권번호',
+						'deleteYn':'삭제'
 					},
 					'delPop': {
 						'title': '승선자 삭제',

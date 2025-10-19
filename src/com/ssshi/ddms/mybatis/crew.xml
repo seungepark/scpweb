@@ -14,11 +14,11 @@
 		    SI.SHIPTYPE as shipType,          
 		    SI.PROJSEQ as projSeq,          
 		    S.STATUS
-		FROM scp_db.SCHEDULERINFO S
-		INNER JOIN scp_db.SCHEDULERVERSIONINFO SVI ON (S.SCHEDULERVERSIONINFOUID = SVI.UID AND S.REVNUM = SVI.PLANREVNUM)
-		LEFT OUTER JOIN scp_db.SCHETRIALINFO TI ON (S.UID = TI.SCHEDULERINFOUID)
-		LEFT OUTER JOIN scp_db.SHIPINFO SI ON (S.HULLNUM = SI.SHIPNUM)
-		LEFT OUTER JOIN scp_db.USERINFO UI ON (S.INSERTBY = UI.UID)
+		FROM SCHEDULERINFO S
+		INNER JOIN SCHEDULERVERSIONINFO SVI ON (S.SCHEDULERVERSIONINFOUID = SVI.UID AND S.REVNUM = SVI.PLANREVNUM)
+		LEFT OUTER JOIN SCHETRIALINFO TI ON (S.UID = TI.SCHEDULERINFOUID)
+		LEFT OUTER JOIN SHIPINFO SI ON (S.HULLNUM = SI.SHIPNUM)
+		LEFT OUTER JOIN USERINFO UI ON (S.INSERTBY = UI.UID)
 		<!-- WHERE S.STATUS = 'ACT' -->
 		WHERE S.TRIALKEY <![CDATA[ <> ]]> ''
 		ORDER BY S.INSERTDATE desc
@@ -28,14 +28,19 @@
 	</select>
 	
 	<select id="getRegistrationCrewList" parameterType="RegistrationCrewBean" resultType="RegistrationCrewBean">
-		SELECT S.UID,  S.KEY , S.PROJECT, S.KIND, S.COMPANY, S.DEPARTMENT, S.NAME, S.RANK, S.IDNO, S.WORKTYPE1,
-			   S.WORKTYPE2, S.WORK, S.MAINSUB, S.FOODSTYLE, S.PERSONNO, S.GENDER, S.PHONE, S.ISPLAN, S.TERMINAL,
-			   S.ORDERER, S.ORDERING_DATE, S.ORDERING, S.ISNONE, S.DEL_YN
-		  FROM scp_db.SCHECREW S
+		SELECT S.UID,  S.TRIALKEY , S.PROJECT, S.KIND, S.COMPANY, S.DEPARTMENT, S.NAME, S.RANK, S.IDNO, S.WORKTYPE1,
+			   S.WORKTYPE2, S.WORK, S.MAINSUB, S.FOODSTYLE, S.PERSONNO, S.GENDER, S.PHONE, S.ISPLAN, SD.TERMINAL,
+			   SD.NOTEBOOK AS LAPTOP, SD.MODEL_NAME AS MODELNM, SD.SERIAL_NUMBER AS SERIALNO,  SD.FOREIGNER, SD.PASSPORT_NUMBER AS PASSPORTNO, SD.ORDER_STATUS, S.ISNONE, S.DELETE_YN
+		  FROM SCHECREW S
+		  LEFT OUTER JOIN SCHECREWDETAILINFO SD ON S.UID = SD.SCHEDULERINFOUID
 		WHERE 1=1
-		<if test="ship != null and ship != 'ALL'" >
-			AND S.PROJECT <![CDATA[ = ]]> #{ship}
-		</if>			
+		  AND S.UID IS NOT NULL
+		  AND S.TRIALKEY IS NOT NULL
+		  <!-- AND S.DELETE_YN IS NOT NULL -->
+		  AND S.PROJECT IS NOT NULL
+		 <if test="ship != null and ship != 'ALL'" >
+			AND S.TRIALKEY <![CDATA[ = ]]> #{ship}
+		</if>	
 	</select>
 	
 	<select id="getCrewInOutList" parameterType="ParamBean" resultType="scheCrewInOutBean">
@@ -58,13 +63,38 @@
 	</select>
 					
 	<insert id="insertRegistrationCrew" parameterType="RegistrationCrewBean">
-		INSERT INTO SCHECREW (SCHEDULERINFOUID, KIND, `KEY`, PROJECT, COMPANY, DEPARTMENT, NAME, RANK, IDNO, WORKTYPE1, WORKTYPE2, WORK 
-			,MAINSUB, FOODSTYLE, PERSONNO, GENDER, PHONE, TERMINAL, ORDERER, ISPLAN, ISNONE, INSERTDATE, INSERTBY, UPDATEDATE, UPDATEBY)
-		VALUES (#{schedulerInfoUid}, #{kind}, #{key}, #{projectNo}, #{company},  #{department}, #{name}, #{rank}, #{idNo}, #{workType1}, #{workType2}, #{work}
-			,#{mainSub}, #{foodStyle}, #{personNo}, #{gender}, #{phone}, #{terminal}, 'N', #{isPlan}, 'N', SYSDATE(), #{userUid}, SYSDATE(), #{userUid})
+		INSERT INTO SCHECREW (SCHEDULERINFOUID, TRIALKEY, PROJECT, KIND, COMPANY, DEPARTMENT, NAME, RANK, IDNO, WORKTYPE1, WORKTYPE2, WORK 
+			,MAINSUB, FOODSTYLE, PERSONNO, GENDER, PHONE, ISPLAN, ISNONE, INSERTDATE, INSERTBY, UPDATEDATE, UPDATEBY, DELETE_YN)
+		VALUES (#{schedulerInfoUid}, #{trialKey}, #{project}, #{kind}, #{company}, #{department}, #{name}, #{rank}, #{idNo}, #{workType1}, #{workType2}, #{work}
+			,#{mainSub}, #{foodStyle}, #{personNo}, #{gender}, #{phone}, #{isPlan}, 'N', SYSDATE(), #{userUid}, SYSDATE(), #{userUid}, 'N')
 		<selectKey resultType="int" keyProperty="uid" order="AFTER">
 	        SELECT LAST_INSERT_ID()
 	    </selectKey>
 	</insert>
+	
+  	<insert id="insertCrewDetail" parameterType="RegistrationCrewDetailBean">
+		INSERT INTO SCHECREWDETAILINFO (SCHEDULERINFOUID, TERMINAL, NOTEBOOK, MODEL_NAME, SERIAL_NUMBER
+			,FOREIGNER, PASSPORT_NUMBER, ORDER_STATUS, ORDER_DATE, ORDER_UID ,REG_DATE)
+		VALUES (#{scheCrewUid}, #{terminal}, #{laptop}, #{modelNm}, #{serialNo}
+			, #{foreigner}, #{passportNo}, #{orderStatus}, SYSDATE(), #{userUid}, SYSDATE())
+		<selectKey resultType="int" keyProperty="uid" order="AFTER">
+	        SELECT LAST_INSERT_ID()
+	    </selectKey>
+	</insert>   
+
+	<delete id="deleteCrewList" parameterType="int">
+		DELETE FROM SCHECREW
+		WHERE UID = #{crewUid}
+	</delete>
+	
+	<delete id="deleteCrewDetailList" parameterType="int">
+		DELETE FROM SCHECREWDETAILINFO
+		WHERE SCHEDULERINFOUID = #{crewUid}
+	</delete>
+	
+	<delete id="deleteCrewInoutList" parameterType="int">
+		DELETE FROM SCHECREWINOUT
+		WHERE SCHECREWUID = #{crewUid}
+	</delete>
 	
 </mapper>

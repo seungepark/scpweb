@@ -1621,6 +1621,10 @@ page[size="A4"] {
   width: 40px;
 }
 
+.th-w-60 {
+  width: 60px;
+}
+
 .th-w-90 {
   width: 90px;
 }
@@ -2192,6 +2196,64 @@ td > input {
   border: none; 
   background-color: transparent; 
   cursor: pointer; 
+}
+
+/* Input with secret box *//* 🔹 비밀입력 영역 전체 */
+.secret-box {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+/* 텍스트 입력창 전용 (체크박스, 라디오 등 제외) */
+.secret-box input[type="text"],
+.secret-box input[type="password"],
+.secret-box input[type="number"] {
+  width: 100%;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  color: transparent !important;
+  user-select: none;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+/* 🔹 가림용 마스크 (***** 표시) */
+.secret-box .mask {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.8);
+  color: #555;
+  font-weight: 500;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+/* 🔹 클릭 시 실제값 표시 */
+.secret-box.show .mask {
+  display: none;
+}
+
+.secret-box.show input[type="text"],
+.secret-box.show input[type="password"],
+.secret-box.show input[type="number"] {
+  color: #000 !important;
+  pointer-events: auto;
+}
+
+/* 전역 input 에는 아무 영향도 주지 않음 */
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  height: auto;
+  transform: scale(1); /* 크기 고정 */
 }
 
 /* Textarea */

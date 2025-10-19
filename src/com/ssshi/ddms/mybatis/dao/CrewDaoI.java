@@ -15,6 +15,7 @@ import com.ssshi.ddms.dto.ShipBbsFileInfoBean;
 import com.ssshi.ddms.dto.ShipInfoBean;
 import com.ssshi.ddms.dto.WorkStdBean;
 import com.ssshi.ddms.dto.RegistrationCrewBean;
+import com.ssshi.ddms.dto.RegistrationCrewDetailBean;
 import com.ssshi.ddms.dto.RegistrationCrewListBean;
 
 /********************************************************************************
@@ -43,13 +44,28 @@ public interface CrewDaoI {
 	// 승선자 신청 목록.
 	List<RegistrationCrewBean> getRegistrationCrewList(RegistrationCrewBean bean) throws Exception;
 	
-	// 승선자별 승하선 정보
+	// 승선자별 승하선 정보.
 	List<ScheCrewInOutBean> getCrewInOutList(ParamBean bean) throws Exception;
 	
 	// 승선자 신청 목록 개수.
 	int getRegistrationCrewListCnt() throws Exception;
 	
-	// 승선자 저장
+	// 승선자 저장.
 	int insertRegistrationCrew(RegistrationCrewBean bean) throws Exception;
+	
+	// 승선자 상세정보 저장.
+	int insertCrewDetail(RegistrationCrewDetailBean bean) throws Exception;
+	
+	// 기존 승선자 목록 삭제.
+	int deleteCrewList(int crewUid) throws Exception;
+	
+	// 기존 승선자 디테일 정보 삭제.
+	int deleteCrewDetailList(int crewUid) throws Exception;
+	
+	// 기존 승선자 승하선 정보 삭제.
+	int deleteCrewInoutList(int crewUid) throws Exception;
+	
+	
+	
 	
 }

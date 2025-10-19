@@ -47,7 +47,7 @@
 					<div class="d-flex flex-row-reverse">
 					
 						<!-- 승선일/하선일 기간 조회 -->
-						<button class="bt-obj bt-primary" onclick="setInOutDate()">
+						<button class="bt-obj bt-primary" onclick="getCrewList()">
 									<img src="${pageContext.request.contextPath}/img/i_btn_search.svg" class="bt-icon" height="16px">
 									<span data-i18n="listOp.btnSearch"></span>
 						</button>
@@ -57,7 +57,8 @@
 						<div class="lb-title-no-sp" style="line-height: 44px;">기간&nbsp&nbsp</div>
 					
 					    <!-- 호선번호 조회(스케줄키) -->
-					    <div class="col-auto" >
+					    <!-- style="border: 1px solid red" -->
+					    <div class="col-auto">
 							<select id="ship">
                                 <option value="ALL" data-i18n="listOp.shipAll"></option>
                                 <c:forEach var="ship" items="${listShip}">
@@ -68,22 +69,11 @@
 						
 						<div class="lb-title-no-sp" style="line-height: 44px;">호선번호</div>
 						
-                  		</div>
+                  	</div>
                   		<!-- <div style="padding-right: 7%;"></div> -->
                   		
-						<div  class="d-flex flex-row-reverse">
-						<button class="bt-obj bt-primary" onclick="setInOutDate()">전송</button>
-						<!-- SELECT -->
-					    <div class="col-auto">
-							<select id="ship_scp" class="">
-                                <option value="ALL">전체</option>
-                                <c:forEach var="ship" items="${listShip}">
-                                    <option value="${ship.val}">${ship.description}</option>
-                                </c:forEach>
-                            </select>
-						</div>
+					<div class="d-flex flex-row-reverse">
 						
-						<button class="bt-obj bt-primary" onclick="orderingSave()">발주</button>
 						<a href="${pageContext.request.contextPath}/mobile/mobileCrewinfo.html?uid=${bean.uid}" class="bt-obj bt-secondary mr-2" target="_blank">
 							<i class="fas fa-mobile-alt"></i> QR발송
 						</a>
@@ -98,16 +88,16 @@
 						
                    		<button class="bt-obj bt-primary" onclick="popDeleteCrewModal()"><i class="fa-solid fa-minus"></i></button>
                    		<button class="bt-obj bt-primary" onclick="addCrew()"><i class="fa-solid fa-plus"></i></button>
+                   		
                    		<!-- 엑셀 업로드/다운로드 -->
-                   		<!-- <button class="bt-obj bt-secondary" onclick="downCrewExcel()" data-i18n="btnDownload"></button>
+                   		<button class="bt-obj bt-secondary" onclick="downCrewExcel()" data-i18n="btnDownload"></button>
                    		<div class="bt-obj bt-secondary file-btn">
                    			<span data-i18n="btnUpload"></span>
 							<input class="cursor-pointer" type="file" id="fileInput" onchange="excelUpload(event)" accept=".xlsx">
-                   		</div> -->
-                   		</div>
+                   		</div> 
                    		
                    		<!-- 승선일/하선일 반영 -->
-                   		<!--  <button class="bt-obj bt-primary mr-5" onclick="setInOutDate()" data-i18n="list.btnInOut"></button>
+                   		<button class="bt-obj bt-primary mr-5" onclick="setInOutDate()" data-i18n="list.btnInOut"></button>
                    		<input type="date" id="ioDate"/>
                    		<div class="form-check form-check-inline">
 						  	<input class="form-check-input" type="radio" name="ioCheck" id="ioCheckOut" value="U">
@@ -116,8 +106,9 @@
                    		<div class="form-check form-check-inline">
 						  	<input class="form-check-input" type="radio" name="ioCheck" id="ioCheckIn" value="B" checked="checked">
 						  	<label class="form-check-label" for="ioCheckIn" data-i18n="list.in"></label>
-						</div> -->
-					    </div>  	
+						</div>
+                   	</div> 
+					</div>  	
                    	<div class="sp-8"></div>
                    	<div class="d-flex">
 						<select id="filterKind" onchange="searchList()" class="mr-3">
@@ -163,20 +154,31 @@
                				<button id="filterSearchBtn" onclick="searchList()"><img src="${pageContext.request.contextPath}/img/new/search.png"></button>
            				</div>
            				
-           				<!-- <div style="padding-right: 14%;"></div> -->
+           				<div style="padding-right: 145px;"></div>
            				
+						<!-- SELECT -->
+					    <div class="col-auto">
+							<select id="ship_scp" class="">
+                                <option value="ALL">전체</option>
+                                <c:forEach var="ship" items="${listShip}">
+                                    <option value="${ship.val}">${ship.description}</option>
+                                </c:forEach>
+                            </select>
+						</div>
+						<button class="bt-obj bt-primary" onclick="setInOutDate()">전송</button>
+						<button class="bt-obj bt-primary" onclick="orderingSave()">발주</button>
+						
 						<!-- <button class="bt-obj bt-primary" onclick="setInOutDate()" target="_blank">다운로드</button> -->
-						<button class="bt-obj bt-primary" onClick="crewListDownloadAll()"><img src="${pageContext.request.contextPath}/img/i_download.svg" height="16px">다운로드</button>
+						<button class="bt-obj bt-primary" onClick="crewListDownloadAll()"><img src="${pageContext.request.contextPath}/img/i_download.svg" height="16px">&nbsp&nbsp다운로드</button>
                    		
-					
 					</div>
                    	<div class="sp-16"></div>
                     <div class="tb-wrap table_fixed_head">
-                        <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap" style="width:3000px; overflow: auto; white-space: nowrap;"> 
+                        <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap " style="width:3000px; height:200px; overflow-y: auto; white-space: nowrap;"> 
                             <thead>
                                 <tr id="tbHeader"></tr>
                             </thead>
-                            <tbody id="tbRowList">
+                            <tbody id="tbRowList" class ="dash-ship-list-area-scroll">
                                 <tr>
 									<td class="text-center" data-i18n="share:noList">There is no data to display</td>
 								</tr>
@@ -206,7 +208,7 @@
     	</div>
   	</div>
 	<script type="text/javascript">
-	    let _scheUid = "${bean.uid}";
+	    //let _crewUid = "${bean.uid}";
 	    let _sDate = "${bean.sdate}";
 	    let _eDate = "${bean.edate}";
 	    let _crewList = [];
@@ -214,9 +216,10 @@
   	
 	  	<c:forEach var="item" items="${list}">
 	  		_crewList.push({
+	  			uid:"${item.uid}",
 	 			kind: "${item.kind}",
-	 			key: "${item.key}",
-				pjt: "${item.projectNo}",
+	 			trialKey: "${item.trialKey}",
+				pjt: "${item.project}",
 	 			company: "${item.company}",
 	 			department: "${item.department}",
 	 			name: "${item.name}",
@@ -241,7 +244,13 @@
 		 			</c:forEach>
 	 			],
 		  		terminal: "${item.terminal}",
-				ordering: "${item.ordering}"	
+		  		laptop: "${item.laptop}",
+		  		modelNm: "${item.modelNm}",
+		  		serialNo: "${item.serialNo}",
+		  		foreigner: "${item.foreigner}",	 
+		  		passportNo: "${item.passportNo}",	
+		  		//deleteYn: "${item.deleteYn}",
+				orderStatus: "${item.orderStatus}"				
 	 		});
 	  	</c:forEach>
 	</script>

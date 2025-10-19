@@ -4,9 +4,10 @@
 	"list": [
 		<c:forEach var="tmp" items="${list}" varStatus="status">
 			{
+				"uid":"${tmp.uid}",
 				"kind": "${tmp.kind}",
-				"key": "${tmp.key}",
-				"pjt": "${tmp.projectNo}",
+				"trialKey": "${tmp.trialKey}",
+				"pjt": "${tmp.project}",
 				"company": "${tmp.company}",
 				"department": "${tmp.department}",
 				"name": "${tmp.name}",
@@ -31,7 +32,13 @@
 				    </c:forEach>
 				],
 				"terminal": "${tmp.terminal}",
-				"ordering": "${tmp.ordering}"				
+				"laptop": "${tmp.laptop}",
+		  		"modelNm": "${tmp.modelNm}",
+		  		"serialNo": "${tmp.serialNo}",
+		  		"foreigner": "${tmp.foreigner}",	
+		  		"passportNo": "${tmp.passportNo}",	 
+				"orderStatus": "${tmp.orderStatus}",		
+				"deleteYn": "${tmp.deleteYn}"			
 			}
 			<c:if test="${!status.last}">,</c:if>
 		</c:forEach>

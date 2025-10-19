@@ -11,8 +11,8 @@ public class RegistrationCrewBean {
 	private String outDate;
 	
 	private String kind;
-	private String key;
-	private String projectNo;
+	private String trialKey;
+	private String project;
 	private String company;
 	private String department;
 	private String name;
@@ -27,8 +27,14 @@ public class RegistrationCrewBean {
 	private String gender;
 	private String phone;
 	private String terminal;
-	private String ordering;
+	private String laptop;
+	private String modelNm;
+	private String serialNo;
+	private String foreigner;
+	private String passportNo;
+	private String orderStatus;
 	private String isPlan;
+	private String deleteYn;
 	
 	private int userUid;
 	private List<ScheCrewInOutBean> inOutList;
@@ -83,17 +89,17 @@ public class RegistrationCrewBean {
 	public void setKind(String kind) {
 		this.kind = kind;
 	}
-	public String getKey() {
-		return key;
+	public String getTrialKey() {
+		return trialKey;
 	}
-	public void setKey(String key) {
-		this.key = key;
+	public void setTrialKey(String trialKey) {
+		this.trialKey = trialKey;
 	}
-	public String getProjectNo() {
-		return projectNo;
+	public String getProject() {
+		return project;
 	}
-	public void setProjectNo(String projectNo) {
-		this.projectNo = projectNo;
+	public void setProject(String project) {
+		this.project = project;
 	}
 	public String getCompany() {
 		return company;
@@ -179,11 +185,41 @@ public class RegistrationCrewBean {
 	public void setTerminal(String terminal) {
 		this.terminal = terminal;
 	}
-	public String getOrdering() {
-		return ordering;
+	public String getLaptop() {
+		return laptop;
 	}
-	public void setOrdering(String ordering) {
-		this.ordering = ordering;
+	public void setLaptop(String laptop) {
+		this.laptop = laptop;
+	}
+	public String getModelNm() {
+		return modelNm;
+	}
+	public void setModelNm(String modelNm) {
+		this.modelNm = modelNm;
+	}
+	public String getSerialNo() {
+		return serialNo;
+	}
+	public void setSerialNo(String serialNo) {
+		this.serialNo = serialNo;
+	}
+	public String getForeigner() {
+		return foreigner;
+	}
+	public void setForeigner(String foreigner) {
+		this.foreigner = foreigner;
+	}
+	public String getPassportNo() {
+		return passportNo;
+	}
+	public void setPassportNo(String passportNo) {
+		this.passportNo = passportNo;
+	}
+	public String getOrderStatus() {
+		return orderStatus;
+	}
+	public void setOrderStatus(String orderStatus) {
+		this.orderStatus = orderStatus;
 	}	
 	public String getIsPlan() {
 		return isPlan;
@@ -232,6 +268,12 @@ public class RegistrationCrewBean {
 	}
 	public void setIsNone(String isNone) {
 		this.isNone = isNone;
+	}
+	public String getDeleteYn() {
+		return deleteYn;
+	}
+	public void setDeleteYn(String deleteYn) {
+		this.deleteYn = deleteYn;
 	}
 	public int getInsertBy() {
 		return insertBy;
