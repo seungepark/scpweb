@@ -76,6 +76,15 @@ public class CrewController {
 	    return "share/resultCode";
 	}
 	
+	//승선자 발주
+	@RequestMapping(value="/crew/crewOrderUpdate.html", method=RequestMethod.POST)
+	public String crewOrderUpdate(HttpServletRequest request, ModelMap model, ParamBean bean) throws Exception {
+		model.addAllAttributes(service.crewOrderUpdate(request, bean));
+	   
+	    return "share/resultCode";
+	}
+	
+	
 	//Main(앵카링 식사 신청)
 	@RequestMapping(value="/crew/anchorageMealRequest.html")
 	public String anchorageMealRequest(HttpServletRequest request, ModelMap model, RegistrationCrewBean bean) throws Exception {

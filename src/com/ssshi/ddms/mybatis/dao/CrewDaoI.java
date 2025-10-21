@@ -1,6 +1,7 @@
 package com.ssshi.ddms.mybatis.dao;
 
 import java.util.List;
+import java.util.Map;
 
 import com.ssshi.ddms.dto.DomainInfoBean;
 import com.ssshi.ddms.dto.ParamBean;
@@ -65,7 +66,6 @@ public interface CrewDaoI {
 	// 기존 승선자 승하선 정보 삭제.
 	int deleteCrewInoutList(int crewUid) throws Exception;
 	
-	
-	
-	
+	// 승선자 발주
+	int updateCrewOrder(Map<String, Object> map) throws Exception;
 }

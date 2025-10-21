@@ -20,6 +20,7 @@ public interface CrewServiceI {
 	
 	Map<String, Object> registrationCrewRemove(HttpServletRequest request, ParamBean bean) throws Exception;
 	
+	Map<String, Object> crewOrderUpdate(HttpServletRequest request, ParamBean bean) throws Exception;
+	
 	void downCrewExcel(HttpServletResponse response) throws Exception;
-
 }

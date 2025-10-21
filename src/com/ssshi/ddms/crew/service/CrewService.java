@@ -222,6 +222,37 @@ public class CrewService implements CrewServiceI {
 	}
 	
 	@Override
+	public Map<String, Object> crewOrderUpdate(HttpServletRequest request, ParamBean bean) throws Exception {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		System.out.println("crewOrderUpdate");
+		boolean isResult = DBConst.FAIL;
+		//int userUid = ((UserInfoBean)(request.getSession().getAttribute(Const.SS_USERINFO))).getUid();
+		
+		for(int i = 0; i < bean.getUidArr().length; i++) {
+			//리스트 삭제
+			if(bean.getUidArr()[i] != -1)
+			{
+				 Map<String, Object> map = new HashMap<>();
+			     map.put("userId", bean.getUuid());
+			     map.put("crewUid", bean.getUidArr()[i]);
+				    
+				System.out.println("오나용11131/ "+bean.getUidArr()[i]+"/ "+bean.getUuid());
+				crewDao.updateCrewOrder(map);
+				/*
+				 * System.out.println("오나용11111/ "+bean.getUidArr()[i]+"/ ");
+				 * crewDao.deleteCrewInoutList(bean.getUidArr()[i]);
+				 * crewDao.deleteCrewDetailList(bean.getUidArr()[i]);
+				 */
+			}
+		}
+		
+		isResult = DBConst.SUCCESS;
+		resultMap.put(Const.RESULT, isResult);
+		
+		return resultMap;
+	}
+	
+	@Override
 	public void downCrewExcel(HttpServletResponse response) throws Exception {
 		System.out.println("downCrewExcel 오나요");
 		

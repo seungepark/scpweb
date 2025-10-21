@@ -156,6 +156,7 @@ function initData() {
 	$('#tbRowList').empty();
 	
 	for(let z = 0; z < _crewList.length; z++) {
+		//alert("_crewList[z].orderStatus : "+_crewList[z].orderStatus);
 		_crewCnt++;
 		let uid = _crewList[z].uid;
 		let rowId = _tbRowId++;
@@ -198,152 +199,296 @@ function initData() {
 				outDate = inOutDate;
 			}
 		}
-		
+		let text = "";
 		//alert(gender);
-		
-		let text = '<tr id="tbRow_' + rowId + '">' + 
-						'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
-						'<td class="text-center th-w-60"><div name="no">' + _crewCnt + '</div></td>' +
-						'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
-						'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
-						'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 												
-						'<td class="text-center">' + 
-							'<select name="kind">';
-							
-						text += '<option value="SHI-A"' + (kind == 'SHI-A' ? ' selected' : '') + '>SHI-기술지원직</option>' + 
-								'<option value="SHI-B"' + (kind == 'SHI-B' ? ' selected' : '') + '>SHI-생산직</option>' + 
-								'<option value="SHI-C"' + (kind == 'SHI-C' ? ' selected' : '') + '>SHI-협력사</option>' + 
-								'<option value="OUTSIDE"' + (kind == 'OUTSIDE' ? ' selected' : '') + '>외부</option>';
-								
-					text += '</select>' +
-						'</td>' + 
-						'<td class="text-center">' + '<input name="company" type="text" value="' + company + '">' + '</td>' + 
-						'<td class="text-center">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 
-						'<td class="text-center">' + '<input name="name" type="text" value="' + name + '">' + '</td>' + 
-						'<td class="text-center">' + '<input name="rank" type="text" value="' + rank + '">' + '</td>' + 
-						
-						'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
-						    '<span class="mask">*****</span>' + '<input name="idNo" type="text" value="' + idNo + '">' +
-						  '</div>' + 
-						'</td>' + 
-						
-						'<td class="text-center">' + 
-							'<select name="workType1" onchange="setWorkType2(' + rowId + ', this.value)">';
-							
-						text += '<option value="A"' + (workType1 == 'A' ? ' selected' : '') + '>시운전</option>' + 
-								'<option value="B"' + (workType1 == 'B' ? ' selected' : '') + '>생산</option>' + 
-								'<option value="C"' + (workType1 == 'C' ? ' selected' : '') + '>설계연구소</option>' + 
-								'<option value="D"' + (workType1 == 'D' ? ' selected' : '') + '>지원</option>' + 
-								'<option value="E"' + (workType1 == 'E' ? ' selected' : '') + '>외부</option>';
-								
-					text += '</select>' +
-						'</td>' + 
-						'<td class="text-center">' + 
-							'<select id="workType2_' + rowId + '" name="workType2">';
-							
-					if(workType1 == 'A') {
-						text += '<option value="A0"' + (workType2 == 'A0' ? ' selected' : '') + '>-</option>' + 
-								'<option value="A1"' + (workType2 == 'A1' ? ' selected' : '') + '>코맨더</option>' + 
-								'<option value="A2"' + (workType2 == 'A2' ? ' selected' : '') + '>기장운전</option>' + 
-								'<option value="A3"' + (workType2 == 'A3' ? ' selected' : '') + '>선장운전</option>' + 
-								'<option value="A4"' + (workType2 == 'A4' ? ' selected' : '') + '>전장운전</option>' + 
-								'<option value="A5"' + (workType2 == 'A5' ? ' selected' : '') + '>항통</option>' + 
-								'<option value="A6"' + (workType2 == 'A6' ? ' selected' : '') + '>안벽의장</option>' + 
-								'<option value="A7"' + (workType2 == 'A7' ? ' selected' : '') + '>기타</option>';
-					}else if(workType1 == 'B') {
-						text += '<option value="B0"' + (workType2 == 'B0' ? ' selected' : '') + '>-</option>' + 
-								'<option value="B1"' + (workType2 == 'B1' ? ' selected' : '') + '>기관과</option>' + 
-								'<option value="B2"' + (workType2 == 'B2' ? ' selected' : '') + '>기타</option>';
-					}else if(workType1 == 'C') {
-						text += '<option value="C0"' + (workType2 == 'C0' ? ' selected' : '') + '>-</option>' + 
-								'<option value="C1"' + (workType2 == 'C1' ? ' selected' : '') + '>종합설계</option>' + 
-								'<option value="C2"' + (workType2 == 'C2' ? ' selected' : '') + '>기장설계</option>' + 
-								'<option value="C3"' + (workType2 == 'C3' ? ' selected' : '') + '>선장설계</option>' + 
-								'<option value="C4"' + (workType2 == 'C4' ? ' selected' : '') + '>전장설계</option>' + 
-								'<option value="C5"' + (workType2 == 'C5' ? ' selected' : '') + '>진동연구</option>' + 
-								'<option value="C6"' + (workType2 == 'C6' ? ' selected' : '') + '>기타</option>';
-					}else if(workType1 == 'D') {
-						text += '<option value="D0"' + (workType2 == 'D0' ? ' selected' : '') + '>-</option>' + 
-								'<option value="D1"' + (workType2 == 'D1' ? ' selected' : '') + '>안전</option>' + 
-								'<option value="D2"' + (workType2 == 'D2' ? ' selected' : '') + '>캐터링</option>' + 
-								'<option value="D3"' + (workType2 == 'D3' ? ' selected' : '') + '>QM</option>' + 
-								'<option value="D4"' + (workType2 == 'D4' ? ' selected' : '') + '>PM</option>' + 
-								'<option value="D5"' + (workType2 == 'D5' ? ' selected' : '') + '>기타</option>';
-					}else if(workType1 == 'E') {
-						text += '<option value="E0"' + (workType2 == 'E0' ? ' selected' : '') + '>-</option>' + 
-								'<option value="E1"' + (workType2 == 'E1' ? ' selected' : '') + '>Owner</option>' + 
-								'<option value="E2"' + (workType2 == 'E2' ? ' selected' : '') + '>Class</option>' + 
-								'<option value="E3"' + (workType2 == 'E3' ? ' selected' : '') + '>S/E</option>' + 
-								'<option value="E4"' + (workType2 == 'E4' ? ' selected' : '') + '>선장</option>' + 
-								'<option value="E5"' + (workType2 == 'E5' ? ' selected' : '') + '>항해사</option>' + 
-								'<option value="E6"' + (workType2 == 'E6' ? ' selected' : '') + '>기관장</option>' + 
-								'<option value="E7"' + (workType2 == 'E7' ? ' selected' : '') + '>라인맨</option>' + 
-								'<option value="E8"' + (workType2 == 'E8' ? ' selected' : '') + '>기타</option>'};
-							
-					text += '</select>' +
-						'</td>' + 
-						'<td class="text-center">' + '<input name="work" type="text" value="' + work + '">' + '</td>' + 
-						'<td class="text-center">' + 
-							'<select name="mainSub">';
-							
-						text += '<option value="N"' + (mainSub == 'N' ? ' selected' : '') + '>-</option>' + 
-								'<option value="M"' + (mainSub == 'M' ? ' selected' : '') + '>정</option>' + 
-								'<option value="S"' + (mainSub == 'S' ? ' selected' : '') + '>부</option>' ;
-								
-					text += '</select>' +
-						'</td>' + 
-						'<td class="text-center">' + 
-							'<select name="foodStyle">';
-							
-						text += '<option value="K"' + (foodStyle == 'K' ? ' selected' : '') + '>한식</option>' + 
-								'<option value="W"' + (foodStyle == 'W' ? ' selected' : '') + '>양식(Normal Western)</option>' + 	
-								'<option value="H"' + (foodStyle == 'H' ? ' selected' : '') + '>양식(Halal)</option>' + 	
-								'<option value="V1"' + (foodStyle == 'V1' ? ' selected' : '') + '>양식(Veg. fruitarian)</option>' + 	
-								'<option value="V2"' + (foodStyle == 'V2' ? ' selected' : '') + '>양식(Veg. vegan)</option>' + 	
-								'<option value="V3"' + (foodStyle == 'V3' ? ' selected' : '') + '>양식(Veg. lacto-veg.)</option>' + 	
-								'<option value="V4"' + (foodStyle == 'V4' ? ' selected' : '') + '>양식(Veg. ovo-veg.)</option>' + 	
-								'<option value="V5"' + (foodStyle == 'V5' ? ' selected' : '') + '>양식(Veg. lacto-ovo-veg.)</option>' + 	
-								'<option value="V6"' + (foodStyle == 'V6' ? ' selected' : '') + '>양식(Veg. pesco-veg.)</option>' + 	
-								'<option value="V7"' + (foodStyle == 'V7' ? ' selected' : '') + '>양식(Veg. pollo-veg.)</option>' + 	
-								'<option value="V8"' + (foodStyle == 'V8' ? ' selected' : '') + '>양식(Veg. flexitarian)</option>';
-								
-					text += '</select>' +
-						'</td>' + 
-	
-						
-						'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
-						    '<span class="mask">*****</span>' + '<input name="personNo" type="text" value="' + personNo + '" >' +
-						  '</div>' + 
-						'</td>' + 
+		if(orderStatus == 'Y'){
+			text += '<tr id="tbRow_' + rowId + '">' + 
+									'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()" disabled></td>' +
+									'<td class="text-center th-w-60"><div name="no">' + _crewCnt + '</div></td>' +
+									'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '" disabled>' + '</td>' +
+									'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
+									'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 												
+									'<td class="text-center">' + 
+										'<select name="kind" disabled>';
+										
+									text += '<option value="SHI-A"' + (kind == 'SHI-A' ? ' selected' : '') + '>SHI-기술지원직</option>' + 
+											'<option value="SHI-B"' + (kind == 'SHI-B' ? ' selected' : '') + '>SHI-생산직</option>' + 
+											'<option value="SHI-C"' + (kind == 'SHI-C' ? ' selected' : '') + '>SHI-협력사</option>' + 
+											'<option value="OUTSIDE"' + (kind == 'OUTSIDE' ? ' selected' : '') + '>외부</option>';
+											
+								text += '</select>' +
+									'</td>' + 
+									'<td class="text-center">' + '<input name="company" type="text" disabled value="' + company + '">' + '</td>' + 
+									'<td class="text-center">' + '<input name="department" type="text" disabled value="' + department + '">' + '</td>' + 
+									'<td class="text-center">' + '<input name="name" type="text" disabled value="' + name + '">' + '</td>' + 
+									'<td class="text-center">' + '<input name="rank" type="text" disabled value="' + rank + '">' + '</td>' + 
+									
+									'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
+									    '<span class="mask">*****</span>' + '<input name="idNo" type="text" disabled value="' + idNo + '">' +
+									  '</div>' + 
+									'</td>' + 
+									
+									'<td class="text-center">' + 
+										'<select name="workType1" disabled onchange="setWorkType2(' + rowId + ', this.value)">';
+										
+									text += '<option value="A"' + (workType1 == 'A' ? ' selected' : '') + '>시운전</option>' + 
+											'<option value="B"' + (workType1 == 'B' ? ' selected' : '') + '>생산</option>' + 
+											'<option value="C"' + (workType1 == 'C' ? ' selected' : '') + '>설계연구소</option>' + 
+											'<option value="D"' + (workType1 == 'D' ? ' selected' : '') + '>지원</option>' + 
+											'<option value="E"' + (workType1 == 'E' ? ' selected' : '') + '>외부</option>';
+											
+								text += '</select>' +
+									'</td>' + 
+									'<td class="text-center">' + 
+										'<select id="workType2_' + rowId + '" disabled name="workType2">';
+										
+								if(workType1 == 'A') {
+									text += '<option value="A0"' + (workType2 == 'A0' ? ' selected' : '') + '>-</option>' + 
+											'<option value="A1"' + (workType2 == 'A1' ? ' selected' : '') + '>코맨더</option>' + 
+											'<option value="A2"' + (workType2 == 'A2' ? ' selected' : '') + '>기장운전</option>' + 
+											'<option value="A3"' + (workType2 == 'A3' ? ' selected' : '') + '>선장운전</option>' + 
+											'<option value="A4"' + (workType2 == 'A4' ? ' selected' : '') + '>전장운전</option>' + 
+											'<option value="A5"' + (workType2 == 'A5' ? ' selected' : '') + '>항통</option>' + 
+											'<option value="A6"' + (workType2 == 'A6' ? ' selected' : '') + '>안벽의장</option>' + 
+											'<option value="A7"' + (workType2 == 'A7' ? ' selected' : '') + '>기타</option>';
+								}else if(workType1 == 'B') {
+									text += '<option value="B0"' + (workType2 == 'B0' ? ' selected' : '') + '>-</option>' + 
+											'<option value="B1"' + (workType2 == 'B1' ? ' selected' : '') + '>기관과</option>' + 
+											'<option value="B2"' + (workType2 == 'B2' ? ' selected' : '') + '>기타</option>';
+								}else if(workType1 == 'C') {
+									text += '<option value="C0"' + (workType2 == 'C0' ? ' selected' : '') + '>-</option>' + 
+											'<option value="C1"' + (workType2 == 'C1' ? ' selected' : '') + '>종합설계</option>' + 
+											'<option value="C2"' + (workType2 == 'C2' ? ' selected' : '') + '>기장설계</option>' + 
+											'<option value="C3"' + (workType2 == 'C3' ? ' selected' : '') + '>선장설계</option>' + 
+											'<option value="C4"' + (workType2 == 'C4' ? ' selected' : '') + '>전장설계</option>' + 
+											'<option value="C5"' + (workType2 == 'C5' ? ' selected' : '') + '>진동연구</option>' + 
+											'<option value="C6"' + (workType2 == 'C6' ? ' selected' : '') + '>기타</option>';
+								}else if(workType1 == 'D') {
+									text += '<option value="D0"' + (workType2 == 'D0' ? ' selected' : '') + '>-</option>' + 
+											'<option value="D1"' + (workType2 == 'D1' ? ' selected' : '') + '>안전</option>' + 
+											'<option value="D2"' + (workType2 == 'D2' ? ' selected' : '') + '>캐터링</option>' + 
+											'<option value="D3"' + (workType2 == 'D3' ? ' selected' : '') + '>QM</option>' + 
+											'<option value="D4"' + (workType2 == 'D4' ? ' selected' : '') + '>PM</option>' + 
+											'<option value="D5"' + (workType2 == 'D5' ? ' selected' : '') + '>기타</option>';
+								}else if(workType1 == 'E') {
+									text += '<option value="E0"' + (workType2 == 'E0' ? ' selected' : '') + '>-</option>' + 
+											'<option value="E1"' + (workType2 == 'E1' ? ' selected' : '') + '>Owner</option>' + 
+											'<option value="E2"' + (workType2 == 'E2' ? ' selected' : '') + '>Class</option>' + 
+											'<option value="E3"' + (workType2 == 'E3' ? ' selected' : '') + '>S/E</option>' + 
+											'<option value="E4"' + (workType2 == 'E4' ? ' selected' : '') + '>선장</option>' + 
+											'<option value="E5"' + (workType2 == 'E5' ? ' selected' : '') + '>항해사</option>' + 
+											'<option value="E6"' + (workType2 == 'E6' ? ' selected' : '') + '>기관장</option>' + 
+											'<option value="E7"' + (workType2 == 'E7' ? ' selected' : '') + '>라인맨</option>' + 
+											'<option value="E8"' + (workType2 == 'E8' ? ' selected' : '') + '>기타</option>'};
+										
+								text += '</select>' +
+									'</td>' + 
+									'<td class="text-center">' + '<input name="work" type="text" disabled value="' + work + '">' + '</td>' + 
+									'<td class="text-center">' + 
+										'<select name="mainSub" disabled>';
+										
+									text += '<option value="N"' + (mainSub == 'N' ? ' selected' : '') + '>-</option>' + 
+											'<option value="M"' + (mainSub == 'M' ? ' selected' : '') + '>정</option>' + 
+											'<option value="S"' + (mainSub == 'S' ? ' selected' : '') + '>부</option>' ;
+											
+								text += '</select>' +
+									'</td>' + 
+									'<td class="text-center">' + 
+										'<select name="foodStyle" disabled>';
+										
+									text += '<option value="K"' + (foodStyle == 'K' ? ' selected' : '') + '>한식</option>' + 
+											'<option value="W"' + (foodStyle == 'W' ? ' selected' : '') + '>양식(Normal Western)</option>' + 	
+											'<option value="H"' + (foodStyle == 'H' ? ' selected' : '') + '>양식(Halal)</option>' + 	
+											'<option value="V1"' + (foodStyle == 'V1' ? ' selected' : '') + '>양식(Veg. fruitarian)</option>' + 	
+											'<option value="V2"' + (foodStyle == 'V2' ? ' selected' : '') + '>양식(Veg. vegan)</option>' + 	
+											'<option value="V3"' + (foodStyle == 'V3' ? ' selected' : '') + '>양식(Veg. lacto-veg.)</option>' + 	
+											'<option value="V4"' + (foodStyle == 'V4' ? ' selected' : '') + '>양식(Veg. ovo-veg.)</option>' + 	
+											'<option value="V5"' + (foodStyle == 'V5' ? ' selected' : '') + '>양식(Veg. lacto-ovo-veg.)</option>' + 	
+											'<option value="V6"' + (foodStyle == 'V6' ? ' selected' : '') + '>양식(Veg. pesco-veg.)</option>' + 	
+											'<option value="V7"' + (foodStyle == 'V7' ? ' selected' : '') + '>양식(Veg. pollo-veg.)</option>' + 	
+											'<option value="V8"' + (foodStyle == 'V8' ? ' selected' : '') + '>양식(Veg. flexitarian)</option>';
+											
+								text += '</select>' +
+									'</td>' + 
+				
+									
+									'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
+									    '<span class="mask">*****</span>' + '<input name="personNo" type="text" disabled value="' + personNo + '" >' +
+									  '</div>' + 
+									'</td>' + 
 
-						'<td class="text-center">' + 
-								'<select name="gender">';
+									'<td class="text-center">' + 
+											'<select name="gender" disabled>';
+											
+										text += '<option value="M"' + (gender == 'M' ? ' selected' : '') + '>남</option>' + 
+												'<option value="F"' + (gender == 'F' ? ' selected' : '') + '>여</option>' ;
+												
+									text += '</select>' +
+									'</td>' + 
+									
+									'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
+									    '<span class="mask">*****</span>' + '<input name="phone" type="text" disabled value="' + phone + '" >' +
+									  '</div>' + 
+									'</td>';
+									
+								text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="date" disabled value="' + inDate + '" >' + '</td>' + 
+										'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="date" disabled value="' + outDate + '" >' + '</td>';
+						
+								text += '<td class="text-center">' + '<input name="terminal" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (terminal === 'Y' ? 'checked' : '') + '>' + '</td>' +
+										'<td class="text-center">' + '<input name="laptop" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (laptop === 'Y' ? 'checked' : '') + '>' + '</td>' +
+										'<td class="text-center">' + '<input name="modelNm" type="text" disabled value="'+ modelNm +'">' + '</td>' +
+										'<td class="text-center">' + '<input name="serialNo" type="text" disabled value="'+ serialNo +'">' + '</td>' +
+										'<td class="text-center">' + '<input name="foreigner" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (foreigner === 'Y' ? 'checked' : '') + '>' + '</td>' +
+										'<td class="text-center">' + '<input name="passportNo" type="text" disabled value="'+ passportNo +'">' + '</td>' +
+										'<td class="text-center">' + '<input name="orderStatus" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>';
+										//'<td class="text-center">' + '<input name="deleteYn" type="checkbox" onclick="setRowSelected()" value="'+ deleteYn +'">' + '</td>';
+					
+						text += '</tr>';	
+		}
+		else{
+			text += '<tr id="tbRow_' + rowId + '">' + 
+							'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
+							'<td class="text-center th-w-60"><div name="no">' + _crewCnt + '</div></td>' +
+							'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
+							'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
+							'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 												
+							'<td class="text-center">' + 
+								'<select name="kind">';
 								
-							text += '<option value="M"' + (gender == 'M' ? ' selected' : '') + '>남</option>' + 
-									'<option value="F"' + (gender == 'F' ? ' selected' : '') + '>여</option>' ;
+							text += '<option value="SHI-A"' + (kind == 'SHI-A' ? ' selected' : '') + '>SHI-기술지원직</option>' + 
+									'<option value="SHI-B"' + (kind == 'SHI-B' ? ' selected' : '') + '>SHI-생산직</option>' + 
+									'<option value="SHI-C"' + (kind == 'SHI-C' ? ' selected' : '') + '>SHI-협력사</option>' + 
+									'<option value="OUTSIDE"' + (kind == 'OUTSIDE' ? ' selected' : '') + '>외부</option>';
 									
 						text += '</select>' +
-						'</td>' + 
-						
-						'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
-						    '<span class="mask">*****</span>' + '<input name="phone" type="text" value="' + phone + '" >' +
-						  '</div>' + 
-						'</td>';
-						
-					text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="date" value="' + inDate + '" >' + '</td>' + 
-							'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="date" value="' + outDate + '" >' + '</td>';
-			
-					text += '<td class="text-center">' + '<input name="terminal" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (terminal === 'Y' ? 'checked' : '') + '>' + '</td>' +
-							'<td class="text-center">' + '<input name="laptop" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (laptop === 'Y' ? 'checked' : '') + '>' + '</td>' +
-							'<td class="text-center">' + '<input name="modelNm" type="text" value="'+ modelNm +'">' + '</td>' +
-							'<td class="text-center">' + '<input name="serialNo" type="text" value="'+ serialNo +'">' + '</td>' +
-							'<td class="text-center">' + '<input name="foreigner" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (foreigner === 'Y' ? 'checked' : '') + '>' + '</td>' +
-							'<td class="text-center">' + '<input name="passportNo" type="text" value="'+ passportNo +'">' + '</td>' +
-							'<td class="text-center">' + '<input name="orderStatus" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>';
-							//'<td class="text-center">' + '<input name="deleteYn" type="checkbox" onclick="setRowSelected()" value="'+ deleteYn +'">' + '</td>';
+							'</td>' + 
+							'<td class="text-center">' + '<input name="company" type="text" value="' + company + '">' + '</td>' + 
+							'<td class="text-center">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 
+							'<td class="text-center">' + '<input name="name" type="text" value="' + name + '">' + '</td>' + 
+							'<td class="text-center">' + '<input name="rank" type="text" value="' + rank + '">' + '</td>' + 
+							
+							'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
+							    '<span class="mask">*****</span>' + '<input name="idNo" type="text" value="' + idNo + '">' +
+							  '</div>' + 
+							'</td>' + 
+							
+							'<td class="text-center">' + 
+								'<select name="workType1" onchange="setWorkType2(' + rowId + ', this.value)">';
+								
+							text += '<option value="A"' + (workType1 == 'A' ? ' selected' : '') + '>시운전</option>' + 
+									'<option value="B"' + (workType1 == 'B' ? ' selected' : '') + '>생산</option>' + 
+									'<option value="C"' + (workType1 == 'C' ? ' selected' : '') + '>설계연구소</option>' + 
+									'<option value="D"' + (workType1 == 'D' ? ' selected' : '') + '>지원</option>' + 
+									'<option value="E"' + (workType1 == 'E' ? ' selected' : '') + '>외부</option>';
+									
+						text += '</select>' +
+							'</td>' + 
+							'<td class="text-center">' + 
+								'<select id="workType2_' + rowId + '" name="workType2">';
+								
+						if(workType1 == 'A') {
+							text += '<option value="A0"' + (workType2 == 'A0' ? ' selected' : '') + '>-</option>' + 
+									'<option value="A1"' + (workType2 == 'A1' ? ' selected' : '') + '>코맨더</option>' + 
+									'<option value="A2"' + (workType2 == 'A2' ? ' selected' : '') + '>기장운전</option>' + 
+									'<option value="A3"' + (workType2 == 'A3' ? ' selected' : '') + '>선장운전</option>' + 
+									'<option value="A4"' + (workType2 == 'A4' ? ' selected' : '') + '>전장운전</option>' + 
+									'<option value="A5"' + (workType2 == 'A5' ? ' selected' : '') + '>항통</option>' + 
+									'<option value="A6"' + (workType2 == 'A6' ? ' selected' : '') + '>안벽의장</option>' + 
+									'<option value="A7"' + (workType2 == 'A7' ? ' selected' : '') + '>기타</option>';
+						}else if(workType1 == 'B') {
+							text += '<option value="B0"' + (workType2 == 'B0' ? ' selected' : '') + '>-</option>' + 
+									'<option value="B1"' + (workType2 == 'B1' ? ' selected' : '') + '>기관과</option>' + 
+									'<option value="B2"' + (workType2 == 'B2' ? ' selected' : '') + '>기타</option>';
+						}else if(workType1 == 'C') {
+							text += '<option value="C0"' + (workType2 == 'C0' ? ' selected' : '') + '>-</option>' + 
+									'<option value="C1"' + (workType2 == 'C1' ? ' selected' : '') + '>종합설계</option>' + 
+									'<option value="C2"' + (workType2 == 'C2' ? ' selected' : '') + '>기장설계</option>' + 
+									'<option value="C3"' + (workType2 == 'C3' ? ' selected' : '') + '>선장설계</option>' + 
+									'<option value="C4"' + (workType2 == 'C4' ? ' selected' : '') + '>전장설계</option>' + 
+									'<option value="C5"' + (workType2 == 'C5' ? ' selected' : '') + '>진동연구</option>' + 
+									'<option value="C6"' + (workType2 == 'C6' ? ' selected' : '') + '>기타</option>';
+						}else if(workType1 == 'D') {
+							text += '<option value="D0"' + (workType2 == 'D0' ? ' selected' : '') + '>-</option>' + 
+									'<option value="D1"' + (workType2 == 'D1' ? ' selected' : '') + '>안전</option>' + 
+									'<option value="D2"' + (workType2 == 'D2' ? ' selected' : '') + '>캐터링</option>' + 
+									'<option value="D3"' + (workType2 == 'D3' ? ' selected' : '') + '>QM</option>' + 
+									'<option value="D4"' + (workType2 == 'D4' ? ' selected' : '') + '>PM</option>' + 
+									'<option value="D5"' + (workType2 == 'D5' ? ' selected' : '') + '>기타</option>';
+						}else if(workType1 == 'E') {
+							text += '<option value="E0"' + (workType2 == 'E0' ? ' selected' : '') + '>-</option>' + 
+									'<option value="E1"' + (workType2 == 'E1' ? ' selected' : '') + '>Owner</option>' + 
+									'<option value="E2"' + (workType2 == 'E2' ? ' selected' : '') + '>Class</option>' + 
+									'<option value="E3"' + (workType2 == 'E3' ? ' selected' : '') + '>S/E</option>' + 
+									'<option value="E4"' + (workType2 == 'E4' ? ' selected' : '') + '>선장</option>' + 
+									'<option value="E5"' + (workType2 == 'E5' ? ' selected' : '') + '>항해사</option>' + 
+									'<option value="E6"' + (workType2 == 'E6' ? ' selected' : '') + '>기관장</option>' + 
+									'<option value="E7"' + (workType2 == 'E7' ? ' selected' : '') + '>라인맨</option>' + 
+									'<option value="E8"' + (workType2 == 'E8' ? ' selected' : '') + '>기타</option>'};
+								
+						text += '</select>' +
+							'</td>' + 
+							'<td class="text-center">' + '<input name="work" type="text" value="' + work + '">' + '</td>' + 
+							'<td class="text-center">' + 
+								'<select name="mainSub">';
+								
+							text += '<option value="N"' + (mainSub == 'N' ? ' selected' : '') + '>-</option>' + 
+									'<option value="M"' + (mainSub == 'M' ? ' selected' : '') + '>정</option>' + 
+									'<option value="S"' + (mainSub == 'S' ? ' selected' : '') + '>부</option>' ;
+									
+						text += '</select>' +
+							'</td>' + 
+							'<td class="text-center">' + 
+								'<select name="foodStyle">';
+								
+							text += '<option value="K"' + (foodStyle == 'K' ? ' selected' : '') + '>한식</option>' + 
+									'<option value="W"' + (foodStyle == 'W' ? ' selected' : '') + '>양식(Normal Western)</option>' + 	
+									'<option value="H"' + (foodStyle == 'H' ? ' selected' : '') + '>양식(Halal)</option>' + 	
+									'<option value="V1"' + (foodStyle == 'V1' ? ' selected' : '') + '>양식(Veg. fruitarian)</option>' + 	
+									'<option value="V2"' + (foodStyle == 'V2' ? ' selected' : '') + '>양식(Veg. vegan)</option>' + 	
+									'<option value="V3"' + (foodStyle == 'V3' ? ' selected' : '') + '>양식(Veg. lacto-veg.)</option>' + 	
+									'<option value="V4"' + (foodStyle == 'V4' ? ' selected' : '') + '>양식(Veg. ovo-veg.)</option>' + 	
+									'<option value="V5"' + (foodStyle == 'V5' ? ' selected' : '') + '>양식(Veg. lacto-ovo-veg.)</option>' + 	
+									'<option value="V6"' + (foodStyle == 'V6' ? ' selected' : '') + '>양식(Veg. pesco-veg.)</option>' + 	
+									'<option value="V7"' + (foodStyle == 'V7' ? ' selected' : '') + '>양식(Veg. pollo-veg.)</option>' + 	
+									'<option value="V8"' + (foodStyle == 'V8' ? ' selected' : '') + '>양식(Veg. flexitarian)</option>';
+									
+						text += '</select>' +
+							'</td>' + 
 		
-			text += '</tr>';
+							
+							'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
+							    '<span class="mask">*****</span>' + '<input name="personNo" type="text" value="' + personNo + '" >' +
+							  '</div>' + 
+							'</td>' + 
 	
+							'<td class="text-center">' + 
+									'<select name="gender">';
+									
+								text += '<option value="M"' + (gender == 'M' ? ' selected' : '') + '>남</option>' + 
+										'<option value="F"' + (gender == 'F' ? ' selected' : '') + '>여</option>' ;
+										
+							text += '</select>' +
+							'</td>' + 
+							
+							'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
+							    '<span class="mask">*****</span>' + '<input name="phone" type="text" value="' + phone + '" >' +
+							  '</div>' + 
+							'</td>';
+							
+						text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="date" value="' + inDate + '" >' + '</td>' + 
+								'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="date" value="' + outDate + '" >' + '</td>';
+				
+						text += '<td class="text-center">' + '<input name="terminal" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (terminal === 'Y' ? 'checked' : '') + '>' + '</td>' +
+								'<td class="text-center">' + '<input name="laptop" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (laptop === 'Y' ? 'checked' : '') + '>' + '</td>' +
+								'<td class="text-center">' + '<input name="modelNm" type="text" value="'+ modelNm +'">' + '</td>' +
+								'<td class="text-center">' + '<input name="serialNo" type="text" value="'+ serialNo +'">' + '</td>' +
+								'<td class="text-center">' + '<input name="foreigner" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (foreigner === 'Y' ? 'checked' : '') + '>' + '</td>' +
+								'<td class="text-center">' + '<input name="passportNo" type="text" value="'+ passportNo +'">' + '</td>' +
+								'<td class="text-center">' + '<input name="orderStatus" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>';
+								//'<td class="text-center">' + '<input name="deleteYn" type="checkbox" onclick="setRowSelected()" value="'+ deleteYn +'">' + '</td>';
+			
+				text += '</tr>';
+		}
 		$('#tbRowList').append(text);
 	}	
 	//paging(_crewList.length, 1);
@@ -412,7 +557,7 @@ function crewListDownloadAll() {
 								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.serialNo') + '</span></div><div class="fht-cell"></div></th>' +
 								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.foreigner') + '</span></div><div class="fht-cell"></div></th>' +
 								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.passportNo') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('last') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.orderStatus') + '</span></div><div class="fht-cell"></div></th>' +
 								'</tr>' +
 						'</thead>' +
 						'<tbody id="getUserList">';
@@ -461,7 +606,80 @@ function crewListDownloadAll() {
 }
 
 //발주-발주, 발주자, 발주일자
-function orderingSave() {
+function orderSave() {
+	//alert(1);
+	let uidArr = [];
+	let sessionUserID = _crewUid;
+	/*<script>
+	sessionUserID = ${sessionScope.userInfo.userId};
+	</script>*/
+	//alert(sessionUserID);
+	if(_status == 'ONGO' || _status == 'ARRIVE') {
+		alertPop($.i18n.t('error.del'));
+		return;
+	}
+	if($('input[name=listChk]:checked').length > 0) {
+		    // 체크된 항목 수집
+		    $('input[name=listChk]:checked').each(function(index, checkbox) {
+		        let tr = $(checkbox).closest('tr');
+		        let uid = tr.find('input[name=uid]').val();
+
+		        if (uid && uid != "-1") {
+		            uidArr.push(uid)
+		        }
+		    });
+
+		    if (uidArr.length > 0) {
+		        $.ajax({
+		            url: contextPath + "/crew/crewOrderUpdate.html",
+		            type: "POST",
+		            traditional: true, 
+		            data: { 
+						uidArr: uidArr,
+						uuid : sessionUserID
+					},
+					success: function(data) {
+						try {
+							let json = JSON.parse(data);
+						
+							if(json.result) {
+								getRegistrationCrewList(1);
+								alertPop('선택한 승선자 발주 완료되었습니다.');
+							}else{
+								let code = json.code;
+								//alert(code);
+								if(code == 'ONGO' || code == 'ARRIVE') {
+									_status = code;
+									alertPop($.i18n.t('error.save'));
+								}else if(code == 'EIO') {
+									alertPop($.i18n.t('share:isOffline'));
+								}else {
+									alertPop($.i18n.t('share:tryAgain'));
+								}
+							}
+						}catch(ex) {
+							alertPop($.i18n.t('share:tryAgain'));
+						}
+					},
+					error: function(req, status, err) {
+						alertPop($.i18n.t('share:tryAgain'));
+					},
+					beforeSend: function() {
+						$('#loading').css("display","block");
+					},
+					complete: function() {
+						$('#loading').css('display',"none");
+					}
+		        });
+		    }
+	}
+	else {
+		alertPop('발주할 항목을 선택해주세요.');
+	}
+}
+
+//SCP 전송
+function scpSave() {
 	//alert(1);
 	if(_status == 'ONGO' || _status == 'ARRIVE') {
 		alertPop($.i18n.t('error.del'));
@@ -469,9 +687,7 @@ function orderingSave() {
 	}
 	
 	if($('input[name=listChk]:checked').length > 0) {
-		alertPop('발주 완료되었습니다.');
-	}else {
-		alertPop('발주할 항목을 선택해주세요.');
+		alertPop('전송 완료되었습니다.');
 	}
 }
 
@@ -1497,14 +1713,15 @@ function getRegistrationCrewList(page) {
 						}
 					}
 					
-					text += '<tr id="tbRow_' + rowId + '">' + 
+					if(orderStatus == 'Y'){
+						text += '<tr id="tbRow_' + rowId + '">' + 
 									'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
 									'<td class="text-center th-w-60"><div name="no">' + rowId + '</div></td>' +
 									'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
 									'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
 									'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 
 									'<td class="text-center">' + 
-										'<select name="kind">';
+										'<select name="kind" disabled>';
 										
 									text += '<option value="SHI-A"' + (kind == 'SHI-A' ? ' selected' : '') + '>SHI-기술지원직</option>' + 
 											'<option value="SHI-B"' + (kind == 'SHI-B' ? ' selected' : '') + '>SHI-생산직</option>' + 
@@ -1513,13 +1730,16 @@ function getRegistrationCrewList(page) {
 											
 								text += '</select>' +
 									'</td>' + 
-									'<td class="text-center">' + '<input name="company" type="text" value="' + company + '">' + '</td>' + 
-									'<td class="text-center">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 
-									'<td class="text-center">' + '<input name="name" type="text" value="' + name + '">' + '</td>' + 
-									'<td class="text-center">' + '<input name="rank" type="text" value="' + rank + '">' + '</td>' + 
-									'<td class="text-center">' + '<input name="idNo" type="text" value="' + idNo + '">' + '</td>' + 
+									'<td class="text-center">' + '<input name="company" type="text" value="' + company + '" disabled>' + '</td>' + 
+									'<td class="text-center">' + '<input name="department" type="text" value="' + department + '" disabled>' + '</td>' + 
+									'<td class="text-center">' + '<input name="name" type="text" value="' + name + '" disabled>' + '</td>' + 
+									'<td class="text-center">' + '<input name="rank" type="text" value="' + rank + '" disabled>' + '</td>' + 
+									'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
+									    '<span class="mask">*****</span>' + '<input name="idNo" type="text" disabled value="' + idNo + '">' +
+									  '</div>' + 
+									'</td>' +  
 									'<td class="text-center">' + 
-										'<select name="workType1" onchange="setWorkType2(' + rowId + ', this.value)">';
+										'<select name="workType1" disabled onchange="setWorkType2(' + rowId + ', this.value)">';
 										
 									text += '<option value="A"' + (workType1 == 'A' ? ' selected' : '') + '>시운전</option>' + 
 											'<option value="B"' + (workType1 == 'B' ? ' selected' : '') + '>생산</option>' + 
@@ -1530,7 +1750,7 @@ function getRegistrationCrewList(page) {
 								text += '</select>' +
 									'</td>' + 
 									'<td class="text-center">' + 
-										'<select id="workType2_' + rowId + '" name="workType2">';
+										'<select id="workType2_' + rowId + '" disabled name="workType2">';
 										
 								if(workType1 == 'A') {
 									text += '<option value="A0"' + (workType2 == 'A0' ? ' selected' : '') + '>-</option>' + 
@@ -1574,9 +1794,9 @@ function getRegistrationCrewList(page) {
 										
 								text += '</select>' +
 									'</td>' + 
-									'<td class="text-center">' + '<input name="work" type="text" value="' + work + '">' + '</td>' + 
+									'<td class="text-center">' + '<input name="work" type="text" value="' + work + '" disabled>' + '</td>' + 
 									'<td class="text-center">' + 
-										'<select name="mainSub">';
+										'<select name="mainSub" disabled>';
 										
 									text += '<option value="N"' + (mainSub == 'N' ? ' selected' : '') + '>-</option>' + 
 											'<option value="M"' + (mainSub == 'M' ? ' selected' : '') + '>정</option>' + 
@@ -1585,7 +1805,7 @@ function getRegistrationCrewList(page) {
 								text += '</select>' +
 									'</td>' + 
 									'<td class="text-center">' + 
-										'<select name="foodStyle">';
+										'<select name="foodStyle" disabled>';
 										
 									text += '<option value="K"' + (foodStyle == 'K' ? ' selected' : '') + '>한식</option>' + 
 											'<option value="W"' + (foodStyle == 'W' ? ' selected' : '') + '>양식(Normal Western)</option>' + 	
@@ -1601,29 +1821,173 @@ function getRegistrationCrewList(page) {
 											
 								text += '</select>' +
 									'</td>' + 
-									'<td class="text-center">' + '<input name="personNo" type="text" placeholder="XXXXXX-X" value="' + personNo + '">' + '</td>' + 
+									'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
+									    '<span class="mask">*****</span>' + '<input name="personNo" type="text" disabled value="' + personNo + '" >' +
+									  '</div>' + 
+									'</td>' +  
 									'<td class="text-center">' + 
-											'<select name="gender">';
+											'<select name="gender" disabled>';
 											
 										text += '<option value="M"' + (gender == 'M' ? ' selected' : '') + '>남</option>' + 
 												'<option value="F"' + (gender == 'F' ? ' selected' : '') + '>여</option>' ;
 												
 									text += '</select>' +
 									'</td>' + 
-									'<td class="text-center">' + '<input name="phone" type="text" value="' + phone + '">' + '</td>';
+									'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
+									    '<span class="mask">*****</span>' + '<input name="phone" type="text" disabled value="' + phone + '" >' +
+									  '</div>' + 
+									'</td>';
 									
-								text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="text" value="' + inDate + '" >' + '</td>' + 
-										'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="text" value="' + outDate + '" >' + '</td>';
+								text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="text" value="' + inDate + '"  disabled>' + '</td>' + 
+										'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="text" value="' + outDate + '"  disabled>' + '</td>';
 										
-								text += '<td class="text-center">' + '<input name="terminal" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (terminal === 'Y' ? 'checked' : '') + '>' + '</td>' +
-										'<td class="text-center">' + '<input name="laptop" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (laptop === 'Y' ? 'checked' : '') + '>' + '</td>' +
-										'<td class="text-center">' + '<input name="modelNm" type="text" value="'+ modelNm +'">' + '</td>' +
-										'<td class="text-center">' + '<input name="serialNo" type="text" value="'+ serialNo +'">' + '</td>' +
-										'<td class="text-center">' + '<input name="foreigner" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (foreigner === 'Y' ? 'checked' : '') + '>' + '</td>' +
-										'<td class="text-center">' + '<input name="passportNo" type="text" value="'+ passportNo +'"' + '</td>' +
-										'<td class="text-center">' + '<input name="orderStatus" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>';
+								text += '<td class="text-center">' + '<input name="terminal" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (terminal === 'Y' ? 'checked' : '') + '>' + '</td>' +
+										'<td class="text-center">' + '<input name="laptop" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (laptop === 'Y' ? 'checked' : '') + '>' + '</td>' +
+										'<td class="text-center">' + '<input name="modelNm" type="text" disabled value="'+ modelNm +'">' + '</td>' +
+										'<td class="text-center">' + '<input name="serialNo" type="text" disabled value="'+ serialNo +'">' + '</td>' +
+										'<td class="text-center">' + '<input name="foreigner" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (foreigner === 'Y' ? 'checked' : '') + '>' + '</td>' +
+										'<td class="text-center">' + '<input name="passportNo" type="text" disabled value="'+ passportNo +'"' + '</td>' +
+										'<td class="text-center">' + '<input name="orderStatus" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>';
 										//'<td class="text-center">' + '<input name="deleteYn" type="checkbox" onclick="setRowSelected()">' + '</td>';
-					text += '</tr>';
+						text += '</tr>';
+					}
+					else{
+						text += '<tr id="tbRow_' + rowId + '">' + 
+										'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
+										'<td class="text-center th-w-60"><div name="no">' + rowId + '</div></td>' +
+										'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
+										'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
+										'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 
+										'<td class="text-center">' + 
+											'<select name="kind">';
+											
+										text += '<option value="SHI-A"' + (kind == 'SHI-A' ? ' selected' : '') + '>SHI-기술지원직</option>' + 
+												'<option value="SHI-B"' + (kind == 'SHI-B' ? ' selected' : '') + '>SHI-생산직</option>' + 
+												'<option value="SHI-C"' + (kind == 'SHI-C' ? ' selected' : '') + '>SHI-협력사</option>' + 
+												'<option value="OUTSIDE"' + (kind == 'OUTSIDE' ? ' selected' : '') + '>외부</option>';
+												
+									text += '</select>' +
+										'</td>' + 
+										'<td class="text-center">' + '<input name="company" type="text" value="' + company + '">' + '</td>' + 
+										'<td class="text-center">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 
+										'<td class="text-center">' + '<input name="name" type="text" value="' + name + '">' + '</td>' + 
+										'<td class="text-center">' + '<input name="rank" type="text" value="' + rank + '">' + '</td>' + 
+										'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
+										    '<span class="mask">*****</span>' + '<input name="idNo" type="text" disabled value="' + idNo + '">' +
+										  '</div>' + 
+										'</td>' + 
+										'<td class="text-center">' + 
+											'<select name="workType1" onchange="setWorkType2(' + rowId + ', this.value)">';
+											
+										text += '<option value="A"' + (workType1 == 'A' ? ' selected' : '') + '>시운전</option>' + 
+												'<option value="B"' + (workType1 == 'B' ? ' selected' : '') + '>생산</option>' + 
+												'<option value="C"' + (workType1 == 'C' ? ' selected' : '') + '>설계연구소</option>' + 
+												'<option value="D"' + (workType1 == 'D' ? ' selected' : '') + '>지원</option>' + 
+												'<option value="E"' + (workType1 == 'E' ? ' selected' : '') + '>외부</option>';
+												
+									text += '</select>' +
+										'</td>' + 
+										'<td class="text-center">' + 
+											'<select id="workType2_' + rowId + '" name="workType2">';
+											
+									if(workType1 == 'A') {
+										text += '<option value="A0"' + (workType2 == 'A0' ? ' selected' : '') + '>-</option>' + 
+												'<option value="A1"' + (workType2 == 'A1' ? ' selected' : '') + '>코맨더</option>' + 
+												'<option value="A2"' + (workType2 == 'A2' ? ' selected' : '') + '>기장운전</option>' + 
+												'<option value="A3"' + (workType2 == 'A3' ? ' selected' : '') + '>선장운전</option>' + 
+												'<option value="A4"' + (workType2 == 'A4' ? ' selected' : '') + '>전장운전</option>' + 
+												'<option value="A5"' + (workType2 == 'A5' ? ' selected' : '') + '>항통</option>' + 
+												'<option value="A6"' + (workType2 == 'A6' ? ' selected' : '') + '>안벽의장</option>' + 
+												'<option value="A7"' + (workType2 == 'A7' ? ' selected' : '') + '>기타</option>';
+									}else if(workType1 == 'B') {
+										text += '<option value="B0"' + (workType2 == 'B0' ? ' selected' : '') + '>-</option>' + 
+												'<option value="B1"' + (workType2 == 'B1' ? ' selected' : '') + '>기관과</option>' + 
+												'<option value="B2"' + (workType2 == 'B2' ? ' selected' : '') + '>기타</option>';
+									}else if(workType1 == 'C') {
+										text += '<option value="C0"' + (workType2 == 'C0' ? ' selected' : '') + '>-</option>' + 
+												'<option value="C1"' + (workType2 == 'C1' ? ' selected' : '') + '>종합설계</option>' + 
+												'<option value="C2"' + (workType2 == 'C2' ? ' selected' : '') + '>기장설계</option>' + 
+												'<option value="C3"' + (workType2 == 'C3' ? ' selected' : '') + '>선장설계</option>' + 
+												'<option value="C4"' + (workType2 == 'C4' ? ' selected' : '') + '>전장설계</option>' + 
+												'<option value="C5"' + (workType2 == 'C5' ? ' selected' : '') + '>진동연구</option>' + 
+												'<option value="C6"' + (workType2 == 'C6' ? ' selected' : '') + '>기타</option>';
+									}else if(workType1 == 'D') {
+										text += '<option value="D0"' + (workType2 == 'D0' ? ' selected' : '') + '>-</option>' + 
+												'<option value="D1"' + (workType2 == 'D1' ? ' selected' : '') + '>안전</option>' + 
+												'<option value="D2"' + (workType2 == 'D2' ? ' selected' : '') + '>캐터링</option>' + 
+												'<option value="D3"' + (workType2 == 'D3' ? ' selected' : '') + '>QM</option>' + 
+												'<option value="D4"' + (workType2 == 'D4' ? ' selected' : '') + '>PM</option>' + 
+												'<option value="D5"' + (workType2 == 'D5' ? ' selected' : '') + '>기타</option>';
+									}else if(workType1 == 'E') {
+										text += '<option value="E0"' + (workType2 == 'E0' ? ' selected' : '') + '>-</option>' + 
+												'<option value="E1"' + (workType2 == 'E1' ? ' selected' : '') + '>Owner</option>' + 
+												'<option value="E2"' + (workType2 == 'E2' ? ' selected' : '') + '>Class</option>' + 
+												'<option value="E3"' + (workType2 == 'E3' ? ' selected' : '') + '>S/E</option>' + 
+												'<option value="E4"' + (workType2 == 'E4' ? ' selected' : '') + '>선장</option>' + 
+												'<option value="E5"' + (workType2 == 'E5' ? ' selected' : '') + '>항해사</option>' + 
+												'<option value="E6"' + (workType2 == 'E6' ? ' selected' : '') + '>기관장</option>' + 
+												'<option value="E7"' + (workType2 == 'E7' ? ' selected' : '') + '>라인맨</option>' + 
+												'<option value="E8"' + (workType2 == 'E8' ? ' selected' : '') + '>기타</option>';
+									};
+											
+									text += '</select>' +
+										'</td>' + 
+										'<td class="text-center">' + '<input name="work" type="text" value="' + work + '">' + '</td>' + 
+										'<td class="text-center">' + 
+											'<select name="mainSub">';
+											
+										text += '<option value="N"' + (mainSub == 'N' ? ' selected' : '') + '>-</option>' + 
+												'<option value="M"' + (mainSub == 'M' ? ' selected' : '') + '>정</option>' + 
+												'<option value="S"' + (mainSub == 'S' ? ' selected' : '') + '>부</option>';
+												
+									text += '</select>' +
+										'</td>' + 
+										'<td class="text-center">' + 
+											'<select name="foodStyle">';
+											
+										text += '<option value="K"' + (foodStyle == 'K' ? ' selected' : '') + '>한식</option>' + 
+												'<option value="W"' + (foodStyle == 'W' ? ' selected' : '') + '>양식(Normal Western)</option>' + 	
+												'<option value="H"' + (foodStyle == 'H' ? ' selected' : '') + '>양식(Halal)</option>' + 	
+												'<option value="V1"' + (foodStyle == 'V1' ? ' selected' : '') + '>양식(Veg. fruitarian)</option>' + 	
+												'<option value="V2"' + (foodStyle == 'V2' ? ' selected' : '') + '>양식(Veg. vegan)</option>' + 	
+												'<option value="V3"' + (foodStyle == 'V3' ? ' selected' : '') + '>양식(Veg. lacto-veg.)</option>' + 	
+												'<option value="V4"' + (foodStyle == 'V4' ? ' selected' : '') + '>양식(Veg. ovo-veg.)</option>' + 	
+												'<option value="V5"' + (foodStyle == 'V5' ? ' selected' : '') + '>양식(Veg. lacto-ovo-veg.)</option>' + 	
+												'<option value="V6"' + (foodStyle == 'V6' ? ' selected' : '') + '>양식(Veg. pesco-veg.)</option>' + 	
+												'<option value="V7"' + (foodStyle == 'V7' ? ' selected' : '') + '>양식(Veg. pollo-veg.)</option>' + 	
+												'<option value="V8"' + (foodStyle == 'V8' ? ' selected' : '') + '>양식(Veg. flexitarian)</option>';
+												
+									text += '</select>' +
+										'</td>' + 
+										'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
+										    '<span class="mask">*****</span>' + '<input name="personNo" type="text" disabled value="' + personNo + '" >' +
+										  '</div>' + 
+										'</td>' + 
+										'<td class="text-center">' + 
+												'<select name="gender">';
+												
+											text += '<option value="M"' + (gender == 'M' ? ' selected' : '') + '>남</option>' + 
+													'<option value="F"' + (gender == 'F' ? ' selected' : '') + '>여</option>' ;
+													
+										text += '</select>' +
+										'</td>' + 
+										'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
+										    '<span class="mask">*****</span>' + '<input name="phone" type="text" disabled value="' + phone + '" >' +
+										  '</div>' + 
+										'</td>';
+									text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="text" value="' + inDate + '" >' + '</td>' + 
+											'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="text" value="' + outDate + '" >' + '</td>';
+											
+									text += '<td class="text-center">' + '<input name="terminal" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (terminal === 'Y' ? 'checked' : '') + '>' + '</td>' +
+											'<td class="text-center">' + '<input name="laptop" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (laptop === 'Y' ? 'checked' : '') + '>' + '</td>' +
+											'<td class="text-center">' + '<input name="modelNm" type="text" value="'+ modelNm +'">' + '</td>' +
+											'<td class="text-center">' + '<input name="serialNo" type="text" value="'+ serialNo +'">' + '</td>' +
+											'<td class="text-center">' + '<input name="foreigner" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (foreigner === 'Y' ? 'checked' : '') + '>' + '</td>' +
+											'<td class="text-center">' + '<input name="passportNo" type="text" value="'+ passportNo +'"' + '</td>' +
+											'<td class="text-center">' + '<input name="orderStatus" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>';
+											//'<td class="text-center">' + '<input name="deleteYn" type="checkbox" onclick="setRowSelected()">' + '</td>';
+						text += '</tr>';
+					}
 				}
 
             $('#tbRowList').empty();

@@ -165,8 +165,8 @@
                                 </c:forEach>
                             </select>
 						</div>
-						<button class="bt-obj bt-primary" onclick="setInOutDate()">전송</button>
-						<button class="bt-obj bt-primary" onclick="orderingSave()">발주</button>
+						<button class="bt-obj bt-primary" onclick="scpSave()">전송</button>
+						<button class="bt-obj bt-primary" onclick="orderSave()">발주</button>
 						
 						<!-- <button class="bt-obj bt-primary" onclick="setInOutDate()" target="_blank">다운로드</button> -->
 						<button class="bt-obj bt-primary" onClick="crewListDownloadAll()"><img src="${pageContext.request.contextPath}/img/i_download.svg" height="16px">&nbsp&nbsp다운로드</button>
@@ -208,11 +208,12 @@
     	</div>
   	</div>
 	<script type="text/javascript">
-	    //let _crewUid = "${bean.uid}";
+	    let _crewUid = "${sessionScope.userInfo.userId}";
 	    let _sDate = "${bean.sdate}";
 	    let _eDate = "${bean.edate}";
 	    let _crewList = [];
 	    let _status = "${status}";
+	    
   	
 	  	<c:forEach var="item" items="${list}">
 	  		_crewList.push({
