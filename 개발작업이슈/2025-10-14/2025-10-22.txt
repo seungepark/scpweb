@@ -1,0 +1,683 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper      
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"      
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssshi.ddms.mybatis.dao.ProjectInfoDaoI"> 
+
+    <!-- 프로젝트 정보 결과 매핑 -->
+    <resultMap id="ProjectInfoMap" type="ProjectInfoBean">
+        <id property="schedulerUid" column="schedulerUid"/> 
+        <result property="projNo" column="projNo"/>
+        <result property="trialKey" column="trialKey"/>
+        <result property="regOwner" column="regOwner"/>
+        <result property="shipType" column="shipType"/>
+        <result property="projSeq" column="projSeq"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <!-- 시운전 프로젝트 정보 목록 조회 -->
+    <select id="getSchProjectInfoList" parameterType="ProjectInfoBean" resultMap="ProjectInfoMap">
+      SELECT  S.UID as schedulerUid
+			, S.HULLNUM as   projNo
+			, (SELECT DESCRIPTION FROM DOMAININFO D WHERE DOMAINUID IN (SELECT UID FROM DOMAIN WHERE DOMAIN = 'SHIPTYPE') AND D.VAL = S.SHIPTYPE) as shipType
+			, SI.PROJSEQ as projSeq
+			, S.STATUS as status			
+			, SI.REGOWNER as regOwner 
+			, S.TRIALKEY as trialKey
+		FROM SCHEDULERINFO S
+		INNER JOIN SCHEDULERVERSIONINFO SVI ON (S.SCHEDULERVERSIONINFOUID = SVI.UID AND S.REVNUM = SVI.PLANREVNUM)
+		LEFT OUTER JOIN SCHETRIALINFO TI ON (S.UID = TI.SCHEDULERINFOUID)
+		LEFT OUTER JOIN SHIPINFO SI ON (S.HULLNUM = SI.SHIPNUM)
+		LEFT OUTER JOIN USERINFO UI ON (S.INSERTBY = UI.UID)
+		WHERE S.STATUS = 'ACT'
+		AND 1=1
+		<if test="projNo != null and projNo != ''">
+          AND  S.HULLNUM = #{projNo}
+	</if> 
+    </select>    
+    
+    <!-- 앵카링 프로젝트 정보 목록 조회 (SHIPINFO 기준, 앵카링 테이블 조인) -->
+    <select id="getAnchorProjectInfoList" parameterType="ProjectInfoBean" resultMap="ProjectInfoMap">
+         SELECT
+            SI.SHIPNUM AS projNo, 
+            (SELECT DESCRIPTION
+               FROM DOMAININFO D
+              WHERE DOMAINUID IN (SELECT UID FROM DOMAIN WHERE DOMAIN = 'SHIPTYPE')
+                AND D.VAL = SI.SHIPTYPE) AS shipTypeDes,
+            SI.PROJSEQ AS projSeq,
+            SI.STATUS AS status,
+            SI.REGOWNER AS regOwner,
+            SI.SHIPNUM AS trialKey,
+            0 AS schedulerUid
+        FROM SHIPINFO SI         
+        WHERE 1=1          
+          AND SI.STATUS = 'ACT'
+        <if test="projNo != null and projNo != ''">
+            AND SI.SHIPNUM = #{projNo}
+        </if>
+        ORDER BY SI.SHIPNUM ASC
+    </select>
+
+        <!--시운전  호선번호 목록 조회 -->
+        <select id="getSchProjNoList" resultType="string" parameterType="ProjectInfoBean" >
+		  SELECT 
+			    S.HULLNUM as projNo
+			FROM SCHEDULERINFO S
+				INNER JOIN SCHEDULERVERSIONINFO SVI ON (S.SCHEDULERVERSIONINFOUID = SVI.UID AND S.REVNUM = SVI.PLANREVNUM)
+				LEFT OUTER JOIN SCHETRIALINFO TI ON (S.UID = TI.SCHEDULERINFOUID)
+				LEFT OUTER JOIN SHIPINFO SI ON (S.HULLNUM = SI.SHIPNUM)
+				LEFT OUTER JOIN USERINFO UI ON (S.INSERTBY = UI.UID)
+			WHERE S.STATUS = 'ACT'	 
+			<if test="projNo != null and projNo != ''">
+		          AND  SHIPNUM = #{projNo}
+			</if> 
+			order by projNo asc
+      </select>
+      
+      <!-- 앵카링 호선번호 목록 조회 -->
+     <select id="getProjNoList" resultType="string" parameterType="ProjectInfoBean" >
+		select SHIPNUM as projNo
+		from SHIPINFO 
+		where 1=1
+		and STATUS ='ACT'
+	<if test="projNo != null and projNo != ''">
+          AND  SHIPNUM = #{projNo}
+	</if> 
+	order by projNo asc
+      </select>
+    
+    <!-- 방정보 목록 조회 -->
+    <select id="getRoomInfoList" parameterType="string" resultType="com.ssshi.ddms.mobile.dto.RoomInfoBean">
+        SELECT 
+            ri.UID as uid,
+            ri.PROJ_NO as projNo,
+            ri.SCHEDULER_NO as schedulerNo,
+            ri.DECK as deck,
+            ri.ROOM_NO as roomNo,
+            ri.ROOM_NAME as roomName,
+            ri.TEL as tel,
+            ri.SIZE_M2 as sizeM2,
+            ri.BED_COUNT as bedCount,
+            ri.BATHROOM_YN as bathroomYn,
+            ri.STATUS as status,
+            ri.DEL_YN as delYn,
+            ri.INSERT_DATE as insertDate,
+            ri.REG_USERNAME as regUsername,
+            ri.UPDATE_DATE as updateDate,
+            ri.UPDATE_USERNAME as updateUsername   
+        FROM 
+            mobile_room_info ri
+        WHERE 1=1
+            and ri.DEL_YN = 'N'
+        <if test="_parameter != null and _parameter != ''">
+            and ri.SCHEDULER_NO = #{_parameter}
+        </if>
+        ORDER BY ri.ROOM_NO
+    </select>
+    
+    <!-- 방정보 업데이트 -->
+    <update id="updateRoomInfo" parameterType="com.ssshi.ddms.mobile.dto.RoomInfoBean">
+        UPDATE mobile_room_info 
+        <set>
+            <if test="projNo != null and projNo != ''">
+                PROJ_NO = #{projNo},
+            </if>
+            <if test="schedulerNo != null and schedulerNo != ''">
+                SCHEDULER_NO = #{schedulerNo},
+            </if>
+            <if test="deck != null and deck != ''">
+                DECK = #{deck},
+            </if>
+            <if test="roomNo != null and roomNo != ''">
+                ROOM_NO = #{roomNo},
+            </if>
+            <if test="roomName != null and roomName != ''">
+                ROOM_NAME = #{roomName},
+            </if>
+            <if test="tel != null and tel != ''">
+                TEL = #{tel},
+            </if>
+            <if test="sizeM2 != null and sizeM2 != ''">
+                SIZE_M2 = #{sizeM2},
+            </if>
+            <if test="bedCount != null and bedCount > 0">
+                BED_COUNT = #{bedCount},
+            </if>
+            <if test="bathroomYn != null and bathroomYn != ''">
+                BATHROOM_YN = #{bathroomYn},
+            </if>
+            <if test="status != null and status != ''">
+                STATUS = #{status},
+            </if>
+            <if test="delYn != null and delYn != ''">
+                DEL_YN = #{delYn},
+            </if>
+            <if test="regUsername != null and regUsername != ''">
+                REG_USERNAME = #{regUsername},
+            </if>
+            <if test="updateUsername != null and updateUsername != ''">
+                UPDATE_USERNAME = #{updateUsername},
+            </if>
+            <if test="insertDate != null and insertDate != ''">
+                INSERT_DATE = #{insertDate},
+            </if>
+            UPDATE_DATE = COALESCE(#{updateDate}, NOW())
+        </set>
+        WHERE UID = #{uid}
+    </update>
+    
+    <!-- 방정보 일괄 등록 -->
+    <insert id="insertRoomInfoList" parameterType="java.util.List">
+        INSERT INTO mobile_room_info (
+            PROJ_NO, SCHEDULER_NO, DECK, ROOM_NO, 
+            ROOM_NAME, TEL, SIZE_M2, BED_COUNT, 
+            BATHROOM_YN, STATUS, DEL_YN, 
+            REG_USERNAME, UPDATE_USERNAME, INSERT_DATE, UPDATE_DATE
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.projNo}, 
+                #{item.schedulerNo}, 
+                #{item.deck}, 
+                #{item.roomNo},
+                #{item.roomName}, 
+                #{item.tel}, 
+                #{item.sizeM2}, 
+                #{item.bedCount},
+                #{item.bathroomYn}, 
+                COALESCE(#{item.status}, 'AVAILABLE'),
+                'N',
+                #{item.regUsername},
+                #{item.updateUsername},
+                COALESCE(#{item.insertDate}, NOW()),
+                COALESCE(#{item.updateDate}, NOW())
+            )
+        </foreach>
+    </insert>
+    
+    <!-- 방배정 명단 목록 조회 -->
+    <select id="getRoomUserList" parameterType="string" resultType="com.ssshi.ddms.mobile.dto.RoomUserListBean">
+        SELECT 
+            UID as uid,
+            PROJ_NO as projNo,
+            SCHEDULER_NO as schedulerNo,
+            ROOM_NO as roomNo,
+            DEPARTMENT as department,
+            NAME as name,
+            PHONE as phone,
+            USER_UID as userUid,
+            CHECK_IN_DATE as checkInDate,
+            CHECK_OUT_DATE as checkOutDate,
+            STATUS as status,
+            DEL_YN as delYn,
+            ANDROID_ID as androidId,
+            MOBILE_DEVICE_ID as mobileDeviceId,
+            INSERT_DATE as insertDate,
+            REG_USERNAME as regUsername,
+            UPDATE_DATE as updateDate,
+            UPDATE_USERNAME as updateUsername
+        FROM 
+            mobile_room_userlist
+        WHERE DEL_YN = 'N'
+        <if test="_parameter != null and _parameter != ''">
+            AND SCHEDULER_NO = #{_parameter}
+        </if>
+        ORDER BY ROOM_NO, NAME
+    </select>
+    
+    <!-- 방배정 명단 신규 생성 -->
+    <insert id="insertRoomUserList" parameterType="com.ssshi.ddms.mobile.dto.RoomUserListBean" useGeneratedKeys="true" keyProperty="uid" keyColumn="UID">
+        INSERT INTO mobile_room_userlist (
+            PROJ_NO,
+            SCHEDULER_NO,
+            ROOM_NO,
+            DEPARTMENT,
+            NAME,
+            PHONE,
+            USER_UID,
+            CHECK_IN_DATE,
+            CHECK_OUT_DATE,
+            STATUS,
+            DEL_YN,
+            ANDROID_ID,
+            MOBILE_DEVICE_ID,
+            REG_USERNAME,
+            UPDATE_USERNAME,
+            INSERT_DATE,
+            UPDATE_DATE
+        ) VALUES (
+            #{projNo},
+            #{schedulerNo},
+            #{roomNo},
+            #{department},
+            #{name},
+            #{phone},
+            #{userUid},
+            #{checkInDate},
+            #{checkOutDate},
+            COALESCE(#{status}, 'CHECKED_IN'),
+            COALESCE(#{delYn}, 'N'),
+            #{androidId},
+            #{mobileDeviceId},
+            #{regUsername},
+            #{updateUsername},
+            COALESCE(#{insertDate}, NOW()),
+            COALESCE(#{updateDate}, NOW())
+        )
+    </insert>
+    
+    <!-- 방배정 명단 업데이트 -->
+    <update id="updateRoomUserList" parameterType="com.ssshi.ddms.mobile.dto.RoomUserListBean">
+        UPDATE mobile_room_userlist 
+        <set>
+            <if test="projNo != null and projNo != ''">
+                PROJ_NO = #{projNo},
+            </if>
+            <if test="schedulerNo != null and schedulerNo != ''">
+                SCHEDULER_NO = #{schedulerNo},
+            </if>
+            <if test="roomNo != null and roomNo != ''">
+                ROOM_NO = #{roomNo},
+            </if>
+            <if test="department != null and department != ''">
+                DEPARTMENT = #{department},
+            </if>
+            <if test="name != null and name != ''">
+                NAME = #{name},
+            </if>
+            <if test="phone != null and phone != ''">
+                PHONE = #{phone},
+            </if>
+            <if test="userUid != null">
+                USER_UID = #{userUid},
+            </if>
+            <if test="checkInDate != null and checkInDate != ''">
+                CHECK_IN_DATE = #{checkInDate},
+            </if>
+            <if test="checkOutDate != null and checkOutDate != ''">
+                CHECK_OUT_DATE = #{checkOutDate},
+            </if>
+            <if test="status != null and status != ''">
+                STATUS = #{status},
+            </if>
+            <if test="delYn != null and delYn != ''">
+                DEL_YN = #{delYn},
+            </if>
+            <if test="androidId != null and androidId != ''">
+                ANDROID_ID = #{androidId},
+            </if>
+            <if test="mobileDeviceId != null and mobileDeviceId != ''">
+                MOBILE_DEVICE_ID = #{mobileDeviceId},
+            </if>
+            <if test="regUsername != null and regUsername != ''">
+                REG_USERNAME = #{regUsername},
+            </if>
+            <if test="updateUsername != null and updateUsername != ''">
+                UPDATE_USERNAME = #{updateUsername},
+            </if>
+            <if test="insertDate != null and insertDate != ''">
+                INSERT_DATE = #{insertDate},
+            </if>
+            UPDATE_DATE = COALESCE(#{updateDate}, NOW())
+        </set>
+        WHERE UID = #{uid}
+    </update>
+    
+    <!-- 방배정 명단 일괄 등록 -->
+    <insert id="insertRoomUserListBatch" parameterType="java.util.List">
+        INSERT INTO mobile_room_userlist (
+            PROJ_NO, SCHEDULER_NO, ROOM_NO, DEPARTMENT, 
+            NAME, PHONE, USER_UID, CHECK_IN_DATE, 
+            CHECK_OUT_DATE, STATUS, DEL_YN, 
+            ANDROID_ID, MOBILE_DEVICE_ID,
+            REG_USERNAME, UPDATE_USERNAME, INSERT_DATE, UPDATE_DATE
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.projNo}, 
+                #{item.schedulerNo}, 
+                #{item.roomNo}, 
+                #{item.department},
+                #{item.name}, 
+                #{item.phone}, 
+                #{item.userUid}, 
+                #{item.checkInDate},
+                #{item.checkOutDate}, 
+                COALESCE(#{item.status}, 'CHECKED_IN'),
+                COALESCE(#{item.delYn}, 'N'),
+                #{item.androidId},
+                #{item.mobileDeviceId},
+                #{item.regUsername},
+                #{item.updateUsername},
+                COALESCE(#{item.insertDate}, NOW()),
+                COALESCE(#{item.updateDate}, NOW())
+            )
+        </foreach>
+    </insert>
+    
+    <!-- 공지사항 목록 조회 -->
+    <select id="getNotificationList" parameterType="com.ssshi.ddms.mobile.dto.MobileNotificationBean" resultType="com.ssshi.ddms.mobile.dto.MobileNotificationBean">
+        SELECT 
+            ORIID as oriId,
+            NOTICEID as noticeId,
+            SCHEDULERINFOUID as schedulerInfoUid,
+            TYPECODE as typeCode,
+            NCONTENT as nContent,
+            STATCODE as statCode,
+            START_DT as startDt,
+            FINISHDT as finishDt,
+            DELETEYN as deleteYn,
+            AUTHORID as authorId,
+            CREATEDT as createDt,
+            EDITORID as editorId,
+            UPDATEDT as updateDt,
+            PROJ_NO as projNo,
+            TRIALKEY as trialKey
+        FROM 
+            mobile_notification
+        WHERE 
+            DELETEYN = 'N'          
+            <if test="schedulerInfoUid != null and schedulerInfoUid != ''">
+                AND SCHEDULERINFOUID = #{schedulerInfoUid}
+            </if>
+            <if test="projNo != null and projNo != ''">
+                AND PROJ_NO = #{projNo}
+            </if>
+            <if test="trialKey != null and trialKey != ''">
+                AND TRIALKEY = #{trialKey}
+            </if>
+            <if test="startDt != null">
+                AND START_DT &lt;= NOW()
+            </if>
+            <if test="finishDt != null">
+                AND (FINISHDT IS NULL OR FINISHDT >= NOW())
+            </if>
+        ORDER BY 
+            CREATEDT DESC, ORIID DESC
+    </select>
+    
+    <!-- 공지사항 등록 -->
+    <insert id="insertNotification" parameterType="com.ssshi.ddms.mobile.dto.MobileNotificationBean" useGeneratedKeys="true" keyProperty="oriId" keyColumn="ORIID">
+        INSERT INTO mobile_notification (
+            NOTICEID,
+            SCHEDULERINFOUID,
+            TYPECODE,
+            NCONTENT,
+            STATCODE,
+            START_DT,
+            FINISHDT,
+            DELETEYN,
+            AUTHORID,
+            EDITORID,
+            PROJ_NO,
+            TRIALKEY
+        ) VALUES (
+            #{noticeId},
+            #{schedulerInfoUid},
+            #{typeCode},
+            #{nContent},
+            #{statCode},
+            #{startDt},
+            #{finishDt},
+            #{deleteYn},
+            #{authorId},
+            #{editorId},
+            #{projNo},
+            #{trialKey}
+        )
+    </insert>
+    
+    <!-- 공지사항 업데이트 -->
+    <update id="updateNotification" parameterType="com.ssshi.ddms.mobile.dto.MobileNotificationBean">
+        UPDATE mobile_notification 
+        <set>
+            <if test="noticeId != null">
+                NOTICEID = #{noticeId},
+            </if>
+            <if test="schedulerInfoUid != null and schedulerInfoUid != ''">
+                SCHEDULERINFOUID = #{schedulerInfoUid},
+            </if>
+            <if test="typeCode != null and typeCode != ''">
+                TYPECODE = #{typeCode},
+            </if>
+            <if test="nContent != null and nContent != ''">
+                NCONTENT = #{nContent},
+            </if>
+            <if test="statCode != null and statCode != ''">
+                STATCODE = #{statCode},
+            </if>
+            <if test="startDt != null">
+                START_DT = #{startDt},
+            </if>
+            <if test="finishDt != null">
+                FINISHDT = #{finishDt},
+            </if>
+            <if test="deleteYn != null and deleteYn != ''">
+                DELETEYN = #{deleteYn},
+            </if>
+            <if test="editorId != null and editorId != ''">
+                EDITORID = #{editorId},
+            </if>
+            <if test="projNo != null and projNo != ''">
+                PROJ_NO = #{projNo},
+            </if>
+            <if test="trialKey != null and trialKey != ''">
+                TRIALKEY = #{trialKey},
+            </if>
+            UPDATEDT = NOW()
+        </set>
+        WHERE ORIID = #{oriId}
+    </update>
+    
+    <!-- 사용자 정보 결과 매핑 -->
+    <resultMap id="MobileUserInfoMap" type="MobileUserInfoBean">
+        <id property="uid" column="UID"/>
+        <result property="shipInfoUid" column="SHIPINFOUID"/>
+        <result property="userId" column="USERID"/>
+        <result property="pw" column="PW"/>
+        <result property="firstName" column="FIRSTNAME"/>
+        <result property="lastName" column="LASTNAME"/>
+        <result property="posCode" column="POSCODE"/>
+        <result property="langCode" column="LANGCODE"/>
+        <result property="status" column="STATUS"/>
+        <result property="insertBy" column="INSERTBY"/>
+        <result property="insertDate" column="INSERTDATE"/>
+        <result property="updateBy" column="UPDATEBY"/>
+        <result property="updateDate" column="UPDATEDATE"/>
+    </resultMap>
+
+    <!-- 모바일 구명정배정 정보 mobile_lift_boat_info 테이블의 컬럼과
+    MobileLiftBoatInfoBean 클래스의 필드를 매핑 -->
+    <resultMap id="MobileLiftBoatInfoMap" type="com.ssshi.ddms.mobile.dto.MobileLiftBoatInfoBean">
+        <id property="uid" column="UID"/>
+        <result property="projNo" column="PROJ_NO"/>
+        <result property="schedulerInfoUid" column="SCHEDULERINFOUID"/>
+        <result property="trialKey" column="TRIALKEY"/>
+        <result property="liftboatCnt" column="LIFTBOAT_CNT"/>
+        <result property="liftboatHeadcnt" column="LIFTBOAT_HEADCNT"/>
+        <result property="liftraftCnt" column="LIFTRAFT_CNT"/>
+        <result property="liftraftHeadcnt" column="LIFTRAFT_HEADCNT"/>
+        <result property="androidId" column="ANDROID_ID"/>
+        <result property="insertDate" column="INSERT_DATE"/>
+        <result property="insertBy" column="INSERTBY"/>
+        <result property="regDevice" column="REG_DEVICE"/>
+    </resultMap>
+    
+    <!-- 사용자 정보 목록 조회 (암호화 해제된 비밀번호 포함) -->
+    <select id="getUserInfoList" resultMap="MobileUserInfoMap">
+        SELECT 
+            U.UID,
+            U.SHIPINFOUID,
+            U.USERID,
+            U.USERID AS PW,  -- SCP 시스템에서는 비밀번호가 사용자 ID와 동일하게 저장됨
+            U.FIRSTNAME,
+            U.LASTNAME,
+            U.POSCODE,
+            U.LANGCODE,
+            U.STATUS,
+            U.INSERTBY,
+            U.INSERTDATE,
+            U.UPDATEBY,
+            U.UPDATEDATE
+        FROM USERINFO U
+        ORDER BY U.UID ASC
+    </select>
+
+    <!-- 
+        모바일 구명정배정 정보 일괄 등록
+        mobile_lift_boat_info 테이블에 여러 건의 데이터를 한 번에 등록
+        insertDate 문자열을 datetime으로 변환하여 저장
+    -->
+    <insert id="createMobileLiftBoatInfoList" parameterType="java.util.List">
+        INSERT INTO mobile_lift_boat_info (
+            PROJ_NO, SCHEDULERINFOUID, TRIALKEY, LIFTBOAT_CNT, 
+            LIFTBOAT_HEADCNT, LIFTRAFT_CNT, LIFTRAFT_HEADCNT, 
+            ANDROID_ID, INSERT_DATE, INSERTBY, REG_DEVICE
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.projNo}, #{item.schedulerInfoUid}, #{item.trialKey}, #{item.liftboatCnt},
+                #{item.liftboatHeadcnt}, #{item.liftraftCnt}, #{item.liftraftHeadcnt},
+                #{item.androidId}, 
+                COALESCE(STR_TO_DATE(#{item.insertDate}, '%Y-%m-%d %H:%i:%s'), NOW()),
+                #{item.insertBy}, #{item.regDevice}
+            )
+        </foreach>
+    </insert>
+
+    <!--
+        모바일 구명정배정 정보 조회 (scheInfo 조건)
+        mobile_lift_boat_info 테이블에서 scheInfo 조건으로 데이터 조회
+    -->
+    <select id="getMobileLiftBoatInfoList" parameterType="String" resultMap="MobileLiftBoatInfoMap">
+        SELECT 
+            UID,
+            PROJ_NO,
+            SCHEDULERINFOUID,
+            TRIALKEY,
+            LIFTBOAT_CNT,
+            LIFTBOAT_HEADCNT,
+            LIFTRAFT_CNT,
+            LIFTRAFT_HEADCNT,
+            ANDROID_ID,
+            INSERT_DATE,
+            INSERTBY,
+            REG_DEVICE
+        FROM mobile_lift_boat_info
+        WHERE 1=1
+        <if test="scheInfo != null and scheInfo != ''">
+            AND SCHEDULERINFOUID = #{scheInfo}
+        </if>
+        ORDER BY UID DESC
+    </select>
+
+    <!--
+        모바일 구명정배정 정보 업데이트
+        mobile_lift_boat_info 테이블에서 UID로 데이터 업데이트
+    -->
+    <update id="updateMobileLiftBoatInfo" parameterType="com.ssshi.ddms.mobile.dto.MobileLiftBoatInfoBean">
+        UPDATE mobile_lift_boat_info 
+        SET 
+            PROJ_NO = #{projNo},
+            SCHEDULERINFOUID = #{schedulerInfoUid},
+            TRIALKEY = #{trialKey},
+            LIFTBOAT_CNT = #{liftboatCnt},
+            LIFTBOAT_HEADCNT = #{liftboatHeadcnt},
+            LIFTRAFT_CNT = #{liftraftCnt},
+            LIFTRAFT_HEADCNT = #{liftraftHeadcnt},
+            ANDROID_ID = #{androidId},
+            INSERT_DATE = COALESCE(STR_TO_DATE(#{insertDate}, '%Y-%m-%d %H:%i:%s'), INSERT_DATE),
+            INSERTBY = #{insertBy},
+            REG_DEVICE = #{regDevice}
+        WHERE UID = #{uid}
+    </update>
+
+    <!--
+        모바일 구명정배정 인원 명단 정보 mobile_lift_boat_crewinfo 테이블의 컬럼과
+        MobileLiftBoatCrewInfoBean 클래스의 필드를 매핑
+    -->
+    <resultMap id="MobileLiftBoatCrewInfoMap" type="com.ssshi.ddms.mobile.dto.MobileLiftBoatCrewInfoBean">
+        <id property="uid" column="UID"/>
+        <result property="projNo" column="PROJ_NO"/>
+        <result property="schedulerInfoUid" column="SCHEDULERINFOUID"/>
+        <result property="trialKey" column="TRIALKEY"/>
+        <result property="schcrewUid" column="SCHCREW_UID"/>
+        <result property="boatName" column="BOAT_NAME"/>
+        <result property="userUid" column="USER_UID"/>
+        <result property="role" column="ROLE"/>
+        <result property="androidId" column="ANDROID_ID"/>
+        <result property="insertDate" column="INSERT_DATE"/>
+        <result property="insertBy" column="INSERTBY"/>
+        <result property="regDevice" column="REG_DEVICE"/>
+    </resultMap>
+
+    <!--
+        모바일 구명정배정 인원 명단 정보 일괄 등록
+        mobile_lift_boat_crewinfo 테이블에 여러 건의 데이터를 한 번에 등록
+        insertDate 문자열을 datetime으로 변환하여 저장
+    -->
+    <insert id="createMobileLiftBoatCrewInfoList" parameterType="java.util.List">
+        INSERT INTO mobile_lift_boat_crewinfo (
+            PROJ_NO, SCHEDULERINFOUID, TRIALKEY, SCHCREW_UID,
+            BOAT_NAME, USER_UID, ROLE, ANDROID_ID,
+            INSERT_DATE, INSERTBY, REG_DEVICE
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.projNo}, #{item.schedulerInfoUid}, #{item.trialKey}, #{item.schcrewUid},
+                #{item.boatName}, #{item.userUid}, #{item.role}, #{item.androidId},
+                COALESCE(STR_TO_DATE(#{item.insertDate}, '%Y-%m-%d %H:%i:%s'), NOW()),
+                #{item.insertBy}, #{item.regDevice}
+            )
+        </foreach>
+    </insert>
+
+    <!--
+        모바일 구명정배정 인원 명단 정보 업데이트
+        mobile_lift_boat_crewinfo 테이블에서 UID로 데이터 업데이트
+    -->
+    <update id="updateMobileLiftBoatCrewInfo" parameterType="com.ssshi.ddms.mobile.dto.MobileLiftBoatCrewInfoBean">
+        UPDATE mobile_lift_boat_crewinfo 
+        SET 
+            PROJ_NO = #{projNo},
+            SCHEDULERINFOUID = #{schedulerInfoUid},
+            TRIALKEY = #{trialKey},
+            SCHCREW_UID = #{schcrewUid},
+            BOAT_NAME = #{boatName},
+            USER_UID = #{userUid},
+            ROLE = #{role},
+            ANDROID_ID = #{androidId},
+            INSERT_DATE = COALESCE(STR_TO_DATE(#{insertDate}, '%Y-%m-%d %H:%i:%s'), INSERT_DATE),
+            INSERTBY = #{insertBy},
+            REG_DEVICE = #{regDevice}
+        WHERE UID = #{uid}
+    </update>
+
+    <!--
+        모바일 구명정배정 인원 명단 정보 조회 (scheInfo 조건)
+        mobile_lift_boat_crewinfo 테이블에서 scheInfo 조건으로 데이터 조회
+    -->
+    <select id="getMobileLiftBoatCrewInfoList" parameterType="String" resultMap="MobileLiftBoatCrewInfoMap">
+        SELECT 
+            UID,
+            PROJ_NO,
+            SCHEDULERINFOUID,
+            TRIALKEY,
+            SCHCREW_UID,
+            BOAT_NAME,
+            USER_UID,
+            ROLE,
+            ANDROID_ID,
+            INSERT_DATE,
+            INSERTBY,
+            REG_DEVICE
+        FROM mobile_lift_boat_crewinfo
+        WHERE 1=1
+        <if test="scheInfo != null and scheInfo != ''">
+            AND SCHEDULERINFOUID = #{scheInfo}
+        </if>
+        ORDER BY UID DESC
+    </select>
+
+</mapper>
