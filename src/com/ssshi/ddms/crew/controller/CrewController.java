@@ -13,6 +13,9 @@ import com.ssshi.ddms.crew.service.CrewServiceI;
 import com.ssshi.ddms.dto.ParamBean;
 import com.ssshi.ddms.dto.RegistrationCrewBean;
 import com.ssshi.ddms.dto.RegistrationCrewListBean;
+import com.ssshi.ddms.dto.AnchorageMealRequestBean;
+import com.ssshi.ddms.dto.AnchorageMealQtyBean;
+import com.ssshi.ddms.dto.AnchorageMealListBean;
 
 /********************************************************************************
  * 프로그램 개요 : Crew
@@ -87,10 +90,17 @@ public class CrewController {
 	
 	//Main(앵카링 식사 신청)
 	@RequestMapping(value="/crew/anchorageMealRequest.html")
-	public String anchorageMealRequest(HttpServletRequest request, ModelMap model, RegistrationCrewBean bean) throws Exception {
-		model.addAllAttributes(service.registrationCrew(request, bean));
+	public String anchorageMealRequest(HttpServletRequest request, ModelMap model, AnchorageMealRequestBean bean) throws Exception {
+		model.addAllAttributes(service.anchorageMealRequest(request, bean));
 		
 		return "crew/anchorageMealRequest";
+	}
+	
+	@RequestMapping(value="/crew/anchorageMealSave.html", method=RequestMethod.POST)
+	public String anchorageMealSave(HttpServletRequest request, ModelMap model, AnchorageMealListBean bean) throws Exception {
+		model.addAllAttributes(service.anchorageMealSave(request, bean));
+		
+		return "share/resultCode";
 	}
 	
 	//Main(실적 확인)

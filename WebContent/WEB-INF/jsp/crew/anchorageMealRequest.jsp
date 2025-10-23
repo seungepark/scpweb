@@ -3,15 +3,15 @@
 <%@ include file="/WEB-INF/jsp/share/conf.jsp"%>
 
 <c:forEach var="at" items="${auth}">
-	<c:if test="${at eq 'P_REG_CREW_R'}">
-		<c:set var="P_REG_CREW_R" value="true" />
+	<c:if test="${at eq 'P_ANCH_MEAL_W'}">
+		<c:set var="P_ANCH_MEAL_W" value="true" />
 	</c:if>
-	<c:if test="${at eq 'P_REG_CREW_W'}">
-		<c:set var="P_REG_CREW_W" value="true" />
+	<c:if test="${at eq 'P_ANCH_MEAL_W'}">
+		<c:set var="P_ANCH_MEAL_W" value="true" />
 	</c:if>
 
 </c:forEach>
-<c:if test="${(empty P_REG_CREW_R and empty P_REG_CREW_W)}">
+<c:if test="${(empty P_ANCH_MEAL_R and empty P_ANCH_MEAL_W)}">
 	<c:redirect url="/index.html" />
 </c:if>
 <!DOCTYPE html>
@@ -39,16 +39,16 @@
 </head>
 <body>
 	<div class="body-wrap">
-        <%@ include file="/WEB-INF/jsp/include/menu/sidebar_2_1.jsp"%>
+        <%@ include file="/WEB-INF/jsp/include/menu/sidebar_2_2.jsp"%>
         <div id="contentWrap" class="collapsed-content-wrap">
-            <%@ include file="/WEB-INF/jsp/include/menu/header_2_1.jsp"%>
+            <%@ include file="/WEB-INF/jsp/include/menu/header_2_2.jsp"%>
             <div class="main-container">
 				<div class="tb-area">
 					<div class="d-flex">
 					<div class="d-flex flex-row-reverse">
 					
 						<!-- 승선일/하선일 기간 조회 -->
-						<button class="bt-obj bt-primary" onclick="getCrewList()">
+						<button class="bt-obj bt-primary" onclick="getAnchMealList()">
 									<img src="${pageContext.request.contextPath}/img/i_btn_search.svg" class="bt-icon" height="16px">
 									<span data-i18n="listOp.btnSearch"></span>
 						</button>
@@ -68,16 +68,16 @@
                             </select>
 						</div>
 						
-						<div class="lb-title-no-sp" style="line-height: 44px;">호선번호</div>
-						
+						<div class="lb-title-no-sp" style="line-height: 44px;">호선번호</div>						
                   	</div>
-                  		<!-- <div style="padding-right: 7%;"></div> -->
+                  	
+                  	<!-- <div style="padding-right: 7%;"></div> -->
                   		
 					<div class="d-flex flex-row-reverse">
 						
 						
 						<c:choose>
-							<c:when test="${bean.isOff eq 'Y' or empty P_REG_CREW_W}">
+							<c:when test="${bean.isOff eq 'Y' or empty P_ANCH_MEAL_W}">
 								<button class="bt-obj bt-primary" disabled><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
 							</c:when>
 							<c:otherwise>
@@ -85,54 +85,33 @@
 							</c:otherwise>
 						</c:choose>
 						
-                   		<button class="bt-obj bt-primary" onclick="popDeleteCrewModal()"><i class="fa-solid fa-minus"></i></button>
-                   		<button class="bt-obj bt-primary" onclick="addCrew()"><i class="fa-solid fa-plus"></i></button>
+                   		<button class="bt-obj bt-primary" onclick="popDeleteAnchModal()"><i class="fa-solid fa-minus"></i></button>
+                   		<button class="bt-obj bt-primary" onclick="addAnch()"><i class="fa-solid fa-plus"></i></button>
                    		
                    		<!-- 엑셀 업로드/다운로드 -->
-                   		<button class="bt-obj bt-secondary" onclick="downCrewExcel()" data-i18n="btnDownload"></button>
+                   		<button class="bt-obj bt-secondary" onclick="downAnchExcel()" data-i18n="btnDownload"></button>
                    		<div class="bt-obj bt-secondary file-btn">
                    			<span data-i18n="btnUpload"></span>
 							<input class="cursor-pointer" type="file" id="fileInput" onchange="excelUpload(event)" accept=".xlsx">
                    		</div> 
                    		
-                   		<!-- 승선일/하선일 반영 -->
-                   		<button class="bt-obj bt-primary mr-5" onclick="setInOutDate()" data-i18n="list.btnInOut"></button>
-                   		<input type="date" id="ioDate"/>
-                   		<div class="form-check form-check-inline">
-						  	<input class="form-check-input" type="radio" name="ioCheck" id="ioCheckOut" value="U">
-						  	<label class="form-check-label" for="ioCheckOut" data-i18n="list.out"></label>
-						</div>
-                   		<div class="form-check form-check-inline">
-						  	<input class="form-check-input" type="radio" name="ioCheck" id="ioCheckIn" value="B" checked="checked">
-						  	<label class="form-check-label" for="ioCheckIn" data-i18n="list.in"></label>
-						</div>
+                   		<div style="padding-right: 42px; border:1px solid red"></div> 	
                    	</div> 
-					</div>  	
+					</div> 
+					
                    	<div class="sp-8"></div>
                    	<div class="d-flex">
 						<select id="filterKind" onchange="searchList()" class="mr-3">
 							<option value="ALL">[구분] All</option>
-							<option value="SHI-A">SHI-기술지원직</option>
-							<option value="SHI-B">SHI-생산직</option>
-							<option value="SHI-C">SHI-협력사</option>
-							<option value="OUTSIDE">외부</option>
+							<option value="S">직영</option>
+							<option value="H">협력사</option>
+							<option value="V">방문객</option>
+							<option value="O">Owner/Class</option>
 						</select>
-						<select id="filterWorkType1" onchange="setFilterWorkType2(this.value)" class="mr-3">
-							<option value="ALL">[역할 1] All</option>
-							<option value="A">시운전</option>
-							<option value="B">생산</option>
-							<option value="C">설계연구소</option>
-							<option value="D">지원</option>
-							<option value="E">외부</option>
-						</select>
-						<select id="filterWorkType2" onchange="searchList()" class="mr-3">
-							<option value="ALL">[역할 2] All</option>
-						</select>
-						<select id="filterMainSub" onchange="searchList()" class="mr-3">
-							<option value="ALL">[정/부] All</option>
-							<option value="N">-</option>
-							<option value="M">정</option>
-							<option value="S">부</option>
+						<select id="filterDomesticYN" onchange="searchList()" class="mr-3">
+							<option value="ALL">[내국/외국] All</option>
+							<option value="Y">내국</option>
+							<option value="N">외국</option>
 						</select>
 						<select id="filterFoodStyle" onchange="searchList()" class="mr-3">
 							<option value="ALL">[한식/양식] All</option>
@@ -155,23 +134,13 @@
            				
            			    <div style="padding-right: 40px;"></div> 
            				
-						<!-- SELECT -->
-					    <%--  <div class="col-auto">
-							<select id="ship_scp" class="">
-                                <option value="ALL">전체</option>
-                                <c:forEach var="ship" items="${listShip}">
-                                    <option value="${ship.val}">${ship.description}</option>
-                                </c:forEach>
-                            </select>
-						</div>
-						<button class="bt-obj bt-primary" onclick="setInOutDate()">전송</button> --%>
 						<a href="${pageContext.request.contextPath}/mobile/mobileCrewinfo.html?uid=${bean.uid}" class="bt-obj bt-secondary mr-2" target="_blank">
 							<i class="fas fa-mobile-alt"></i> QR발송
 						</a>
 						<button class="bt-obj bt-primary" onclick="orderingSave()">발주</button>
 						
 						<!-- <button class="bt-obj bt-primary" onclick="setInOutDate()" target="_blank">다운로드</button> -->
-						<button class="bt-obj bt-primary" onClick="crewListDownloadAll()"><img src="${pageContext.request.contextPath}/img/i_download.svg" height="16px">&nbsp&nbsp다운로드</button>
+						<button class="bt-obj bt-primary" onClick="anchListDownloadAll()"><img src="${pageContext.request.contextPath}/img/i_download.svg" height="16px">&nbsp&nbsp다운로드</button>
                    		
 					</div>
                    	<div class="sp-16"></div>
@@ -201,7 +170,7 @@
 		        	<div class="pop-alert-title" data-i18n="delPop.title"></div>
 		        	<div class="pop-alert-msg" data-i18n="delPop.msg"></div>
           			<button type="button" class="bt-obj bt-secondary" data-dismiss="modal" data-i18n="delPop.btnClose">Close</button>
-		        	<button type="button" class="bt-obj bt-primary" onClick="deleteCrew()">
+		        	<button type="button" class="bt-obj bt-primary" onClick="deleteAnch()">
           				<img src="${pageContext.request.contextPath}/img/i_btn_del.svg" class="bt-icon" height="16px">
 						<span data-i18n="delPop.btnDel"></span>
           			</button>
@@ -210,49 +179,50 @@
     	</div>
   	</div>
 	<script type="text/javascript">
-	    //let _crewUid = "${bean.uid}";
+	    let _anchUid = "${sessionScope.userInfo.userId}";
 	    let _sDate = "${bean.sdate}";
 	    let _eDate = "${bean.edate}";
-	    let _crewList = [];
+	    let _anchList = [];
 	    let _status = "${status}";
   	
-	  	<c:forEach var="item" items="${list}">
-	  		_crewList.push({
+	    <c:forEach var="item" items="${list}">
+			_anchList.push({
 	  			uid:"${item.uid}",
-	 			kind: "${item.kind}",
+	 			projNo: "${item.projNo}",
 	 			trialKey: "${item.trialKey}",
-				pjt: "${item.project}",
-	 			company: "${item.company}",
+				kind: "${item.kind}",				
+	 			domesticYn: "${item.domesticYn}",
 	 			department: "${item.department}",
-	 			name: "${item.name}",
-	 			rank: "${item.rank}",
-	 			idNo: "${item.idNo}",
-	 			workType1: "${item.workType1}",
-	 			workType2: "${item.workType2}",
-	 			work: "${item.work}",
-	 			mainSub: "${item.mainSub}",
-	 			foodStyle: "${item.foodStyle}",
-	 			personNo: "${item.personNo}",
-	 			gender: "${item.gender}",
-	 			phone: "${item.phone}",
-	 			inOutList: [
-	 				<c:forEach var="inOut" items="${item.inOutList}" varStatus="status">
+	 			mealDate: "${item.mealDate}",
+	 			orderStatus: "${item.orderStatus}",
+	 			orderDate: "${item.orderDate}",
+	 			orderUid: "${item.orderUid}",
+	 			deleteYn: "${item.deleteYn}",
+	 			comment: "${item.comment}",
+	 			inputUid: "${item.inputUid}",
+	 			inputDate: "${item.inputDate}",
+	 			planList: [
+	 				<c:forEach var="plan" items="${item.planList}" varStatus="status">
 	 					{
-			 				inOutDate: "${inOut.inOutDate}",
-			 				schedulerInOut: "${inOut.schedulerInOut}",
-			 				performanceInOut: "${inOut.performanceInOut}"
+	 						planMealDate: "${plan.planMealDate}",
+	 						planMealTime: "${plan.planMealTime}",
+			 				planMealGubun: "${plan.planMealGubun}",
+			 				planMealQty: "${plan.planMealQty}"
 			 			}
 			 			<c:if test="${!status.last}">,</c:if>
 		 			</c:forEach>
 	 			],
-		  		terminal: "${item.terminal}",
-		  		laptop: "${item.laptop}",
-		  		modelNm: "${item.modelNm}",
-		  		serialNo: "${item.serialNo}",
-		  		foreigner: "${item.foreigner}",	 
-		  		passportNo: "${item.passportNo}",	
-		  		//deleteYn: "${item.deleteYn}",
-				orderStatus: "${item.orderStatus}"				
+	 			resultList: [
+	 				<c:forEach var="result" items="${item.resultList}" varStatus="status">
+	 					{
+	 						resultMealDate: "${result.resultMealDate}",
+	 						resultMealTime: "${result.resultMealTime}",
+			 				resultMealGubun: "${result.resultMealGubun}",
+			 				resultMealQty: "${result.resultMealQty}"
+			 			}
+			 			<c:if test="${!status.last}">,</c:if>
+		 			</c:forEach>
+	 			]			
 	 		});
 	  	</c:forEach>
 	</script>
@@ -271,6 +241,6 @@
 	<script src="${pageContext.request.contextPath}/vendors/i18n/lang.js"></script>
 	<script src="${pageContext.request.contextPath}/js/custom.min.js"></script>
 	<script src="${pageContext.request.contextPath}/js/common.js"></script>
-	<script src="${pageContext.request.contextPath}/js/crew/registrationCrew.js"></script>
+	<script src="${pageContext.request.contextPath}/js/crew/anchorageMealRequest.js"></script>
 </body>
 </html>

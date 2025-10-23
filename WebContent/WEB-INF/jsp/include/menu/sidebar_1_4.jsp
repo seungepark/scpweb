@@ -95,6 +95,19 @@
 	<c:if test="${at eq 'P_REG_CREW_W'}">
 		<c:set var="M_P_REG_CREW_W" value="true" />
 	</c:if>
+	<c:if test="${at eq 'P_ANCH_MEAL_R'}">
+		<c:set var="M_P_ANCH_MEAL_R" value="true" />
+	</c:if>
+	<c:if test="${at eq 'P_ANCH_MEAL_W'}">
+		<c:set var="M_P_ANCH_MEAL_W" value="true" />
+	</c:if>
+	<c:if test="${at eq 'P_RESULT_MEAL_R'}">
+		<c:set var="M_P_RESULT_MEAL_R" value="true" />
+	</c:if>
+	<c:if test="${at eq 'P_RESULT_MEAL_W'}">
+		<c:set var="M_P_RESULT_MEAL_W" value="true" />
+	</c:if>
+	
 </c:forEach>
 <div class="sidebar-wrap">
 	<div class="sidebar">
@@ -161,7 +174,7 @@
        			</a>
 	   		</div>
 	   	</c:if>
-   		<c:if test="${M_P_REG_CREW_R or M_P_REG_CREW_W}">
+   		<c:if test="${M_P_REG_CREW_R or M_P_REG_CREW_W or M_P_ANCH_MEAL_R or M_P_ANCH_MEAL_W or M_P_RESULT_MEAL_P or M_P_RESULT_MEAL_W}">
 	   		<div class="main-item" data-toggle="collapse" data-target="#main-2-collapse" aria-expanded="false">
 	       		<div class="main-item-icon-area">
 	           		<svg class="main-item-icon" width="32" height="33" viewBox="0 0 32 33" fill="none" xmlns="http://www.w3.org/2000/svg">

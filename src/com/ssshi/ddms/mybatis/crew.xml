@@ -27,6 +27,24 @@
 		<!-- SELECT SHIPNUM AS VAL, SHIPNUM AS DESCRIPTION FROM SHIPINFO WHERE TITLE <![CDATA[ <> ]]> ''; -->
 	</select>
 	
+	<select id="getAnchShipList" resultType="domainInfoBean">
+         SELECT
+            SI.SHIPNUM AS val, 
+            (SELECT DESCRIPTION
+               FROM DOMAININFO D
+              WHERE DOMAINUID IN (SELECT UID FROM DOMAIN WHERE DOMAIN = 'SHIPTYPE')
+                AND D.VAL = SI.SHIPTYPE) AS shipTypeDes,
+            SI.PROJSEQ AS projSeq,
+            SI.STATUS AS status,
+            SI.REGOWNER AS regOwner,
+            SI.SHIPNUM AS description,
+            0 AS schedulerUid
+        FROM SHIPINFO SI         
+        WHERE 1=1          
+          AND SI.STATUS = 'ACT'
+        ORDER BY SI.SHIPNUM ASC
+    </select>
+	
 	<select id="getRegistrationCrewList" parameterType="RegistrationCrewBean" resultType="RegistrationCrewBean">
 		SELECT S.UID,  S.TRIALKEY , S.PROJECT, S.KIND, S.COMPANY, S.DEPARTMENT, S.NAME, S.RANK, S.IDNO, S.WORKTYPE1,
 			   S.WORKTYPE2, S.WORK, S.MAINSUB, S.FOODSTYLE, S.PERSONNO, S.GENDER, S.PHONE, S.ISPLAN, SD.TERMINAL,
@@ -101,5 +119,70 @@
 		UPDATE SCHECREWDETAILINFO SET ORDER_STATUS = 'Y', ORDER_DATE = SYSDATE(), ORDER_UID = #{userId}
 		WHERE SCHEDULERINFOUID = #{crewUid}
 	</update>
+		
+	<select id="getAnchorageMealList" parameterType="AnchorageMealRequestBean" resultType="AnchorageMealRequestBean">
+		select UID, SCHEDULERINFOUID as schedulerInfoUid, PROJ_NO as projNo, 
+			TRIALKEY as trialKey, KIND as kind, DOMESTIC_YN as domesticYn, DEPT_NAME as department,
+			MEAL_DATE as mealDate, ORDER_STATUS as orderStatus, ORDER_DATE as orderDate,
+			ORDER_UID as orderUid, DEL_YN as deleteYn, COMMENT as comment, REG_DATE as inputDate, REG_USERNAME as inputUid
+			from mobile_anchor_meal_info
+			where 1=1 
+			  and uid in (16, 17)
+		 <if test="ship != null and ship != 'ALL'" >
+			AND PROJ_NO <![CDATA[ = ]]> #{ship}			
+		 </if>
+	</select>
+	
+	<select id="getAnchorageMealPlanQtyList" parameterType="int" resultType = "AnchorageMealQtyBean">
+		SELECT UID, ANCHOR_MEAL_UID, SCHEDULERINFOUID, TRIALKEY, MEAL_TIME as planMealTime,
+		MEAL_GUBUN as planMealGubun, MEAL_DATE as planMealDate, MEAL_PLAN_QTY as planMealPlanQty
+		FROM mobile_anchor_meal_plancnt
+		WHERE ANCHOR_MEAL_UID = #{anchorMealUid}
+	</select>
+	
+	<select id="getAnchorageMealResultQtyList" parameterType="int" resultType = "AnchorageMealQtyBean">
+		SELECT UID, ANCHOR_MEAL_UID, SCHEDULERINFOUID, TRIALKEY, MEAL_TIME as resultMealTime,
+		MEAL_GUBUN as resultMealGubun, MEAL_DATE as resultMealDate, 0 as resultMealPlanQty
+		FROM mobile_anchor_meal_userinfo
+		WHERE ANCHOR_MEAL_UID = #{anchorMealUid}
+	</select>
+	
+	<delete id="deleteAnchList" parameterType="int">
+		DELETE FROM mobile_anchor_meal_info
+		WHERE UID = #{anchUid}
+	</delete>
+	
+	<delete id="deleteAnchPlanList" parameterType="int">
+		DELETE FROM mobile_anchor_meal_plancnt
+		WHERE ANCHOR_MEAL_UID = #{anchUid}
+	</delete>
+	
+	<delete id="deleteAnchResultList" parameterType="int">
+		DELETE FROM mobile_anchor_meal_userinfo
+		WHERE ANCHOR_MEAL_UID = #{anchUid}
+	</delete>
+	
+	<insert id="insertAnchorageMeal" parameterType="AnchorageMealRequestBean">
+		INSERT INTO mobile_anchor_meal_info (PROJ_NO, SCHEDULERINFOUID, TRIALKEY, KIND, DOMESTIC_YN, DEPT_NAME, MEAL_DATE, ORDER_STATUS, 
+			ORDER_DATE, ORDER_UID, DEL_YN, COMMENT, REG_DATE, 
+			REG_USERNAME,QR_DATE, ANDROID_ID, INSERT_DATE, INSERTBY, REG_DEVICE)
+		VALUES (#{projNo}, 0, #{trialKey}, #{kind}, #{domesticYn}, #{department}, NULLIF(#{mealDate}, ''), #{orderStatus},
+		     #{orderDate}, #{orderUid}, #{deleteYn}, #{comment}, SYSDATE(),
+			 #{userUid}, null, null, SYSDATE(), #{userUid}, null)
+		<selectKey resultType="int" keyProperty="uid" order="AFTER">
+	        SELECT LAST_INSERT_ID()
+	    </selectKey>
+	</insert>
+	
+  	<insert id="insertMealQty" parameterType="AnchorageMealQtyBean">
+		INSERT INTO mobile_anchor_meal_plancnt (ANCHOR_MEAL_UID, SCHEDULERINFOUID, TRIALKEY, 
+			MEAL_TIME, MEAL_GUBUN,
+			MEAL_PLAN_QTY, DEL_YN, REG_DATE, REG_USERNAME, INSERTBY, REG_DEVICE)
+		VALUES (#{anchorMealUid}, 0, #{projNo}, #{planMealTime}, #{planMealGubun}, #{planMealQty}
+			, 'N', SYSDATE(), #{uuid}, null, null)
+		<selectKey resultType="int" keyProperty="uid" order="AFTER">
+	        SELECT LAST_INSERT_ID()
+	    </selectKey>
+	</insert>   
 	
 </mapper>

@@ -47,7 +47,7 @@
 					<div class="d-flex flex-row-reverse">
 					
 						<!-- 승선일/하선일 기간 조회 -->
-						<button class="bt-obj bt-primary" onclick="getCrewList()">
+						<button class="bt-obj bt-primary" onclick="getAnchList()">
 									<img src="${pageContext.request.contextPath}/img/i_btn_search.svg" class="bt-icon" height="16px">
 									<span data-i18n="listOp.btnSearch"></span>
 						</button>

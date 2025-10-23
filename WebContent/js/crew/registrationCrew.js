@@ -127,7 +127,7 @@ function initTableHeader() {
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.serialNo') + '</span></div></th>' + 
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.foreigner') + '</span></div></th>' + 
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.passportNo') + '</span></div></th>' + 
-				'<th><div class="tb-th-col-last"><span class="tb-th-content">' + $.i18n.t('list.orderStatus') + '</span></div></th>' + 
+				'<th><div class="tb-th-col-last"><span class="tb-th-content">' + $.i18n.t('list.orderStatus') + '</span></div></th>'; 
 				//'<th><div class="tb-th-col-last"><span class="tb-th-content">' + $.i18n.t('list.deleteYn') + '</span></div></th>';
 				
 	$('#tbHeader').empty();

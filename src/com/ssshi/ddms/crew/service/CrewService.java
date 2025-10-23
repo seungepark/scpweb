@@ -33,6 +33,10 @@ import com.ssshi.ddms.mybatis.dao.ScheDaoI;
 import com.ssshi.ddms.mybatis.dao.CrewDaoI;
 import com.ssshi.ddms.util.ExcelUtil;
 
+import com.ssshi.ddms.dto.AnchorageMealRequestBean;
+import com.ssshi.ddms.dto.AnchorageMealQtyBean;
+import com.ssshi.ddms.dto.AnchorageMealListBean;
+
 /********************************************************************************
  * 프로그램 개요 : Crew
  * 
@@ -591,5 +595,144 @@ public class CrewService implements CrewServiceI {
 
 		wb.write(response.getOutputStream());
 		wb.close();
+	}
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	@Override
+	public Map<String, Object> anchorageMealRequest(HttpServletRequest request, AnchorageMealRequestBean bean) throws Exception {
+		System.out.println("오나용1234=0-=");
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		List<AnchorageMealRequestBean> anchList = crewDao.getAnchorageMealList(bean);
+		System.out.println("오나용1234=0-=");
+		//계획
+		if(anchList != null) {
+			System.out.println("오나용1234==");
+			for(int i = 0; i < anchList.size(); i++) {
+				anchList.get(i).setPlanList(crewDao.getAnchorageMealPlanQtyList(anchList.get(i).getUid()));
+				System.out.println("getUid :"+ anchList.get(i).getUid());
+				System.out.println("setPlanList :"+ anchList.get(i).getPlanList().size());
+			}
+			System.out.println("setPlanList2 :"+ anchList.size());
+		}
+		//실적
+		if(anchList != null) {
+			System.out.println("오나용123dfgdfg4");
+			for(int z = 0; z < anchList.size(); z++) {
+				anchList.get(z).setResultList(crewDao.getAnchorageMealResultQtyList(anchList.get(z).getUid()));
+			}
+			System.out.println("setResultList"+ anchList.size());
+		}
+		
+		//resultMap.put(Const.BEAN, dao.getScheduler(bean.getUid()));
+		resultMap.put(Const.LIST, anchList);
+		//resultMap.put("status", dao.getTrialStatus(bean.getUid()));
+		
+		/* 조회조건 : 호선리스트 */
+		resultMap.put(Const.LIST + "Ship", crewDao.getAnchShipList());
+		return resultMap;
+	}
+	
+	@Override
+	public Map<String, Object> anchorageMealSave(HttpServletRequest request, AnchorageMealListBean bean) throws Exception {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		System.out.println("RegistrationCrewListBean1");
+		boolean isResult = DBConst.FAIL;
+		int userUid = ((UserInfoBean)(request.getSession().getAttribute(Const.SS_USERINFO))).getUid();
+
+		System.out.println("오나용1234"+bean.getKind().length);
+		
+		//재저장
+		for(int i = 0; i < bean.getKind().length; i++) {
+			AnchorageMealRequestBean anch = new AnchorageMealRequestBean();
+			
+			System.out.println("오나용2222"+bean.getKind().length);
+			System.out.println("오나용11141/ "+bean.getUid()[i]+"/ "+bean.getDepartment()[i]);
+			
+			//리스트 삭제
+			if(bean.getUid()[i] != -1)
+			{
+				crewDao.deleteAnchList(bean.getUid()[i]);
+				crewDao.deleteAnchPlanList(bean.getUid()[i]);
+				crewDao.deleteAnchResultList(bean.getUid()[i]);
+			}
+			
+			//재저장 
+			anch.setSchedulerInfoUid(-1);
+			anch.setUid(bean.getUid()[i]);
+			anch.setProjNo(bean.getProjNo()[i]);
+			anch.setTrialKey(bean.getTrialKey()[i]);
+			anch.setKind(bean.getKind()[i]);
+			anch.setDomesticYn(bean.getDomesticYn()[i]);
+			anch.setDepartment(bean.getDepartment()[i]);
+			anch.setMealDate(bean.getMealDate()[i]);
+			anch.setOrderStatus(bean.getOrderStatus()[i]);
+			anch.setOrderDate(bean.getOrderDate()[i]);
+			anch.setOrderUid(bean.getOrderUid()[i]);
+			anch.setDeleteYn(bean.getDeleteYn()[i]);
+			anch.setComment(bean.getComment()[i]);
+			anch.setIsPlan(DBConst.Y);
+			anch.setUserUid(userUid);
+			
+			//승선자 저장 완료시, 승/하선일 저장
+			//승선자 저장 완료시, 터미널 상세정보 저장
+			if(crewDao.insertAnchorageMeal(anch) > DBConst.ZERO) {
+				System.out.println("오나용9999"+bean.getBreakfast()[i]);
+					//계획
+					if(!bean.getBreakfast()[i].isEmpty()) {
+						AnchorageMealQtyBean mealQty = new AnchorageMealQtyBean();
+						mealQty.setAnchorMealUid(bean.getUid()[i]);
+						mealQty.setPlanMealQty(bean.getBreakfast()[i]);
+						mealQty.setPlanMealTime("조식");
+						mealQty.setPlanMealGubun(bean.getFoodStyle()[i]);
+						mealQty.setProjNo(bean.getProjNo()[i]);
+						mealQty.setUuid(bean.getUuid());
+						System.out.println("/오나용8888"+mealQty.getUuid());
+						System.out.println("/오나용8888"+mealQty.getPlanMealQty());
+						System.out.println("/오나용8888"+mealQty.getPlanMealTime());
+						System.out.println("/오나용8888"+mealQty.getPlanMealGubun());
+						System.out.println("/오나용8888"+mealQty.getAnchorMealUid());
+						crewDao.insertMealQty(mealQty);
+					}
+//					
+//					  if(!bean.getLunch()[i].isEmpty()) { 
+//						  AnchorageMealQtyBean mealQty = new AnchorageMealQtyBean(); 
+//						  mealQty.setAnchorMealUid(anch.getUid());
+//					      mealQty.setPlanMealQty(bean.getLunch()[i]);
+//					  mealQty.setPlanMealTime("중식");
+//					  mealQty.setPlanMealGubun(bean.getFoodStyle()[i]);
+//					  mealQty.setProjNo(bean.getProjNo()[i]); 
+//					  mealQty.setUuid(bean.getUuid());
+//					  crewDao.insertMealQty(mealQty); 
+//					  }
+//					  
+//					  if(!bean.getDinner()[i].isEmpty()) { 
+//						  AnchorageMealQtyBean mealQty = new AnchorageMealQtyBean(); 
+//						  mealQty.setAnchorMealUid(anch.getUid());
+//					  mealQty.setPlanMealQty(bean.getDinner()[i]);
+//					  mealQty.setPlanMealTime("석식");
+//					  mealQty.setPlanMealGubun(bean.getFoodStyle()[i]);
+//					  mealQty.setProjNo(bean.getProjNo()[i]); 
+//					  mealQty.setUuid(bean.getUuid());
+//					  crewDao.insertMealQty(mealQty); }
+//					  
+//					  if(!bean.getLateNight()[i].isEmpty()) { 
+//						  AnchorageMealQtyBean mealQty = new AnchorageMealQtyBean(); 
+//						  mealQty.setAnchorMealUid(anch.getUid());
+//					  mealQty.setPlanMealQty(bean.getLateNight()[i]);
+//					  mealQty.setPlanMealTime("야식");
+//					  mealQty.setPlanMealGubun(bean.getFoodStyle()[i]);
+//					  mealQty.setProjNo(bean.getProjNo()[i]); 
+//					  mealQty.setUuid(bean.getUuid());
+//					  crewDao.insertMealQty(mealQty); }
+					 
+				
+			}
+		}
+		
+		isResult = DBConst.SUCCESS;
+		resultMap.put(Const.RESULT, isResult);
+		
+		return resultMap;
 	}
 }
