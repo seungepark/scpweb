@@ -32,5 +32,7 @@ public interface CrewServiceI {
 	//앵카링 식사신청
 	Map<String, Object> anchorageMealRequest(HttpServletRequest request, AnchorageMealRequestBean bean) throws Exception;
 	
+	Map<String, Object> getAnchorageMealList(HttpServletRequest request, AnchorageMealRequestBean bean) throws Exception;
+	
 	Map<String, Object> anchorageMealSave(HttpServletRequest request, AnchorageMealListBean bean) throws Exception;
 }

@@ -154,6 +154,7 @@ function initData() {
 		let uid = _anchList[z].uid;
 		let rowId = _tbRowId++;
 		let projNo = _anchList[z].projNo;
+		let kind = _anchList[z].kind;
 		let domesticYn = _anchList[z].domesticYn;
 		let department = _anchList[z].department;
 		let mealDate = _anchList[z].mealDate;
@@ -176,13 +177,13 @@ function initData() {
 		let inputUid = _anchList[z].inputUid;
 		let inputDate = _anchList[z].inputDate;
 		
-		alert(planList.length);
+		//alert(planList.length);
 		
 		//식사신청 수량(계획)
 		for(let x = 0; x < planList.length; x++) {
 			let code = planList[x].planMealTime;
 			let qty = planList[x].planMealQty;
-			alert(code);
+			//alert(code);
 			if(code == '조식') {
 				breakfastP = qty;
 			}else if(code == '중식') {
@@ -211,7 +212,6 @@ function initData() {
 		}
 			
 		let text = "";
-
 		text += '<tr id="tbRow_' + rowId + '">' + 
 					'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()" disabled></td>' +
 					'<td class="text-center th-w-60"><div name="no">' + _anchCnt + '</div></td>' +
@@ -220,10 +220,10 @@ function initData() {
 					
 					'<td class="text-center">' + 
 						'<select name="kind">';
-					text += '<option value="S"' + (domesticYn == 'S' ? ' selected' : '') + '>직영</option>' + 
-							'<option value="H"' + (domesticYn == 'H' ? ' selected' : '') + '>협력사</option>'+
-							'<option value="V"' + (domesticYn == 'V' ? ' selected' : '') + '>방문객</option>'+
-							'<option value="O"' + (domesticYn == 'O' ? ' selected' : '') + '>Owner/Class</option>';
+					text += '<option value="S"' + (kind == 'S' ? ' selected' : '') + '>직영</option>' + 
+							'<option value="H"' + (kind == 'H' ? ' selected' : '') + '>협력사</option>'+
+							'<option value="V"' + (kind == 'V' ? ' selected' : '') + '>방문객</option>'+
+							'<option value="O"' + (kind == 'O' ? ' selected' : '') + '>Owner/Class</option>';
 				text += '</select>' +
 				
 					'<td class="text-center">' + 
@@ -313,6 +313,247 @@ function setListEmpty() {
 		$('#tbRowList').empty();
 		$("#tbRowList").append('<tr><td class="text-center" colspan="16">' + $.i18n.t('share:noList') + '</td></tr>');
 	}
+}
+
+// 식사신청 리스트 조회
+function getAnchMealList() {
+	let projNo = $('#ship').val();
+	let inDate = $('#inDate').val();
+	let outDate = $('#outDate').val();
+	
+	if(isValidDate(inDate) && isValidDate(outDate)) {
+		$('input[name=listChk]').each(function(idx, obj) {
+			$('input[name=' + projNo + ']').eq(idx).val(projNo);
+			$('input[name=' + inDate + ']').eq(idx).val(inDate);
+			$('input[name=' + outDate + ']').eq(idx).val(outDate);
+		});
+		//alert(inDate +'~'+outDate); //테스트
+		//alert('어디1');
+		getAnchorageMealList(1);
+		//alert('어디2');
+	}
+	else {
+		//alert(inDate +'~'+outDate); //테스트
+		getAnchorageMealList(1);
+		//alertPop($.i18n.t('list.errInOutDate'));
+	}
+}
+
+function getAnchorageMealList(page) {
+	//alert($("#ship option:selected").val());
+    var ship = $("#ship option:selected").val();
+    var inDate = $('#inDate').val();
+    var outDate = $('#outDate').val();
+	
+	//alert($("#ship option:selected").val());
+	
+	//alert(contextPath);
+
+	//페이지 셋팅(현재페이지 저장X)
+	_isSetPage = false;
+	page = 1;
+
+    jQuery.ajax({
+        type: 'GET',
+        url: contextPath + '/crew/getAnchorageMealList.html',
+		
+        data: {
+            page: page,
+            ship: ship,
+            inDate: inDate,
+            outDate: outDate,
+            sort: listSort,
+            order: listOrder
+        },
+		//dataType: 'json',
+        success: function(data) {
+			//alert(json.list.length);
+            var json = JSON.parse(data);
+            var text = '';
+			//alert(88);
+            listArr = json.list;
+			//alert(json.list.length);
+			for(var i = 0; i < json.list.length; i++) {					
+					let rowId = i+1;
+					let uid = json.list[i].uid;
+					let projNo = json.list[i].projNo;
+					let kind = json.list[i].kind;
+					let domesticYn = json.list[i].domesticYn;
+					let department = json.list[i].department;
+					let mealDate = json.list[i].mealDate;
+					let foodStyle = json.list[i].foodStyle;
+					let orderStatus = json.list[i].orderStatus;
+					let orderDate = json.list[i].orderDate;
+					let orderUid = json.list[i].orderUid;
+					let deleteYn = json.list[i].deleteYn;
+					let comment = json.list[i].comment;
+					let planList = json.list[i].planList;
+					let resultList = json.list[i].resultList;
+					let inputUid = json.list[i].inputUid;
+					let inputDate = json.list[i].inputDate;
+					let breakfastP = "";
+					let lunchP = "";
+					let dinnerP = "";
+					let lateNightP = "";
+					let breakfastR = "";
+					let lunchR = "";
+					let dinnerR = "";
+					let lateNightR = "";
+					
+					//식사신청 수량(계획)
+					for(let x = 0; x < planList.length; x++) {
+						let code = planList[x].planMealTime;
+						let qty = planList[x].planMealQty;
+						if(code == '조식') {
+							breakfastP = qty;
+						}else if(code == '중식') {
+							lunchP = qty;
+						}else if(code == '석식') {
+							dinnerP = qty;
+						}else if(code == '야식') {
+							lateNightP = qty;
+						}
+					}		
+					
+					//식사신청 수량(실적)
+					for(let x = 0; x < resultList.length; x++) {
+						let code = resultList[x].resultMealTime;
+						let qty = resultList[x].resultMealQty;
+						//alert(code);
+						if(code == '조식') {
+							breakfastR = qty;
+						}else if(code == '중식') {
+							lunchR = qty;
+						}else if(code == '석식') {
+							dinnerR = qty;
+						}else if(code == '야식') {
+							lateNightR = qty;
+						}
+					}		
+					
+					//alert(uid + '/'+projNo);
+					//승선일,하선일 필터링	
+					/*if(($('#inDate').val() != null && $('#outDate').val() != null) && ($('#inDate').val() != '' && $('#outDate').val() != '')){
+						
+						if(!($('#inDate').val() <= mealDate && mealDate <= $('#outDate').val())) {
+							continue;
+						}
+					}*/
+					
+					text += '<tr id="tbRow_' + rowId + '">' + 
+								'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()" disabled></td>' +
+								'<td class="text-center th-w-60"><div name="no">' + rowId + '</div></td>' +
+								'<td class="text-center">'+ '<input name="uid" type="text" value="' + uid + '" disabled>' + '</td>' +
+								'<td class="text-center">' + '<input name="projNo" type="text" value="' + projNo + '" disabled>' + '</td>' + 
+								
+								'<td class="text-center">' + 
+									'<select name="kind">';
+								text += '<option value="S"' + (kind == 'S' ? ' selected' : '') + '>직영</option>' + 
+										'<option value="H"' + (kind == 'H' ? ' selected' : '') + '>협력사</option>'+
+										'<option value="V"' + (kind == 'V' ? ' selected' : '') + '>방문객</option>'+
+										'<option value="O"' + (kind == 'O' ? ' selected' : '') + '>Owner/Class</option>';
+							text += '</select>' +
+							
+								'<td class="text-center">' + 
+									'<select name="domesticYn">';
+								text += '<option value="Y"' + (domesticYn == 'Y' ? ' selected' : '') + '>내국</option>' + 
+										'<option value="N"' + (domesticYn == 'N' ? ' selected' : '') + '>외국</option>';
+							text += '</select>' +
+								
+								'<td class="text-center">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 												
+								'<td class="text-center th-w-200">' + '<input name="mealDate" class="text-center" type="date" value="' + mealDate + '" >' + '</td>'+							
+								'<td class="text-center">' + 
+									'<select name="foodStyle" >';
+									
+								text += '<option value="K"' + (foodStyle == 'K' ? ' selected' : '') + '>한식</option>' + 
+										'<option value="W"' + (foodStyle == 'W' ? ' selected' : '') + '>양식(Normal Western)</option>' + 	
+										'<option value="H"' + (foodStyle == 'H' ? ' selected' : '') + '>양식(Halal)</option>' + 	
+										'<option value="V1"' + (foodStyle == 'V1' ? ' selected' : '') + '>양식(Veg. fruitarian)</option>' + 	
+										'<option value="V2"' + (foodStyle == 'V2' ? ' selected' : '') + '>양식(Veg. vegan)</option>' + 	
+										'<option value="V3"' + (foodStyle == 'V3' ? ' selected' : '') + '>양식(Veg. lacto-veg.)</option>' + 	
+										'<option value="V4"' + (foodStyle == 'V4' ? ' selected' : '') + '>양식(Veg. ovo-veg.)</option>' + 	
+										'<option value="V5"' + (foodStyle == 'V5' ? ' selected' : '') + '>양식(Veg. lacto-ovo-veg.)</option>' + 	
+										'<option value="V6"' + (foodStyle == 'V6' ? ' selected' : '') + '>양식(Veg. pesco-veg.)</option>' + 	
+										'<option value="V7"' + (foodStyle == 'V7' ? ' selected' : '') + '>양식(Veg. pollo-veg.)</option>' + 	
+										'<option value="V8"' + (foodStyle == 'V8' ? ' selected' : '') + '>양식(Veg. flexitarian)</option>';
+										
+							text += '</select>' +
+								'</td>' +
+								
+								'<td style = "border: 1px soild red" class="text-center  align-middle crew-inout-label p-0">' + 
+									'<div class="align-items-center border-bottom px-1 inout_scheduler_h">' + $.i18n.t('list.plan') + '</div>' + 
+									'<div class="align-items-center inout_performance_h">' + $.i18n.t('list.result') + '</div>' + 
+								'</td>'
+								 
+								text += '<td class="text-center align-middle p-0" >' + 
+											'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
+											'<input style="width: 100px; name="breakfastP" class="text-center" type="text" value="' + breakfastP + '" >' +
+											'</div>' + 
+											'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
+												'<input style="width: 100px; name="breakfastR" class="text-center" type="text" value="' + breakfastR + '" >' +
+											'</div>' + 
+										'</td>';
+								text += '<td class="text-center align-middle p-0">' + 
+											'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
+											'<input style="width: 100px; name="lunchP" class="text-center" type="text" value="' + lunchP + '" >' +
+											'</div>' + 
+											'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
+												'<input style="width: 100px; name="lunchR" class="text-center" type="text" value="' + lunchR + '" >' +
+											'</div>' + 
+										'</td>';
+
+								text += '<td class="text-center align-middle p-0">' + 
+											'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
+											'<input style="width: 100px; name="dinnerP" class="text-center" type="text" value="' + dinnerP + '" >' +
+											'</div>' + 
+											'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
+												'<input style="width: 100px; name="dinnerR" class="text-center" type="text" value="' + dinnerR + '" >' +
+											'</div>' + 
+										'</td>';							
+
+								text += '<td  class="text-center align-middle p-0">' + 
+											'<divclass="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
+											'<input style="width: 100px; name="lateNightP" class="text-center" type="text" value="' + lateNightP + '" >' +
+											'</div>' + 
+											'<div  class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
+												'<input style="width: 100px; name="lateNightR" class="text-center" type="text" value="' + lateNightR + '" >' +
+											'</div>' + 
+										'</td>'+						
+																	
+								'<td class="text-center">' + '<input name="orderStatus" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>'+
+								'<td class="text-center">' + '<input name="orderDate" type="text" disabled value="' + orderDate + '">' + '</td>' + 												
+								'<td class="text-center">' + '<input name="orderUid" type="text" disabled value="' + orderUid + '">' + '</td>' + 												
+								'<td class="text-center">' + '<input name="deleteYn" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (deleteYn === 'Y' ? 'checked' : '') + '>' + '</td>'+
+								'<td class="text-center">' + '<input name="comment" type="text" value="' + comment + '">' + '</td>' + 												
+								'<td class="text-center">' + '<input name="inputUid" type="text" disabled value="' + inputUid + '">' + '</td>' + 												
+								'<td class="text-center">' + '<input name="inputDate" type="text" disabled value="' + inputDate + '">' + '</td>' ;
+					text += '</tr>';	
+				}
+
+            $('#tbRowList').empty();
+//alert(json.list.length);
+//alert(text);
+            if(json.list.length > 0) {
+                $('#tbRowList').append(text);
+            }else {
+                $('#tbRowList').append('<tr><td class="text-center" colspan="13">' + $.i18n.t('share:noList') + '</td></tr>');
+            }
+
+			$('[data-toggle="tooltip"]').tooltip();
+        },
+        error: function(req, status, err) {
+			//alert(1);
+            alertPop($.i18n.t('share:tryAgain'));
+        },
+        beforeSend: function() {
+			//alert(2);
+            $('#loading').css('display', 'block');
+        },
+        complete: function() {
+			//alert(3);
+            $('#loading').css('display', 'none');
+        }
+    });
 }
 
 //전체리스트 엑셀 다운로드
@@ -1118,7 +1359,7 @@ function save() {
 			}
 		}
 	}
-	alert(sessionUserID);
+	//alert(sessionUserID);
 	/*alert($("#ship option:selected").val());
 	alert($("#ship option:selected").text());
 	alert(trialKeyVl[1].value);*/
@@ -1260,182 +1501,7 @@ function save() {
 	//getAnchList();
 }
 
-// 승선자 리스트 조회
-function getAnchMealList() {
-	let projNo = $('#ship').val();
-	let inDate = $('#inDate').val();
-	let outDate = $('#outDate').val();
-	
-	if(isValidDate(inDate) && isValidDate(outDate)) {
-		$('input[name=listChk]').each(function(idx, obj) {
-			$('input[name=' + projNo + ']').eq(idx).val(projNo);
-			$('input[name=' + inDate + ']').eq(idx).val(inDate);
-			$('input[name=' + outDate + ']').eq(idx).val(outDate);
-		});
-		//alert(inDate +'~'+outDate); //테스트
-		//alert('어디1');
-		getAnchorageMealList(1);
-		//alert('어디2');
-	}
-	else {
-		//alert(inDate +'~'+outDate); //테스트
-		getAnchorageMealList(1);
-		//alertPop($.i18n.t('list.errInOutDate'));
-	}
-}
 
-function getAnchorageMealList(page) {
-	//alert(1);
-    var ship = $("#ship option:selected").val();
-    var inDate = $('#inDate').val();
-    var outDate = $('#outDate').val();
-	
-	//alert($("#ship option:selected").val());
-	
-	//alert(contextPath);
-
-	//페이지 셋팅(현재페이지 저장X)
-	_isSetPage = false;
-	page = 1;
-
-    jQuery.ajax({
-        type: 'GET',
-        url: contextPath + '/crew/getAnchorageMealList.html',
-		
-        data: {
-            page: page,
-            ship: ship,
-            inDate: inDate,
-            outDate: outDate,
-            sort: listSort,
-            order: listOrder
-        },
-        success: function(data) {
-            var json = JSON.parse(data);
-            var text = '';
-
-            listArr = json.list;
-			
-			for(var i = 0; i < json.list.length; i++) {					
-					let rowId = i+1;
-					let uid = json.list[i].uid;
-					let projNo = json.list[i].projNo;
-					let trialKey = json.list[i].trialKey;
-					let kind = json.list[i].kind;
-					let domesticYn = json.list[i].domesticYn;
-					let department = json.list[i].department;
-					let mealDate = json.list[i].mealDate;
-					let orderStatus = json.list[i].orderStatus;
-					let orderDate = json.list[i].orderDate;
-					let orderUid = json.list[i].orderUid;
-					let deleteYn = json.list[i].deleteYn;
-					let comment = json.list[i].comment;
-					let planMealDate = "";
-					let planMealTime = "";
-					let planMealGubun = "";
-					let planMealQty = "";
-					
-					//식사신청 수량(계획)
-					for(let x = 0; x < planList.length; x++) {
-						let code = planList[x].planMealTime;
-						let qty = inOutList[x].planMealQty;
-						if(code == '조식') {
-							breakfast = qty;
-						}else if(code == '중식') {
-							lunch = qty;
-						}else if(code == '석식') {
-							dinner = qty;
-						}else if(code == '야식') {
-							lateNight = qty;
-						}
-					}
-					
-					//식사신청 수량(실적)
-					
-					//alert(terminal);
-					//승선일,하선일 필터링	
-					if(($('#inDate').val() != null && $('#outDate').val() != null) && ($('#inDate').val() != '' && $('#outDate').val() != '')){
-						
-						if(!($('#inDate').val() <= mealDate && mealDate <= $('#outDate').val())) {
-							continue;
-						}
-					}
-					let text = "";
-
-					text += '<tr id="tbRow_' + rowId + '">' + 
-								'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()" disabled></td>' +
-								'<td class="text-center th-w-60"><div name="no">' + _anchCnt + '</div></td>' +
-								'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '" disabled>' + '</td>' +
-								'<td class="text-center">' + '<input name="projNo" type="text" value="' + projNo + '" disabled>' + '</td>' + 
-								
-								'<td class="text-center">' + 
-									'<select name="kind">';
-								text += '<option value="S"' + (domesticYn == 'S' ? ' selected' : '') + '>직영</option>' + 
-										'<option value="H"' + (domesticYn == 'H' ? ' selected' : '') + '>협력사</option>'+
-										'<option value="V"' + (domesticYn == 'V' ? ' selected' : '') + '>방문객</option>'+
-										'<option value="O"' + (domesticYn == 'O' ? ' selected' : '') + '>Owner/Class</option>';
-							text += '</select>' +
-							
-								'<td class="text-center">' + 
-									'<select name="domesticYn">';
-								text += '<option value="Y"' + (domesticYn == 'Y' ? ' selected' : '') + '>내국</option>' + 
-										'<option value="N"' + (domesticYn == 'N' ? ' selected' : '') + '>외국</option>';
-							text += '</select>' +
-								
-								'<td class="text-center">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 												
-								'<td class="text-center th-w-200">' + '<input name="mealDate" class="text-center" type="date" value="' + mealDate + '" >' + '</td>'+							
-								'<td class="text-center">' + 
-									'<select name="foodStyle" >';
-									
-								text += '<option value="K"' + (foodStyle == 'K' ? ' selected' : '') + '>한식</option>' + 
-										'<option value="W"' + (foodStyle == 'W' ? ' selected' : '') + '>양식(Normal Western)</option>' + 	
-										'<option value="H"' + (foodStyle == 'H' ? ' selected' : '') + '>양식(Halal)</option>' + 	
-										'<option value="V1"' + (foodStyle == 'V1' ? ' selected' : '') + '>양식(Veg. fruitarian)</option>' + 	
-										'<option value="V2"' + (foodStyle == 'V2' ? ' selected' : '') + '>양식(Veg. vegan)</option>' + 	
-										'<option value="V3"' + (foodStyle == 'V3' ? ' selected' : '') + '>양식(Veg. lacto-veg.)</option>' + 	
-										'<option value="V4"' + (foodStyle == 'V4' ? ' selected' : '') + '>양식(Veg. ovo-veg.)</option>' + 	
-										'<option value="V5"' + (foodStyle == 'V5' ? ' selected' : '') + '>양식(Veg. lacto-ovo-veg.)</option>' + 	
-										'<option value="V6"' + (foodStyle == 'V6' ? ' selected' : '') + '>양식(Veg. pesco-veg.)</option>' + 	
-										'<option value="V7"' + (foodStyle == 'V7' ? ' selected' : '') + '>양식(Veg. pollo-veg.)</option>' + 	
-										'<option value="V8"' + (foodStyle == 'V8' ? ' selected' : '') + '>양식(Veg. flexitarian)</option>';
-										
-							text += '</select>' +
-								'</td>' + 
-								'<td class="text-center">' + '<input name="breakfast" type="text" value="' + breakfast + '">' + '</td>' + 												
-								'<td class="text-center">' + '<input name="lunch" type="text" value="' + lunch + '">' + '</td>' + 												
-								'<td class="text-center">' + '<input name="dinner" type="text" value="' + dinner + '">' + '</td>' + 												
-								'<td class="text-center">' + '<input name="lateNight" type="text" value="' + lateNight + '">' + '</td>' + 												
-								'<td class="text-center">' + '<input name="orderStatus" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>';
-								'<td class="text-center">' + '<input name="orderDate" type="text" disabled value="' + orderDate + '">' + '</td>' + 												
-								'<td class="text-center">' + '<input name="orderUid" type="text" disabled value="' + orderUid + '">' + '</td>' + 												
-								'<td class="text-center">' + '<input name="deleteYn" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (deleteYn === 'Y' ? 'checked' : '') + '>' + '</td>';
-								'<td class="text-center">' + '<input name="comment" type="text" value="' + comment + '">' + '</td>' + 												
-								'<td class="text-center">' + '<input name="inputUid" type="text" disabled value="' + inputUid + '">' + '</td>' + 												
-								'<td class="text-center">' + '<input name="inputDate" type="text" disabled value="' + inputDate + '">' + '</td>' ;
-					text += '</tr>';
-				}
-
-            $('#tbRowList').empty();
-
-            if(json.list.length > 0) {
-                $('#tbRowList').append(text);
-            }else {
-                $('#tbRowList').append('<tr><td class="text-center" colspan="13">' + $.i18n.t('share:noList') + '</td></tr>');
-            }
-
-			$('[data-toggle="tooltip"]').tooltip();
-        },
-        error: function(req, status, err) {
-            alertPop($.i18n.t('share:tryAgain'));
-        },
-        beforeSend: function() {
-            $('#loading').css('display', 'block');
-        },
-        complete: function() {
-            $('#loading').css('display', 'none');
-        }
-    });
-}
 
 // 필터 검색.(추가컬럼 수정필요)
 function searchList() {

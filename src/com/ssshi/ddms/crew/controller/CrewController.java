@@ -96,6 +96,13 @@ public class CrewController {
 		return "crew/anchorageMealRequest";
 	}
 	
+	@RequestMapping(value="/crew/getAnchorageMealList.html", method=RequestMethod.GET)
+	public String getAnchorageMealList(HttpServletRequest request, ModelMap model, AnchorageMealRequestBean bean) throws Exception {		
+		model.addAllAttributes(service.getAnchorageMealList(request, bean));
+
+		return "crew/anchorageMealRequestList";
+	}
+	
 	@RequestMapping(value="/crew/anchorageMealSave.html", method=RequestMethod.POST)
 	public String anchorageMealSave(HttpServletRequest request, ModelMap model, AnchorageMealListBean bean) throws Exception {
 		model.addAllAttributes(service.anchorageMealSave(request, bean));

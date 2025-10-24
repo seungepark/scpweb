@@ -634,6 +634,40 @@ public class CrewService implements CrewServiceI {
 	}
 	
 	@Override
+	public Map<String, Object> getAnchorageMealList(HttpServletRequest request, AnchorageMealRequestBean bean) throws Exception {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		List<AnchorageMealRequestBean> anchList = crewDao.getAnchorageMealList(bean);
+		resultMap.put(Const.LIST_CNT, crewDao.getAnchorageMealListCnt());
+
+		//계획
+		if(anchList != null) {
+			System.out.println("오나용1234==");
+			for(int i = 0; i < anchList.size(); i++) {
+				anchList.get(i).setPlanList(crewDao.getAnchorageMealPlanQtyList(anchList.get(i).getUid()));
+				System.out.println("getUid :"+ anchList.get(i).getUid());
+				System.out.println("setPlanList :"+ anchList.get(i).getPlanList().size());
+			}
+			System.out.println("setPlanList2 :"+ anchList.size());
+		}
+		//실적
+		if(anchList != null) {
+			System.out.println("오나용123dfgdfg4");
+			for(int z = 0; z < anchList.size(); z++) {
+				anchList.get(z).setResultList(crewDao.getAnchorageMealResultQtyList(anchList.get(z).getUid()));
+			}
+			System.out.println("setResultList"+ anchList.size());
+		}
+
+		//resultMap.put(Const.BEAN, dao.getScheduler(bean.getUid()));
+		resultMap.put(Const.LIST, anchList);
+		//resultMap.put("status", dao.getTrialStatus(bean.getUid()));
+		
+		/* 조회조건 : 호선리스트 */
+		resultMap.put(Const.LIST + "Ship", crewDao.getAnchShipList());
+		return resultMap;
+	}
+	
+	@Override
 	public Map<String, Object> anchorageMealSave(HttpServletRequest request, AnchorageMealListBean bean) throws Exception {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		System.out.println("RegistrationCrewListBean1");

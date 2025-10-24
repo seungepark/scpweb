@@ -95,7 +95,7 @@
 							<input class="cursor-pointer" type="file" id="fileInput" onchange="excelUpload(event)" accept=".xlsx">
                    		</div> 
                    		
-                   		<div style="padding-right: 42px; border:1px solid red"></div> 	
+                   		<div style="padding-right: 44px;"></div> 	
                    	</div> 
 					</div> 
 					

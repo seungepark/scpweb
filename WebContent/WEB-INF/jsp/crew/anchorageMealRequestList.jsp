@@ -4,42 +4,42 @@
 	"list": [
 		<c:forEach var="tmp" items="${list}" varStatus="status">
 			{
-				"uid":"${item.uid}",
-	 			"projNo": "${item.projNo}",
-	 			"trialKey": "${item.trialKey}",
-				"kind": "${item.kind}",				
-	 			"domesticYn": "${item.domesticYn}",
-	 			"department": "${item.department}",
-	 			"mealDate": "${item.mealDate}",
-	 			"orderStatus": "${item.orderStatus}",
-	 			"orderDate": "${item.orderDate}",
-	 			"orderUid": "${item.orderUid}",
-	 			"deleteYn": "${item.deleteYn}",
-	 			"comment": "${item.comment}",
-	 			"inputUid": "${item.inputUid}",
-	 			"inputDate": "${item.inputDate}",
+				"uid":"${tmp.uid}",
+	 			"projNo": "${tmp.projNo}",
+	 			"trialKey": "${tmp.trialKey}",
+				"kind": "${tmp.kind}",				
+	 			"domesticYn": "${tmp.domesticYn}",
+	 			"department": "${tmp.department}",
+	 			"mealDate": "${tmp.mealDate}",
+	 			"orderStatus": "${tmp.orderStatus}",
+	 			"orderDate": "${tmp.orderDate}",
+	 			"orderUid": "${tmp.orderUid}",
+	 			"deleteYn": "${tmp.deleteYn}",
+	 			"comment": "${tmp.comment}",
+	 			"inputUid": "${tmp.inputUid}",
+	 			"inputDate": "${tmp.inputDate}",
 	 			"planList": [
-	 				<c:forEach var="plan" items="${item.planList}" varStatus="status">
+	 				<c:forEach var="plan" items="${tmp.planList}" varStatus="planStatus">
 	 					{
 	 						"planMealDate": "${plan.planMealDate}",
 			 				"planMealTime": "${plan.planMealTime}",
 			 				"planMealGubun": "${plan.planMealGubun}",
-			 				"planMealPlanQty": "${plan.planMealPlanQty}"
+			 				"planMealQty": "${plan.planMealQty}"
 			 			}
 			 			<c:if test="${!status.last}">,</c:if>
 		 			</c:forEach>
 	 			],
-	 			"resultList: [
-	 				<c:forEach var="result" items="${item.resultList}" varStatus="status">
+	 			"resultList": [
+	 				<c:forEach var="result" items="${tmp.resultList}" varStatus="resultStatus">
 	 					{
 	 						"resultMealDate": "${result.resultMealDate}",
 			 				"resultMealTime": "${result.resultMealTime}",
 			 				"resultMealGubun": "${result.resultMealGubun}",
-			 				"resultMealPlanQty": "${result.resultMealPlanQty}"
+			 				"resultMealQty": "${result.resultMealQty}"
 			 			}
 			 			<c:if test="${!status.last}">,</c:if>
 		 			</c:forEach>
-	 			]			
+	 			]	
 			}
 			<c:if test="${!status.last}">,</c:if>
 		</c:forEach>
