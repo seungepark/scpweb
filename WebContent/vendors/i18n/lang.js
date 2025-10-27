@@ -4730,7 +4730,7 @@ var RES_LANG = {
 				'orderUid': '발주자',
 				'deleteYn':'삭제',
 				'comment': '특이사항',
-				'inputId': '신청자',
+				'inputUid': '신청자',
 				'inputDate': '신청일',
 				'plan':'계획',
 				'result':'실적'

@@ -27,6 +27,16 @@ public class AnchorageMealListBean {
 	private String[] dinner;
 	private String[] lateNight;
 	
+	private int[] breakfastP;
+	private int[] lunchP;
+	private int[] dinnerP;
+	private int[] lateNightP;
+	
+	private int[] breakfastR;
+	private int[] lunchR;
+	private int[] dinnerR;
+	private int[] lateNightR;
+	
 	private String[] planMealDate;
 	private String[] planMealTime;
 	private String[] planMealGubun;
@@ -206,6 +216,56 @@ public class AnchorageMealListBean {
 	}
 	public void LateNight(String[] lateNight) {
 		this.lateNight = lateNight;
+	}
+	
+	public int[] getBreakfastP() {
+		return breakfastP;
+	}
+	public void setBreakfastP(int[] breakfastP) {
+		this.breakfastP = breakfastP;
+	}
+	public int[] getLunchP() {
+		return lunchP;
+	}
+	public void setLunchP(int[] lunchP) {
+		this.lunchP = lunchP;
+	}
+	public int[] getDinnerP() {
+		return dinnerP;
+	}
+	public void setDinnerP(int[] dinnerP) {
+		this.dinnerP = dinnerP;
+	}
+	public int[] getLateNightP() {
+		return lateNightP;
+	}
+	public void setLateNightP(int[] lateNightP) {
+		this.lateNightP = lateNightP;
+	}
+	
+	public int[] getBreakfastR() {
+		return breakfastR;
+	}
+	public void setBreakfastR(int[] breakfastR) {
+		this.breakfastR = breakfastR;
+	}
+	public int[] getLunchR() {
+		return lunchR;
+	}
+	public void setLunchR(int[] lunchR) {
+		this.lunchR = lunchR;
+	}
+	public int[] getDinnerR() {
+		return dinnerR;
+	}
+	public void setDinnerR(int[] dinnerR) {
+		this.dinnerR = dinnerR;
+	}
+	public int[] getLateNightR() {
+		return lateNightR;
+	}
+	public void LateNightR(int[] lateNightR) {
+		this.lateNightR = lateNightR;
 	}
 	/*
 	 * public String[] getDeleteYn() { return deleteYn; } public void

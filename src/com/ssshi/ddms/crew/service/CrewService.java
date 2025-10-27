@@ -681,7 +681,7 @@ public class CrewService implements CrewServiceI {
 			AnchorageMealRequestBean anch = new AnchorageMealRequestBean();
 			
 			System.out.println("오나용2222"+bean.getKind().length);
-			System.out.println("오나용11141/ "+bean.getUid()[i]+"/ "+bean.getDepartment()[i]);
+			System.out.println("오나용11141/ "+bean.getUid()[i]+"/ "+bean.getProjNo()[i]);
 			
 			//리스트 삭제
 			if(bean.getUid()[i] != -1)
@@ -695,7 +695,7 @@ public class CrewService implements CrewServiceI {
 			anch.setSchedulerInfoUid(-1);
 			anch.setUid(bean.getUid()[i]);
 			anch.setProjNo(bean.getProjNo()[i]);
-			anch.setTrialKey(bean.getTrialKey()[i]);
+			anch.setTrialKey(bean.getProjNo()[i]);
 			anch.setKind(bean.getKind()[i]);
 			anch.setDomesticYn(bean.getDomesticYn()[i]);
 			anch.setDepartment(bean.getDepartment()[i]);
@@ -711,56 +711,122 @@ public class CrewService implements CrewServiceI {
 			//승선자 저장 완료시, 승/하선일 저장
 			//승선자 저장 완료시, 터미널 상세정보 저장
 			if(crewDao.insertAnchorageMeal(anch) > DBConst.ZERO) {
-				System.out.println("오나용9999"+bean.getBreakfast()[i]);
-					//계획
-					if(!bean.getBreakfast()[i].isEmpty()) {
-						AnchorageMealQtyBean mealQty = new AnchorageMealQtyBean();
-						mealQty.setAnchorMealUid(bean.getUid()[i]);
-						mealQty.setPlanMealQty(bean.getBreakfast()[i]);
-						mealQty.setPlanMealTime("조식");
-						mealQty.setPlanMealGubun(bean.getFoodStyle()[i]);
-						mealQty.setProjNo(bean.getProjNo()[i]);
-						mealQty.setUuid(bean.getUuid());
-						System.out.println("/오나용8888"+mealQty.getUuid());
-						System.out.println("/오나용8888"+mealQty.getPlanMealQty());
-						System.out.println("/오나용8888"+mealQty.getPlanMealTime());
-						System.out.println("/오나용8888"+mealQty.getPlanMealGubun());
-						System.out.println("/오나용8888"+mealQty.getAnchorMealUid());
-						crewDao.insertMealQty(mealQty);
-					}
-//					
-//					  if(!bean.getLunch()[i].isEmpty()) { 
-//						  AnchorageMealQtyBean mealQty = new AnchorageMealQtyBean(); 
-//						  mealQty.setAnchorMealUid(anch.getUid());
-//					      mealQty.setPlanMealQty(bean.getLunch()[i]);
-//					  mealQty.setPlanMealTime("중식");
-//					  mealQty.setPlanMealGubun(bean.getFoodStyle()[i]);
-//					  mealQty.setProjNo(bean.getProjNo()[i]); 
-//					  mealQty.setUuid(bean.getUuid());
-//					  crewDao.insertMealQty(mealQty); 
-//					  }
-//					  
-//					  if(!bean.getDinner()[i].isEmpty()) { 
-//						  AnchorageMealQtyBean mealQty = new AnchorageMealQtyBean(); 
-//						  mealQty.setAnchorMealUid(anch.getUid());
-//					  mealQty.setPlanMealQty(bean.getDinner()[i]);
-//					  mealQty.setPlanMealTime("석식");
-//					  mealQty.setPlanMealGubun(bean.getFoodStyle()[i]);
-//					  mealQty.setProjNo(bean.getProjNo()[i]); 
-//					  mealQty.setUuid(bean.getUuid());
-//					  crewDao.insertMealQty(mealQty); }
-//					  
-//					  if(!bean.getLateNight()[i].isEmpty()) { 
-//						  AnchorageMealQtyBean mealQty = new AnchorageMealQtyBean(); 
-//						  mealQty.setAnchorMealUid(anch.getUid());
-//					  mealQty.setPlanMealQty(bean.getLateNight()[i]);
-//					  mealQty.setPlanMealTime("야식");
-//					  mealQty.setPlanMealGubun(bean.getFoodStyle()[i]);
-//					  mealQty.setProjNo(bean.getProjNo()[i]); 
-//					  mealQty.setUuid(bean.getUuid());
-//					  crewDao.insertMealQty(mealQty); }
-					 
-				
+				System.out.println("오나용9982"+anch.getUid());
+				//계획
+				//조식
+				if(bean.getBreakfastP()[i] > 0) {
+					AnchorageMealQtyBean mealQty = new AnchorageMealQtyBean();
+					mealQty.setAnchorMealUid(anch.getUid());
+					mealQty.setPlanMealQty(bean.getBreakfastP()[i]);
+					mealQty.setPlanMealTime("조식");
+					mealQty.setPlanMealGubun(bean.getFoodStyle()[i]);
+					mealQty.setProjNo(bean.getProjNo()[i]);
+					mealQty.setUuid(bean.getUuid());
+					System.out.println("/오나용8888"+mealQty.getUuid());
+					System.out.println("/오나용8888"+mealQty.getPlanMealQty());
+					System.out.println("/오나용8888"+mealQty.getPlanMealTime());
+					System.out.println("/오나용8888"+mealQty.getPlanMealGubun());
+					System.out.println("/오나용8888"+mealQty.getAnchorMealUid());
+					crewDao.insertMealQty(mealQty);
+				}
+				//중식
+				if(bean.getLunchP()[i] > 0) {
+					AnchorageMealQtyBean mealQty = new AnchorageMealQtyBean();
+					mealQty.setAnchorMealUid(anch.getUid());
+					mealQty.setPlanMealQty(bean.getLunchP()[i]);
+					mealQty.setPlanMealTime("중식");
+					mealQty.setPlanMealGubun(bean.getFoodStyle()[i]);
+					mealQty.setProjNo(bean.getProjNo()[i]);
+					mealQty.setUuid(bean.getUuid());
+					crewDao.insertMealQty(mealQty);
+				}
+				//석식
+				if(bean.getDinnerP()[i] > 0) {
+					AnchorageMealQtyBean mealQty = new AnchorageMealQtyBean();
+					mealQty.setAnchorMealUid(anch.getUid());
+					mealQty.setPlanMealQty(bean.getDinnerP()[i]);
+					mealQty.setPlanMealTime("석식");
+					mealQty.setPlanMealGubun(bean.getFoodStyle()[i]);
+					mealQty.setProjNo(bean.getProjNo()[i]);
+					mealQty.setUuid(bean.getUuid());
+					System.out.println("/오나용1888"+mealQty.getUuid());
+					System.out.println("/오나용1888"+mealQty.getPlanMealQty());
+					System.out.println("/오나용1888"+mealQty.getPlanMealTime());
+					System.out.println("/오나용1888"+mealQty.getPlanMealGubun());
+					System.out.println("/오나용1888"+mealQty.getAnchorMealUid());
+					crewDao.insertMealQty(mealQty);
+				}
+				//야식
+				if(bean.getLateNightP()[i] > 0) {
+					AnchorageMealQtyBean mealQty = new AnchorageMealQtyBean();
+					mealQty.setAnchorMealUid(anch.getUid());
+					mealQty.setPlanMealQty(bean.getLateNightP()[i]);
+					mealQty.setPlanMealTime("야식");
+					mealQty.setPlanMealGubun(bean.getFoodStyle()[i]);
+					mealQty.setProjNo(bean.getProjNo()[i]);
+					mealQty.setUuid(bean.getUuid());
+					System.out.println("/오나용7888"+mealQty.getUuid());
+					System.out.println("/오나용7888"+mealQty.getPlanMealQty());
+					System.out.println("/오나용7888"+mealQty.getPlanMealTime());
+					System.out.println("/오나용7888"+mealQty.getPlanMealGubun());
+					System.out.println("/오나용7888"+mealQty.getAnchorMealUid());
+					crewDao.insertMealQty(mealQty);
+				}
+			}
+		}
+		
+		isResult = DBConst.SUCCESS;
+		resultMap.put(Const.RESULT, isResult);
+		
+		return resultMap;
+	}
+	
+	public Map<String, Object> anchorageMealRemove(HttpServletRequest request, ParamBean bean) throws Exception {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		System.out.println("anchorageMealRemove");
+		boolean isResult = DBConst.FAIL;
+		//int userUid = ((UserInfoBean)(request.getSession().getAttribute(Const.SS_USERINFO))).getUid();
+		
+		for(int i = 0; i < bean.getUidArr().length; i++) {
+			//리스트 삭제
+			if(bean.getUidArr()[i] != -1)
+			{
+				System.out.println("오나용11131/ "+bean.getUidArr()[i]+"/ ");
+				crewDao.deleteAnchList(bean.getUidArr()[i]);
+				System.out.println("오나용11111/ "+bean.getUidArr()[i]+"/ ");
+				crewDao.deleteAnchPlanList(bean.getUidArr()[i]);
+				crewDao.deleteAnchResultList(bean.getUidArr()[i]);
+			}
+		}
+		
+		isResult = DBConst.SUCCESS;
+		resultMap.put(Const.RESULT, isResult);
+		
+		return resultMap;
+	}
+	
+	@Override
+	public Map<String, Object> anchOrderUpdate(HttpServletRequest request, ParamBean bean) throws Exception {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		System.out.println("anchOrderUpdate");
+		boolean isResult = DBConst.FAIL;
+		//int userUid = ((UserInfoBean)(request.getSession().getAttribute(Const.SS_USERINFO))).getUid();
+		
+		for(int i = 0; i < bean.getUidArr().length; i++) {
+			//리스트 삭제
+			if(bean.getUidArr()[i] != -1)
+			{
+				 Map<String, Object> map = new HashMap<>();
+			     map.put("userId", bean.getUuid());
+			     map.put("anchUid", bean.getUidArr()[i]);
+				    
+				System.out.println("오나용11131/ "+bean.getUidArr()[i]+"/ "+bean.getUuid());
+				crewDao.updateAnchOrder(map);
+				/*
+				 * System.out.println("오나용11111/ "+bean.getUidArr()[i]+"/ ");
+				 * crewDao.deleteCrewInoutList(bean.getUidArr()[i]);
+				 * crewDao.deleteCrewDetailList(bean.getUidArr()[i]);
+				 */
 			}
 		}
 		

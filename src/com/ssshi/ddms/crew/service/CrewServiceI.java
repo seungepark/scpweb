@@ -35,4 +35,8 @@ public interface CrewServiceI {
 	Map<String, Object> getAnchorageMealList(HttpServletRequest request, AnchorageMealRequestBean bean) throws Exception;
 	
 	Map<String, Object> anchorageMealSave(HttpServletRequest request, AnchorageMealListBean bean) throws Exception;
+	
+	Map<String, Object> anchorageMealRemove(HttpServletRequest request, ParamBean bean) throws Exception;
+	
+	Map<String, Object> anchOrderUpdate(HttpServletRequest request, ParamBean bean) throws Exception;
 }

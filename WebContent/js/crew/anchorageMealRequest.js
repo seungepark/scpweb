@@ -213,7 +213,7 @@ function initData() {
 			
 		let text = "";
 		text += '<tr id="tbRow_' + rowId + '">' + 
-					'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()" disabled></td>' +
+					'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
 					'<td class="text-center th-w-60"><div name="no">' + _anchCnt + '</div></td>' +
 					'<td class="text-center">'+ '<input name="uid" type="text" value="' + uid + '" disabled>' + '</td>' +
 					'<td class="text-center">' + '<input name="projNo" type="text" value="' + projNo + '" disabled>' + '</td>' + 
@@ -259,36 +259,36 @@ function initData() {
 					 
 					text += '<td class="text-center align-middle p-0" >' + 
 								'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
-								'<input style="width: 100px; name="breakfastP" class="text-center" type="text" value="' + breakfastP + '" >' +
+								'<input style="width: 100px;" name="breakfastP" class="text-center" type="text" value="' + breakfastP + '" >' +
 								'</div>' + 
 								'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
-									'<input style="width: 100px; name="breakfastR" class="text-center" type="text" value="' + breakfastR + '" >' +
+									'<input style="width: 100px;" name="breakfastR" disabled class="text-center" type="text" value="' + breakfastR + '" >' +
 								'</div>' + 
 							'</td>';
 					text += '<td class="text-center align-middle p-0">' + 
 								'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
-								'<input style="width: 100px; name="lunchP" class="text-center" type="text" value="' + lunchP + '" >' +
+								'<input style="width: 100px;" name="lunchP" class="text-center" type="text" value="' + lunchP + '" >' +
 								'</div>' + 
 								'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
-									'<input style="width: 100px; name="lunchR" class="text-center" type="text" value="' + lunchR + '" >' +
+									'<input style="width: 100px;" name="lunchR" disabled class="text-center" type="text" value="' + lunchR + '" >' +
 								'</div>' + 
 							'</td>';
 
 					text += '<td class="text-center align-middle p-0">' + 
 								'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
-								'<input style="width: 100px; name="dinnerP" class="text-center" type="text" value="' + dinnerP + '" >' +
+								'<input style="width: 100px;" name="dinnerP" class="text-center" type="text" value="' + dinnerP + '" >' +
 								'</div>' + 
 								'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
-									'<input style="width: 100px; name="dinnerR" class="text-center" type="text" value="' + dinnerR + '" >' +
+									'<input style="width: 100px;" name="dinnerR" disabled class="text-center" type="text" value="' + dinnerR + '" >' +
 								'</div>' + 
 							'</td>';							
 
 					text += '<td  class="text-center align-middle p-0">' + 
 								'<divclass="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
-								'<input style="width: 100px; name="lateNightP" class="text-center" type="text" value="' + lateNightP + '" >' +
+								'<input style="width: 100px;" name="lateNightP" class="text-center" type="text" value="' + lateNightP + '" >' +
 								'</div>' + 
 								'<div  class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
-									'<input style="width: 100px; name="lateNightR" class="text-center" type="text" value="' + lateNightR + '" >' +
+									'<input style="width: 100px;" name="lateNightR" disabled class="text-center" type="text" value="' + lateNightR + '" >' +
 								'</div>' + 
 							'</td>'+						
 														
@@ -441,7 +441,7 @@ function getAnchorageMealList(page) {
 					}*/
 					
 					text += '<tr id="tbRow_' + rowId + '">' + 
-								'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()" disabled></td>' +
+								'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
 								'<td class="text-center th-w-60"><div name="no">' + rowId + '</div></td>' +
 								'<td class="text-center">'+ '<input name="uid" type="text" value="' + uid + '" disabled>' + '</td>' +
 								'<td class="text-center">' + '<input name="projNo" type="text" value="' + projNo + '" disabled>' + '</td>' + 
@@ -487,36 +487,36 @@ function getAnchorageMealList(page) {
 								 
 								text += '<td class="text-center align-middle p-0" >' + 
 											'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
-											'<input style="width: 100px; name="breakfastP" class="text-center" type="text" value="' + breakfastP + '" >' +
+											'<input style="width: 100px;" name="breakfastP" class="text-center" type="text" value="' + breakfastP + '" >' +
 											'</div>' + 
 											'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
-												'<input style="width: 100px; name="breakfastR" class="text-center" type="text" value="' + breakfastR + '" >' +
+												'<input style="width: 100px;" name="breakfastR" disabled class="text-center" type="text" value="' + breakfastR + '" >' +
 											'</div>' + 
 										'</td>';
 								text += '<td class="text-center align-middle p-0">' + 
 											'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
-											'<input style="width: 100px; name="lunchP" class="text-center" type="text" value="' + lunchP + '" >' +
+											'<input style="width: 100px;" name="lunchP" class="text-center" type="text" value="' + lunchP + '" >' +
 											'</div>' + 
 											'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
-												'<input style="width: 100px; name="lunchR" class="text-center" type="text" value="' + lunchR + '" >' +
+												'<input style="width: 100px;" name="lunchR" disabled class="text-center" type="text" value="' + lunchR + '" >' +
 											'</div>' + 
 										'</td>';
 
 								text += '<td class="text-center align-middle p-0">' + 
 											'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
-											'<input style="width: 100px; name="dinnerP" class="text-center" type="text" value="' + dinnerP + '" >' +
+											'<input style="width: 100px;" name="dinnerP" class="text-center" type="text" value="' + dinnerP + '" >' +
 											'</div>' + 
 											'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
-												'<input style="width: 100px; name="dinnerR" class="text-center" type="text" value="' + dinnerR + '" >' +
+												'<input style="width: 100px;" name="dinnerR" disabled class="text-center" type="text" value="' + dinnerR + '" >' +
 											'</div>' + 
 										'</td>';							
 
 								text += '<td  class="text-center align-middle p-0">' + 
 											'<divclass="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
-											'<input style="width: 100px; name="lateNightP" class="text-center" type="text" value="' + lateNightP + '" >' +
+											'<input style="width: 100px;" name="lateNightP" class="text-center" type="text" value="' + lateNightP + '" >' +
 											'</div>' + 
 											'<div  class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
-												'<input style="width: 100px; name="lateNightR" class="text-center" type="text" value="' + lateNightR + '" >' +
+												'<input style="width: 100px;" name="lateNightR" disabled class="text-center" type="text" value="' + lateNightR + '" >' +
 											'</div>' + 
 										'</td>'+						
 																	
@@ -661,7 +661,7 @@ function crewListDownloadAll() {
 function orderSave() {
 	//alert(1);
 	let uidArr = [];
-	let sessionUserID = _crewUid;
+	let sessionUserID = _anchUid;
 	/*<script>
 	sessionUserID = ${sessionScope.userInfo.userId};
 	</script>*/
@@ -695,7 +695,7 @@ function orderSave() {
 							let json = JSON.parse(data);
 						
 							if(json.result) {
-								getRegistrationCrewList(1);
+								getAnchMealList();
 								alertPop('선택한 리스트 발주 완료되었습니다.');
 							}else{
 								let code = json.code;
@@ -729,19 +729,6 @@ function orderSave() {
 		alertPop('발주할 항목을 선택해주세요.');
 	}
 }
-
-//SCP 전송
-/*function scpSave() {
-	//alert(1);
-	if(_status == 'ONGO' || _status == 'ARRIVE') {
-		alertPop($.i18n.t('error.del'));
-		return;
-	}
-	
-	if($('input[name=listChk]:checked').length > 0) {
-		alertPop('전송 완료되었습니다.');
-	}
-}*/
 
 // 신청자 row 추가
 function addAnch() {
@@ -798,11 +785,47 @@ function addAnch() {
 							'<option value="V8">양식(Veg. flexitarian)</option>' + 
 						'</select>' +
 					'</td>' + 
-					'<td class="text-center">' + '<input name="breakfast" type="text">' + '</td>' +
-					'<td class="text-center">' + '<input name="lunch" type="text">' + '</td>' +
-					'<td class="text-center">' + '<input name="dinner" type="text">' + '</td>' +
-					'<td class="text-center">' + '<input name="lateNight" type="text">' + '</td>' +
-					'<td class="text-center">' + '<input name="orderStatus" type="checkbox" disabled value="N" onclick="setCheckBox(this)">' + '</td>' +
+					'<td style = "border: 1px soild red" class="text-center  align-middle crew-inout-label p-0">' + 
+						'<div class="align-items-center border-bottom px-1 inout_scheduler_h">' + $.i18n.t('list.plan') + '</div>' + 
+						'<div class="align-items-center inout_performance_h">' + $.i18n.t('list.result') + '</div>' + 
+					'</td>'
+
+					text += '<td class="text-center align-middle p-0" >' + 
+													'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
+													'<input style="width: 100px;" name="breakfastP" class="text-center" type="text">' +
+													'</div>' + 
+													'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
+														'<input style="width: 100px;" name="breakfastR" disabled class="text-center" type="text">' +
+													'</div>' + 
+												'</td>';
+										text += '<td class="text-center align-middle p-0">' + 
+													'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
+													'<input style="width: 100px;" name="lunchP" class="text-center" type="text">' +
+													'</div>' + 
+													'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
+														'<input style="width: 100px;" name="lunchR" disabled class="text-center" type="text">' +
+													'</div>' + 
+												'</td>';
+
+										text += '<td class="text-center align-middle p-0">' + 
+													'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
+													'<input style="width: 100px;" name="dinnerP" class="text-center" type="text">' +
+													'</div>' + 
+													'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
+														'<input style="width: 100px;" name="dinnerR" disabled class="text-center" type="text">' +
+													'</div>' + 
+												'</td>';							
+
+										text += '<td  class="text-center align-middle p-0">' + 
+													'<divclass="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
+													'<input style="width: 100px;" name="lateNightP" class="text-center" type="text">' +
+													'</div>' + 
+													'<div  class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
+														'<input style="width: 100px;" name="lateNightR" disabled class="text-center" type="text">' +
+													'</div>' + 
+												'</td>'+
+					
+					'<td class="text-center">' + '<input name="orderStatus" type="checkbox" value="N" onclick="setCheckBox(this)">' + '</td>' +
 					'<td class="text-center">' + '<input name="orderDate" type="text" disabled>' + '</td>' +
 					'<td class="text-center">' + '<input name="orderUid" type="text" disabled>' + '</td>'+
 					'<td class="text-center">' + '<input name="deleteYn" type="checkbox" value="N" onclick="setCheckBox(this)">' + '</td>' +
@@ -812,12 +835,11 @@ function addAnch() {
 	text += '</tr>';
 
 	$('#tbRowList').append(text);
-	setWorkType2(rowId, 'A');
 }
 
 
-// 승선자 삭제 팝업.
-function popDeleteCrewModal() {
+// 신청자 삭제 팝업.
+function popDeleteAnchModal() {
 	if(_status == 'ONGO' || _status == 'ARRIVE') {
 		alertPop($.i18n.t('error.del'));
 		return;
@@ -829,8 +851,8 @@ function popDeleteCrewModal() {
 		alertPop($.i18n.t('delPop.selectMsg'));
 	}
 }
-// 승선자 삭제
-function deleteCrew() {
+// 신청자 삭제
+function deleteAnch() {
     let uidArr = [];
 	
     // 체크된 항목 수집
@@ -858,7 +880,7 @@ function deleteCrew() {
 				
 					if(json.result) {
 						
-						alertPop($.i18n.t('선택한 승선자 정보가 삭제되었습니다.'));
+						alertPop($.i18n.t('선택한 신청 정보가 삭제되었습니다.'));
 					}else{
 						let code = json.code;
 						//alert(code);
@@ -904,7 +926,7 @@ function resetRowNo() {
 // 양식 다운로드.
 function downCrewExcel() {
 	//alert("오나요");
-	window.location.href = contextPath + '/crew/downCrewExcel.html';
+	window.location.href = contextPath + '/crew/downAnchExcel.html';
 }
 
 // 양식 파일 열기.
@@ -1291,11 +1313,16 @@ function save() {
 	let comment = [];
 	let foodStyle = [];
 	
-	let breakfast = [];
-	let lunch = [];
-	let dinner = [];
-	let lateNight = [];
+	let breakfastP = [];
+	let lunchP = [];
+	let dinnerP = [];
+	let lateNightP = [];
 	
+	let breakfastR = [];
+	let lunchR = [];
+	let dinnerR = [];
+	let lateNightR = [];
+
 	/*let planMealDate = [];
 	let planMealTime = [];
 	let planMealGubun = [];
@@ -1324,12 +1351,19 @@ function save() {
 	let deleteYnVl = document.getElementsByName('deleteYn');
 	let commentVl = document.getElementsByName('comment');
 	let foodStyleVl = document.getElementsByName('foodStyle');
-
-	let breakfastVl = document.getElementsByName('breakfast');
-	let lunchVl = document.getElementsByName('lunch');
-	let dinnerVl = document.getElementsByName('dinner');
-	let lateNightVl = document.getElementsByName('lateNight');
 	
+	let breakfastPVl = document.getElementsByName('breakfastP');
+	let lunchPVl = document.getElementsByName('lunchP');
+	let dinnerPVl = document.getElementsByName('dinnerP');
+	let lateNightPVl = document.getElementsByName('lateNightP');
+	
+	let breakfastRVl = document.getElementsByName('breakfastR');
+	let lunchRVl = document.getElementsByName('lunchR');
+	let dinnerRVl = document.getElementsByName('dinnerR');
+	let lateNightRVl = document.getElementsByName('lateNightR');
+	
+	alert(projNoVl.length);
+	//alert(lateNightPVl.length);
 	/*let planMealDateVl = document.getElementsByName('planMealDate');
 	let planMealTimeVl = document.getElementsByName('planMealTime');
 	let planMealGubunVl = document.getElementsByName('planMealGubun');
@@ -1343,7 +1377,19 @@ function save() {
 	let uidValue = "";	
 	let isError = false;
 	//alert(1);
+	for(let i = 0; i < kindVl.length; i++) {
+		breakfastPVl[i].value = breakfastPVl[i] && breakfastPVl[i].value !== "" ? breakfastPVl[i].value : 0;
+		lunchPVl[i].value = lunchPVl[i] && lunchPVl[i].value !== "" ? lunchPVl[i].value : 0;
+		dinnerPVl[i].value = dinnerPVl[i] && dinnerPVl[i].value !== "" ? dinnerPVl[i].value : 0;
+		lateNightPVl[i].value = lateNightPVl[i] && lateNightPVl[i].value !== "" ? lateNightPVl[i].value : 0;
 		
+		breakfastRVl[i].value = breakfastRVl[i] && breakfastRVl[i].value !== "" ? breakfastRVl[i].value : 0;
+		lunchRVl[i].value = lunchRVl[i] && lunchRVl[i].value !== "" ? lunchRVl[i].value : 0;
+		dinnerRVl[i].value = dinnerRVl[i] && dinnerRVl[i].value !== "" ? dinnerRVl[i].value : 0;
+		lateNightRVl[i].value = lateNightRVl[i] && lateNightRVl[i].value !== "" ? lateNightRVl[i].value : 0;
+		alert(projNoVl[i].value);
+	}
+
 	if(kindVl.length < 1) {
 		alertPop($.i18n.t('errorNoList'));
 		isError = true;
@@ -1367,7 +1413,13 @@ function save() {
 	for(let i = 0; i < kindVl.length; i++) {
 		//alert(3);
 		uidVl[i].value = uidVl[i] && uidVl[i].value !== "" ? uidVl[i].value : -1;
-			
+		
+		if(isEmpty(projNoVl[i].value)) {
+			projNoVl[i].value = $("#ship option:selected").text();
+		}
+		
+		alert(projNoVl[i].value);
+		
 		// alert(terminalVl[i].checked);
 		
 		if(deleteYnVl[i].checked == true) 
@@ -1409,7 +1461,7 @@ function save() {
 		//alert(uidVl[i].value);
 		uid.push(uidVl[i].value);
 		projNo.push(projNoVl[i].value);
-		//trialKey.push(trialKeyVl[i].value);
+		//trialKey.push(projNoVl[i].value);
 		kind.push(kindVl[i].value);
 		domesticYn.push(domesticYnVl[i].value);
 		department.push(departmentVl[i].value);
@@ -1421,10 +1473,15 @@ function save() {
 		comment.push(commentVl[i].value);
 		foodStyle.push(foodStyleVl[i].value);
 
-		breakfast.push(breakfastVl[i].value);
-		lunch.push(lunchVl[i].value);
-		dinner.push(dinnerVl[i].value);
-		lateNight.push(lateNightVl[i].value);
+		breakfastP.push(breakfastPVl[i].value);
+		lunchP.push(lunchPVl[i].value);
+		dinnerP.push(dinnerPVl[i].value);
+		lateNightP.push(lateNightPVl[i].value);
+		
+		breakfastR.push(breakfastRVl[i].value);
+		lunchR.push(lunchRVl[i].value);
+		dinnerR.push(dinnerRVl[i].value);
+		lateNightR.push(lateNightRVl[i].value);
 		/*planMealDate.push(planMealDateVl[i].value);
 		planMealTime.push(planMealTimeVl[i].value);
 		planMealGubun.push(planMealGubunVl[i].value);
@@ -1444,7 +1501,7 @@ function save() {
 			uid: uid,
 			schedulerInfoUid: -1,
 			projNo: projNo,
-			trialKey: -1,
+			//trialKey: projNo,
 			kind: kind,
 			domesticYn: domesticYn,
 			department: department,
@@ -1456,10 +1513,16 @@ function save() {
 			comment: comment,
 			foodStyle: foodStyle,
 
-			breakfast: breakfast,
-			lunch: lunch,
-			dinner: dinner,
-			lateNight: lateNight
+			breakfastP: breakfastP,
+			lunchP: lunchP,
+			dinnerP: dinnerP,
+			lateNightP: lateNightP,
+
+			breakfastR: breakfastR,
+			lunchR: lunchR,
+			dinnerR: dinnerR,
+			lateNightR: lateNightR
+			
 			/*planMealDate: planMealDate,
 			planMealTime: planMealTime,
 			planMealGubun: planMealGubun,
@@ -1484,6 +1547,8 @@ function save() {
 						alertPop($.i18n.t('share:tryAgain'));
 					}
 				}
+				//재조회
+				getAnchMealList();
 			}catch(ex) {
 				alertPop($.i18n.t('share:tryAgain'));
 			}
@@ -1498,7 +1563,7 @@ function save() {
 			$('#loading').css('display',"none");
 		}
 	});
-	//getAnchList();
+	
 }
 
 
@@ -1509,14 +1574,16 @@ function searchList() {
 	let kind = $('#filterKind').val();
 	let domesticYn = $('#filterDomesticYN').val();
 	let foodStyle = $('#filterFoodStyle').val();
+	let word = $('#filterWord').val();
 	
 	let kindVl = document.getElementsByName('kind');
-	let domesticYnVl = document.getElementsByName('workType1');
+	let domesticYnVl = document.getElementsByName('domesticYn');
 	let foodStyleVl = document.getElementsByName('foodStyle');
 	
 	let departmentVl = document.getElementsByName('department');
 	let commentVl = document.getElementsByName('comment');
 	
+	alert(kind);
 	for(let i = 0; i < kindVl.length; i++) {
 		let isHide = false;
 		

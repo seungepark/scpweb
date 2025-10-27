@@ -137,7 +137,7 @@
 						<a href="${pageContext.request.contextPath}/mobile/mobileCrewinfo.html?uid=${bean.uid}" class="bt-obj bt-secondary mr-2" target="_blank">
 							<i class="fas fa-mobile-alt"></i> QR발송
 						</a>
-						<button class="bt-obj bt-primary" onclick="orderingSave()">발주</button>
+						<button class="bt-obj bt-primary" onclick="orderSave()">발주</button>
 						
 						<!-- <button class="bt-obj bt-primary" onclick="setInOutDate()" target="_blank">다운로드</button> -->
 						<button class="bt-obj bt-primary" onClick="anchListDownloadAll()"><img src="${pageContext.request.contextPath}/img/i_download.svg" height="16px">&nbsp&nbsp다운로드</button>

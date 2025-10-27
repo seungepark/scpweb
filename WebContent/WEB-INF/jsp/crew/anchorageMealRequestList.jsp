@@ -26,7 +26,7 @@
 			 				"planMealGubun": "${plan.planMealGubun}",
 			 				"planMealQty": "${plan.planMealQty}"
 			 			}
-			 			<c:if test="${!status.last}">,</c:if>
+			 			<c:if test="${!planStatus.last}">,</c:if>
 		 			</c:forEach>
 	 			],
 	 			"resultList": [
@@ -37,7 +37,7 @@
 			 				"resultMealGubun": "${result.resultMealGubun}",
 			 				"resultMealQty": "${result.resultMealQty}"
 			 			}
-			 			<c:if test="${!status.last}">,</c:if>
+			 			<c:if test="${!resultStatus.last}">,</c:if>
 		 			</c:forEach>
 	 			]	
 			}

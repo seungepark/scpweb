@@ -95,9 +95,13 @@ public interface CrewDaoI {
 	// 앵카링 식사신청 저장.
 	int insertAnchorageMeal(AnchorageMealRequestBean bean) throws Exception;
 	
-	// 앵카링 식사수량 저장.
+	// 앵카링 식사수량 저장 (계획).
 	int insertMealQty(AnchorageMealQtyBean bean) throws Exception;
 	
-	// 승선자 신청 목록 개수.
+	
+	// 앵카링 신청 목록 개수.
 	int getAnchorageMealListCnt() throws Exception;
+	
+	// 앵카링 발주
+	int updateAnchOrder(Map<String, Object> map) throws Exception;
 }
