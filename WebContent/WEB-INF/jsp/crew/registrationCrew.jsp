@@ -34,7 +34,7 @@
 	<link href="${pageContext.request.contextPath}/vendors/fontawesome/css/all.min.css" rel="stylesheet">
 	<link href="${pageContext.request.contextPath}/vendors/fontawesome/css/v4-shims.min.css" rel="stylesheet">
 	<link href="${pageContext.request.contextPath}/css/custom.min.css" rel="stylesheet">
-	<link href="${pageContext.request.contextPath}/css/common.css" rel="stylesheet">
+	<link href="${pageContext.request.contextPath}/css/common_newcrew.css" rel="stylesheet">
 </head>
 <body>
 	<div class="body-wrap">
@@ -44,8 +44,7 @@
             <div class="main-container">
 				<div class="tb-area">
 					<div class="d-flex">
-					<div class="d-flex flex-row-reverse">
-					
+					<div class="d-flex flex-row-reverse">				
 						<!-- 승선일/하선일 기간 조회 -->
 						<button class="bt-obj bt-primary" onclick="getAnchList()">
 									<img src="${pageContext.request.contextPath}/img/i_btn_search.svg" class="bt-icon" height="16px">
@@ -67,14 +66,17 @@
                             </select>
 						</div>
 						
-						<div class="lb-title-no-sp" style="line-height: 44px;">호선번호</div>
+						<div class="lb-title-no-sp" style="line-height: 44px;">스케줄번호</div>
 						
                   	</div>
                   		<!-- <div style="padding-right: 7%;"></div> -->
                   		
 					<div class="d-flex flex-row-reverse">
 						
-						<a href="${pageContext.request.contextPath}/mobile/mobileCrewinfo.html?uid=${bean.uid}" class="bt-obj bt-secondary mr-2" target="_blank">
+						<!-- <a href="${pageContext.request.contextPath}/mobile/mobileCrewinfo.html?uid=${bean.uid}" class="bt-obj bt-secondary mr-2" target="_blank">
+							<i class="fas fa-mobile-alt"></i> QR발송
+						</a> -->
+						<a href="javascript:void(0);" class="bt-obj bt-secondary mr-2" onclick="alertPop('개발중입니다');">
 							<i class="fas fa-mobile-alt"></i> QR발송
 						</a>
 						<c:choose>
