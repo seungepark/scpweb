@@ -39,4 +39,6 @@ public interface CrewServiceI {
 	Map<String, Object> anchorageMealRemove(HttpServletRequest request, ParamBean bean) throws Exception;
 	
 	Map<String, Object> anchOrderUpdate(HttpServletRequest request, ParamBean bean) throws Exception;
+	
+	void downAnchExcel(HttpServletResponse response) throws Exception;
 }

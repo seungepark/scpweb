@@ -48,7 +48,7 @@ function init() {
 	
 	$('#ship').keypress(function(e) {
 		if(e.keyCode === 13) {
-			getAnchMealList(1);
+			getAnchMealList();
 		}
 	});
 }
@@ -112,7 +112,7 @@ function initTableHeader() {
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.department') + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.mealDate') + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.foodStyle') + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + '</span></div></th>' +
+				'<th><div class="tb-th-col"><span class="tb-th-content">' + ' ' +'</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.breakfast') + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.lunch') + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.dinner') + '</span></div></th>' +
@@ -158,7 +158,8 @@ function initData() {
 		let domesticYn = _anchList[z].domesticYn;
 		let department = _anchList[z].department;
 		let mealDate = _anchList[z].mealDate;
-		let foodStyle = _anchList[z].foodStyle;
+		//let foodStyle = _anchList[z].planList[0].planMealGubun == null ? '' : _anchList[z].planList[0].planMealGubun;
+		let foodStyle = "";
 		let breakfastP = "";
 		let lunchP = "";
 		let dinnerP = "";
@@ -179,10 +180,17 @@ function initData() {
 		
 		//alert(planList.length);
 		
+		//날짜
+		if(!(mealDate == null || mealDate == "")){
+			mealDate = mealDate.match(/\d{4}-\d{2}-\d{2}/);
+		}
+		
 		//식사신청 수량(계획)
 		for(let x = 0; x < planList.length; x++) {
 			let code = planList[x].planMealTime;
 			let qty = planList[x].planMealQty;
+			foodStyle = planList[0].planMealGubun;
+			
 			//alert(code);
 			if(code == '조식') {
 				breakfastP = qty;
@@ -193,13 +201,16 @@ function initData() {
 			}else if(code == '야식') {
 				lateNightP = qty;
 			}
+			
 		}
 		
 		//식사신청 수량(실적)
 		for(let x = 0; x < resultList.length; x++) {
 			let code = resultList[x].resultMealTime;
 			let qty = resultList[x].resultMealQty;
-			alert(code);
+			foodStyle = resultList[0].resultMealGubun;
+			
+			//alert(code);
 			if(code == '조식') {
 				breakfastR = qty;
 			}else if(code == '중식') {
@@ -284,10 +295,10 @@ function initData() {
 							'</td>';							
 
 					text += '<td  class="text-center align-middle p-0">' + 
-								'<divclass="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
+								'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
 								'<input style="width: 100px;" name="lateNightP" class="text-center" type="text" value="' + lateNightP + '" >' +
 								'</div>' + 
-								'<div  class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
+								'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
 									'<input style="width: 100px;" name="lateNightR" disabled class="text-center" type="text" value="' + lateNightR + '" >' +
 								'</div>' + 
 							'</td>'+						
@@ -340,15 +351,20 @@ function getAnchMealList() {
 }
 
 function getAnchorageMealList(page) {
-	//alert($("#ship option:selected").val());
     var ship = $("#ship option:selected").val();
     var inDate = $('#inDate').val();
     var outDate = $('#outDate').val();
 	
-	//alert($("#ship option:selected").val());
-	
-	//alert(contextPath);
-
+	//in/out Date 하나만 입력시 메시지	
+	if((outDate != '' && inDate =='')){
+		alertPop($.i18n.t('종료일을 입력해주세요.'));
+		return;
+	}
+	if((inDate != '' && outDate =='')){
+		alertPop($.i18n.t('시작일을 입력해주세요.'));
+		return;
+	}	
+		
 	//페이지 셋팅(현재페이지 저장X)
 	_isSetPage = false;
 	page = 1;
@@ -400,6 +416,12 @@ function getAnchorageMealList(page) {
 					let dinnerR = "";
 					let lateNightR = "";
 					
+					//날짜
+					if(!(mealDate == null || mealDate == "")){
+						mealDate = json.list[i].mealDate.match(/\d{4}-\d{2}-\d{2}/);
+					}
+				
+					
 					//식사신청 수량(계획)
 					for(let x = 0; x < planList.length; x++) {
 						let code = planList[x].planMealTime;
@@ -431,11 +453,23 @@ function getAnchorageMealList(page) {
 						}
 					}		
 					
-					//alert(uid + '/'+projNo);
+					//alert(mealDate);
+					//alert($('#inDate').val());
+					//승선일,하선일 필터링	
+					if(($('#inDate').val() != null && $('#outDate').val() != null) && ($('#inDate').val() != '' && $('#outDate').val() != '')){
+						alert(($('#inDate').val() <= mealDate && mealDate <= $('#outDate').val()));
+						
+						if(!($('#inDate').val() <= mealDate && mealDate <= $('#outDate').val())) {
+							alert(1);
+							continue;
+						}
+					}
+					
 					//승선일,하선일 필터링	
 					/*if(($('#inDate').val() != null && $('#outDate').val() != null) && ($('#inDate').val() != '' && $('#outDate').val() != '')){
 						
-						if(!($('#inDate').val() <= mealDate && mealDate <= $('#outDate').val())) {
+						if(!($('#inDate').val() <= inDate && inDate <= $('#outDate').val()) &&
+						   !($('#inDate').val() <= outDate && outDate <= $('#outDate').val())) {
 							continue;
 						}
 					}*/
@@ -557,7 +591,7 @@ function getAnchorageMealList(page) {
 }
 
 //전체리스트 엑셀 다운로드
-function crewListDownloadAll() {
+function anchListDownloadAll() {
 	var search = $("#search").val();
 	var _cnt = 0;
 
@@ -582,73 +616,128 @@ function crewListDownloadAll() {
 	}).done(function(result, textStatus, xhr) {
 		if(textStatus == "success") {
 			var jsonResult = result.list;
+			
 			var text = '<thead>' +
 							'<tr class="headings">' +
 								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.no') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.trialKey') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.pjt') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.projNo') + '</span></div><div class="fht-cell"></div></th>' +
 								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.kind') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.company') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.domesticYn') + '</span></div><div class="fht-cell"></div></th>' +
 								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.department') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.name') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.rank') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.idNo') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.workType1') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.workType2') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.work') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.mainSub') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.mealDate') + '</span></div><div class="fht-cell"></div></th>' +
 								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.foodStyle') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.personNo') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.gender') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.phone') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.in') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.out') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.terminal') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.laptop') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.modelNm') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.serialNo') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.foreigner') + '</span></div><div class="fht-cell"></div></th>' +
-								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.passportNo') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + ' '+ '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.breakfast') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.lunch') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.dinner') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.lateNight') + '</span></div><div class="fht-cell"></div></th>' +
 								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.orderStatus') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.orderDate') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.orderUid') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.deleteYn') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.comment') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.inputUid') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.inputDate') + '</span></div><div class="fht-cell"></div></th>' +
 								'</tr>' +
 						'</thead>' +
 						'<tbody id="getUserList">';
 
 			for(var i in jsonResult) {
+				let planList = jsonResult[i].planList;
+				let resultList = jsonResult[i].resultList;
+				
+				let breakfastP = "";
+				let lunchP = "";
+				let dinnerP = "";
+				let lateNightP = "";
+				
+				let breakfastR = "";
+				let lunchR = "";
+				let dinnerR = "";
+				let lateNightR = "";
+				
+				//식사신청 수량(계획)
+				for(let x = 0; x < planList.length; x++) {
+					let code = planList[x].planMealTime;
+					let qty = planList[x].planMealQty;
+					//alert(code);
+					if(code == '조식') {
+						breakfastP = qty;
+					}else if(code == '중식') {
+						lunchP = qty;
+					}else if(code == '석식') {
+						dinnerP = qty;
+					}else if(code == '야식') {
+						lateNightP = qty;
+					}
+				}
+				//식사신청 수량(실적)
+				for(let x = 0; x < resultList.length; x++) {
+					let code = resultList[x].resultMealTime;
+					let qty = resultList[x].resultMealQty;
+					//alert(code);
+					if(code == '조식') {
+						breakfastR = qty;
+					}else if(code == '중식') {
+						lunchR = qty;
+					}else if(code == '석식') {
+						dinnerR = qty;
+					}else if(code == '야식') {
+						lateNightR = qty;
+					}
+				}
+				
+				//계획
 				text += '<tr class="even pointer">';
 				text += '  <td>' + _cnt++ + '</td>';
-				text += '  <td>' + jsonResult[i].trialKey + '</td>';
-				text += '  <td>' + jsonResult[i].pjt + '</td>';
+				text += '  <td>' + jsonResult[i].projNo + '</td>';
 				text += '  <td>' + jsonResult[i].kind + '</td>';
-				text += '  <td>' + jsonResult[i].company + '</td>';
+				text += '  <td>' + jsonResult[i].domesticYn + '</td>';
 				text += '  <td>' + jsonResult[i].department + '</td>';
-				text += '  <td>' + jsonResult[i].name + '</td>';
-				text += '  <td>' + jsonResult[i].rank + '</td>';
-				text += '  <td>' + jsonResult[i].idNo + '</td>';
-				text += '  <td>' + jsonResult[i].workType1 + '</td>';
-				text += '  <td>' + jsonResult[i].workType2 + '</td>';
-				text += '  <td>' + jsonResult[i].work + '</td>';
-				text += '  <td>' + jsonResult[i].mainSub + '</td>';
+				text += '  <td>' + jsonResult[i].mealDate + '</td>';
 				text += '  <td>' + jsonResult[i].foodStyle + '</td>';
-				text += '  <td>' + jsonResult[i].personNo + '</td>';
-				text += '  <td>' + jsonResult[i].gender + '</td>';
-				text += '  <td>' + jsonResult[i].phone + '</td>';
-				text += '  <td>' + jsonResult[i].inDate + '</td>';
-				text += '  <td>' + jsonResult[i].outDate + '</td>';
-				text += '  <td>' + jsonResult[i].terminal + '</td>';
-				text += '  <td>' + jsonResult[i].laptop + '</td>';
-				text += '  <td>' + jsonResult[i].modelNm + '</td>';
-				text += '  <td>' + jsonResult[i].serialNo + '</td>';
-				text += '  <td>' + jsonResult[i].foreigner + '</td>';
-				text += '  <td>' + jsonResult[i].passportNo + '</td>';
-				text += '  <td>' + jsonResult[i].orderStatus+ '</td>';
-				//text += '  <td>' + jsonResult[i].deleteYn+ '</td>';
+				text += '  <td>' + '계획' + '</td>';
+				text += '  <td>' + breakfastP + '</td>';
+				text += '  <td>' + lunchP + '</td>';
+				text += '  <td>' + dinnerP + '</td>';
+				text += '  <td>' + lateNightP + '</td>';
+				text += '  <td>' + jsonResult[i].orderStatus + '</td>';
+				text += '  <td>' + jsonResult[i].orderDate + '</td>';
+				text += '  <td>' + jsonResult[i].orderUid + '</td>';
+				text += '  <td>' + jsonResult[i].deleteYn + '</td>';
+				text += '  <td>' + jsonResult[i].comment + '</td>';
+				text += '  <td>' + jsonResult[i].inputUid + '</td>';
+				text += '  <td>' + jsonResult[i].inputDate + '</td>';
+				text += '</tr>';
+				
+				//실적
+				text += '</tr>';
+				text += '<tr class="even pointer">';
+				text += '  <td>' + _cnt++ + '</td>';
+				text += '  <td>' + jsonResult[i].projNo + '</td>';
+				text += '  <td>' + jsonResult[i].kind + '</td>';
+				text += '  <td>' + jsonResult[i].domesticYn + '</td>';
+				text += '  <td>' + jsonResult[i].department + '</td>';
+				text += '  <td>' + jsonResult[i].mealDate + '</td>';
+				text += '  <td>' + jsonResult[i].foodStyle + '</td>';
+				text += '  <td>' + '실적' + '</td>';
+				text += '  <td>' + breakfastR + '</td>';
+				text += '  <td>' + lunchR + '</td>';
+				text += '  <td>' + dinnerR + '</td>';
+				text += '  <td>' + lateNightR + '</td>';
+				text += '  <td>' + jsonResult[i].orderStatus + '</td>';
+				text += '  <td>' + jsonResult[i].orderDate + '</td>';
+				text += '  <td>' + jsonResult[i].orderUid + '</td>';
+				text += '  <td>' + jsonResult[i].deleteYn + '</td>';
+				text += '  <td>' + jsonResult[i].comment + '</td>';
+				text += '  <td>' + jsonResult[i].inputUid + '</td>';
+				text += '  <td>' + jsonResult[i].inputDate + '</td>';
 				text += '</tr>';
 			}
 
 			text += '</tbody>';
 			
-			excelDownloadAll(text, 'crew_list');
+			excelDownloadAll(text, 'anch_list');
 		}else {
 			alertPop($.i18n.t('share:tryAgain'));
 		}
@@ -924,7 +1013,7 @@ function resetRowNo() {
 }
 
 // 양식 다운로드.
-function downCrewExcel() {
+function downAnchExcel() {
 	//alert("오나요");
 	window.location.href = contextPath + '/crew/downAnchExcel.html';
 }
@@ -940,6 +1029,7 @@ function excelUpload(event) {
 		alertPop($.i18n.t('error.upload'));
 		return;
 	}
+	//alert(1);
 	
 	//업로드시 호선 번호 필수 선택
 	if($('#ship').val() == "ALL") {
@@ -956,16 +1046,17 @@ function excelUpload(event) {
 		try {
 			let fileData = reader.result;
 			let json = null;
-			
+			//alert(fileData.indexOf('Fasoo DRM'));
 			// DRM 걸린 파일 인지 확인
 			if(fileData.indexOf('Fasoo DRM') > -1){
-				
+			//if(true){
+				//lert(3);
 				const formData = new FormData();
 				formData.append('file', input.files[0]);
 								
 				$.ajax({
 					type: 'POST',
-					url: contextPath + '/sche/planCrewDRM.html',
+					url: contextPath + '/crew/anchorageMealDRM.html',
 					data: formData,
 					contentType: false,
 					processData: false,
@@ -1011,105 +1102,64 @@ function excelUpload(event) {
 function makeDataList(json){
 	let isError = false;
 	let errMsg = '';	
-	let trialKeyList = [];
-	let pjtList = [];
+	//let sessionUserID = _anchUid;
+		
+	let projNoList = [];
+	//let trialKey = [];
 	let kindList = [];
-	let companyList = [];
+	let domesticYnList = [];
 	let departmentList = [];
-	let nameList = [];
-	let rankList = [];
-	let idNoList = [];
-	let workType1List = [];
-	let workType2List = [];
-	let workList = [];
-	let mainSubList = [];
-	let foodStyleList = [];
-	let personNoList = [];
-	let genderList = [];
-	let phoneList = [];
-	let inDateList = [];
-	let outDateList = [];
-	let terminalList = [];
-	let laptopList = [];
-	let modelNmList = [];
-	let serialNoList = [];
-	let foreignerList = [];
-	let passportNoList = [];
+	let mealDateList = [];
 	let orderStatusList = [];
-	//let deleteYnList = [];
+	let commentList = [];
+	let foodStyleList = [];
+	
+	let breakfastPList = [];
+	let lunchPList = [];
+	let dinnerPList = [];
+	let lateNightPList = [];
 	
 	if(json.length > 0) {
 		for(let i = 0; i < json.length; i++) {
 			let data = json[i];		
 
-			let trialKey = $("#ship option:selected").val();
-			let pjt = $("#ship option:selected").text();
-			
-			//alert(trialKey + "/" + pjt);
-			
+			let projNo = $("#ship option:selected").text();
+		
 			let kind = isNull(data['구분'], '');
-			let company = isNull(data['회사'], '');
+			let domesticYn = isNull(data['내국/외국'], 'Y');
 			let department = isNull(data['부서'], '');
-			let name = isNull(data['성명'], '');
-			let rank = isNull(data['직급'], '');
-			let idNo = isNull(data['사번'], '');
-			let workType1 = isNull(data['역할1'], '');
-			let workType2 = isNull(data['역할2'], '-');
-			let work = isNull(data['업무'], '');
-			let mainSub = isNull(data['정/부'], '-');
-			let foodStyle = isNull(data['한식/양식'], '');
-			let personNo = isNull(data['생년월일'], '');
-			let gender = isNull(data['성별'], '');
-			let phone = isNull(data['전화번호'], '');
-			let inDate = isNull(data['승선일'], '');
-			let outDate = isNull(data['하선일'], '');
-			let terminal = isNull(data['터미널'], '');
-			let laptop = isNull(data['노트북'], '');
-			let modelNm = isNull(data['모델명'], '');
-			let serialNo = isNull(data['시리얼번호'], '');
-			let foreigner = isNull(data['외국인여부'], '');
-			let passportNo = isNull(data['여권번호'], '');
-			let orderStatus = isNull(data['발주'], '');
-			//let deleteYn = isNull(data['삭제'], '');
+			let mealDate = isNull(data['날짜'], '');
+			let foodStyle = isNull(data['한식/양식'], 'H');
+			let breakfastP = isNull(data['조식(계획)'], 0);
+			let lunchP = isNull(data['중식(계획)'], 0);
+			let dinnerP = isNull(data['석식(계획)'], 0);
+			let lateNightP = isNull(data['야식(계획)'], 0);
+			let orderStatus = isNull(data['발주'], 'N');
+			let comment = isNull(data['특이사항'], '');
 			
 			if(department == '' && name == '' && phone == '') {
 				break;
 			}
-			
-			trialKeyList.push(trialKey);
-			pjtList.push(pjt);
+
+			projNoList.push(projNo);
 			kindList.push(kind);
-			companyList.push(company);
+			domesticYnList.push(domesticYn);
 			departmentList.push(department);
-			nameList.push(name);
-			rankList.push(rank);
-			idNoList.push(idNo);
-			workType1List.push(workType1);
-			workType2List.push(workType2);
-			workList.push(work);
-			mainSubList.push(mainSub);
-			foodStyleList.push(foodStyle);
-			personNoList.push(personNo);
-			genderList.push(gender);
-			phoneList.push(phone);
-			inDateList.push(inDate);
-			outDateList.push(outDate);
-			terminalList.push(terminal);
-			laptopList.push(laptop);
-			modelNmList.push(modelNm);
-			serialNoList.push(serialNo);
-			foreignerList.push(foreigner);
-			passportNoList.push(passportNo);
-			orderStatusList.push(orderStatus);
-			//deleteYnList.push(deleteYn);
+			mealDateList.push(mealDate);
+			orderStatusList.push(foodStyle);
+			commentList.push(breakfastP);
+			foodStyleList.push(lunchP);
+			breakfastPList.push(dinnerP);
+			lunchPList.push(lateNightP);
+			dinnerPList.push(orderStatus);
+			lateNightPList.push(comment);
 		}
 		
 		if(isError) {
 			alertPop(errMsg);
 		}else {
-			setExcelData(trialKeyList, pjtList, kindList, companyList, departmentList, nameList, rankList, idNoList, workType1List,
-				 workType2List, workList, mainSubList, foodStyleList, personNoList, genderList, phoneList, inDateList, outDateList, 
-				 terminalList, laptopList, modelNmList, serialNoList, foreignerList, passportNoList, orderStatusList);
+			setExcelData(projNoList, kindList, domesticYnList, departmentList, mealDateList, orderStatusList, commentList, foodStyleList, breakfastPList,
+				 lunchPList, dinnerPList, lateNightPList);
 		}
 	}else {
 		alertPop($.i18n.t('excelUp.errorListMin'));
@@ -1119,175 +1169,134 @@ function makeDataList(json){
 }
 
 // 양식 업로드 데이터 세팅.
-function setExcelData(trialKeyList, pjtList,kindList, companyList, departmentList, nameList, rankList, idNoList, workType1List,
-				 workType2List, workList, mainSubList, foodStyleList, personNoList, genderList, phoneList, inDateList, outDateList, 
-				 terminalList, laptopList, modelNmList, serialNoList, foreignerList, passportNoList, orderStatusList) {
+function setExcelData(projNoList, kindList, domesticYnList, departmentList, mealDateList, orderStatusList, commentList, foodStyleList, breakfastPList,
+				 lunchPList, dinnerPList, lateNightPList) {
 	$('#tbRowList').empty();
 	_anchCnt = 0;
 	
 	for(let i = 0; i < kindList.length; i++) {
 		_anchCnt++;
+
 		let rowId = _tbRowId++;
 		let uid = -1;
-		let trialKey = trialKeyList[i];
-		let project = pjtList[i];		
-		let kind = kindList[i];
-		let company = companyList[i];
-		
+		let projNo = projNoList[i];
+		let kind = kindList[i];		
+		let domesticYn = domesticYnList[i];
 		let department = departmentList[i];
-		let name = nameList[i];
-		let rank = rankList[i];
-		let idNo = idNoList[i];
-		let workType1 = workType1List[i];
-		let workType2 = workType2List[i];
-		//alert(workType1 + "/" + workType2);
-		let work = workList[i];
-		let mainSub = mainSubList[i];
-		let foodStyle = foodStyleList[i];
-		let personNo = personNoList[i];
-		let gender = genderList[i];
-		let phone = phoneList[i];
-		let inDate = inDateList[i];
-		let outDate = outDateList[i];		
-		let terminal = terminalList[i];
-		let laptop = laptopList[i];
-		let modelNm = modelNmList[i];
-		let serialNo = serialNoList[i];
-		let foreigner = foreignerList[i];
-		let passportNo = passportNoList[i];
+		
+		let mealDate = departmentList[i];
+		let foodStyle = mealDateList[i];
+		let breakfastP = breakfastPList[i];
+		let lunchP = lunchPList[i];
+		let dinnerP = dinnerPList[i];
+		let lateNightP = lateNightPList[i];
 		let orderStatus = orderStatusList[i];
+		let comment = commentList[i];
+		
+		let breakfastR = 0;
+		let lunchR = 0;
+		let dinnerR = 0;
+		let lateNightR = 0;
+		
+		let orderDate = "";
+		let orderUid = "";
+		let deleteYn = "N";
 
-		let text = '<tr id="tbRow_' + rowId + '">' + 
-						'<td class="text-center"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
-						'<td class="text-center"><div name="no">' + _anchCnt + '</div></td>' +
-						'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
-						'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
-						'<td class="text-center">' + '<input name="pjt" type="text" value="' + project + '" disabled>' + '</td>' + 
-						'<td class="text-center">' + 
-							'<select name="kind">';
+		let inputUid = "";
+		let inputDate = "";
+		
+		let text = "";
+		text += '<tr id="tbRow_' + rowId + '">' + 
+							'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
+							'<td class="text-center th-w-60"><div name="no">' + _anchCnt + '</div></td>' +
+							'<td class="text-center">'+ '<input name="uid" type="text" value="' + uid + '" disabled>' + '</td>' +
+							'<td class="text-center">' + '<input name="projNo" type="text" value="' + projNo + '" disabled>' + '</td>' + 
 							
-						text += '<option value="SHI-A"' + (kind == 'SHI-A' ? ' selected' : '') + '>SHI-기술지원직</option>' + 
-								'<option value="SHI-B"' + (kind == 'SHI-B' ? ' selected' : '') + '>SHI-생산직</option>' + 
-								'<option value="SHI-C"' + (kind == 'SHI-C' ? ' selected' : '') + '>SHI-협력사</option>' + 
-								'<option value="OUTSIDE"' + (kind == 'OUTSIDE' ? ' selected' : '') + '>외부</option>';
-								
-					text += '</select>' +
-						'</td>' + 
+							'<td class="text-center">' + 
+								'<select name="kind">';
+							text += '<option value="S"' + (kind == 'S' ? ' selected' : '') + '>직영</option>' + 
+									'<option value="H"' + (kind == 'H' ? ' selected' : '') + '>협력사</option>'+
+									'<option value="V"' + (kind == 'V' ? ' selected' : '') + '>방문객</option>'+
+									'<option value="O"' + (kind == 'O' ? ' selected' : '') + '>Owner/Class</option>';
+						text += '</select>' +
 						
-						'<td class="text-center">' + '<input name="company" type="text" value="' + company + '">' + '</td>' + 
-						'<td class="text-center">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 
-						'<td class="text-center">' + '<input name="name" type="text" value="' + name + '">' + '</td>' + 
-						'<td class="text-center">' + '<input name="rank" type="text" value="' + rank + '">' + '</td>' + 
-						'<td class="text-center">' + '<input name="idNo" type="text" value="' + idNo + '">' + '</td>' + 
-						'<td class="text-center">' + 
-							'<select name="workType1" onchange="setWorkType2(' + rowId + ', this.value)">';
+							'<td class="text-center">' + 
+								'<select name="domesticYn">';
+							text += '<option value="Y"' + (domesticYn == 'Y' ? ' selected' : '') + '>내국</option>' + 
+									'<option value="N"' + (domesticYn == 'N' ? ' selected' : '') + '>외국</option>';
+						text += '</select>' +
 							
-						text += '<option value="A"' + (workType1 == '시운전' ? ' selected' : '') + '>시운전</option>' + 
-								'<option value="B"' + (workType1 == '생산' ? ' selected' : '') + '>생산</option>' + 
-								'<option value="C"' + (workType1 == '설계연구소' ? ' selected' : '') + '>설계연구소</option>' + 
-								'<option value="D"' + (workType1 == '지원' ? ' selected' : '') + '>지원</option>' + 
-								'<option value="E"' + (workType1 == '외부' ? ' selected' : '') + '>외부</option>';
+							'<td class="text-center">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 												
+							'<td class="text-center th-w-200">' + '<input name="mealDate" class="text-center" type="date" value="' + mealDate + '" >' + '</td>'+							
+							'<td class="text-center">' + 
+								'<select name="foodStyle" >';
 								
-					text += '</select>' +
-						'</td>' + 
-						'<td class="text-center">' + 
-							'<select id="workType2_' + rowId + '" name="workType2">';
-							
-					if(workType1 == 'A') {
-						text += '<option value="A0"' + (workType2 == '-' ? ' selected' : '') + '>-</option>' + 
-								'<option value="A1"' + (workType2 == '코맨더' ? ' selected' : '') + '>코맨더</option>' + 
-								'<option value="A2"' + (workType2 == '기장운전' ? ' selected' : '') + '>기장운전</option>' + 
-								'<option value="A3"' + (workType2 == '선장운전' ? ' selected' : '') + '>선장운전</option>' + 
-								'<option value="A4"' + (workType2 == '전장운전' ? ' selected' : '') + '>전장운전</option>' + 
-								'<option value="A5"' + (workType2 == '항통' ? ' selected' : '') + '>항통</option>' + 
-								'<option value="A6"' + (workType2 == '안벽의장' ? ' selected' : '') + '>안벽의장</option>' + 
-								'<option value="A7"' + (workType2 == '기타' ? ' selected' : '') + '>기타</option>';
-					}else if(workType1 == 'B') {
-						text += '<option value="B0"' + (workType2 == '-' ? ' selected' : '') + '>-</option>' + 
-								'<option value="B1"' + (workType2 == '기관과' ? ' selected' : '') + '>기관과</option>' + 
-								'<option value="B2"' + (workType2 == '기타' ? ' selected' : '') + '>기타</option>';
-					}else if(workType1 == 'C') {
-						text += '<option value="C0"' + (workType2 == '-' ? ' selected' : '') + '>-</option>' + 
-								'<option value="C1"' + (workType2 == '종합설계' ? ' selected' : '') + '>종합설계</option>' + 
-								'<option value="C2"' + (workType2 == '기장설계' ? ' selected' : '') + '>기장설계</option>' + 
-								'<option value="C3"' + (workType2 == '선장설계' ? ' selected' : '') + '>선장설계</option>' + 
-								'<option value="C4"' + (workType2 == '전장설계' ? ' selected' : '') + '>전장설계</option>' + 
-								'<option value="C5"' + (workType2 == '진동연구' ? ' selected' : '') + '>진동연구</option>' + 
-								'<option value="C6"' + (workType2 == '기타' ? ' selected' : '') + '>기타</option>';
-					}else if(workType1 == 'D') {
-						text += '<option value="D0"' + (workType2 == '-' ? ' selected' : '') + '>-</option>' + 
-								'<option value="D1"' + (workType2 == '안전' ? ' selected' : '') + '>안전</option>' + 
-								'<option value="D2"' + (workType2 == '캐터링' ? ' selected' : '') + '>캐터링</option>' + 
-								'<option value="D3"' + (workType2 == 'QM' ? ' selected' : '') + '>QM</option>' + 
-								'<option value="D4"' + (workType2 == 'PM' ? ' selected' : '') + '>PM</option>' + 
-								'<option value="D5"' + (workType2 == '기타' ? ' selected' : '') + '>기타</option>';
-					}else if(workType1 == 'E') {
-						text += '<option value="E0"' + (workType2 == '-' ? ' selected' : '') + '>-</option>' + 
-								'<option value="E1"' + (workType2 == 'Owner' ? ' selected' : '') + '>Owner</option>' + 
-								'<option value="E2"' + (workType2 == 'Class' ? ' selected' : '') + '>Class</option>' + 
-								'<option value="E3"' + (workType2 == 'S/E' ? ' selected' : '') + '>S/E</option>' + 
-								'<option value="E4"' + (workType2 == '선장' ? ' selected' : '') + '>선장</option>' + 
-								'<option value="E5"' + (workType2 == '항해사' ? ' selected' : '') + '>항해사</option>' + 
-								'<option value="E6"' + (workType2 == '기관장' ? ' selected' : '') + '>기관장</option>' + 
-								'<option value="E7"' + (workType2 == '라인맨' ? ' selected' : '') + '>라인맨</option>' + 
-								'<option value="E8"' + (workType2 == '기타' ? ' selected' : '') + '>기타</option>';
-							};
-					text += '</select>' +
-						'</td>' + 
-						'<td class="text-center">' + '<input name="work" type="text" value="' + work + '">' + '</td>' + 
-						'<td class="text-center">' + 
-							'<select name="mainSub">';
-							
-						text += '<option value="N"' + (mainSub == '-' ? ' selected' : '') + '>-</option>' + 
-								'<option value="M"' + (mainSub == '정' ? ' selected' : '') + '>정</option>' + 
-								'<option value="S"' + (mainSub == '부' ? ' selected' : '') + '>부</option>';
-								
-					text += '</select>' +
-						'</td>' + 
-						'<td class="text-center">' + 
-							'<select name="foodStyle">';
-							
-						text += '<option value="K"' + (foodStyle == '한식' ? ' selected' : '') + '>한식</option>' + 
-								'<option value="W"' + (foodStyle == '양식(Normal Western)' ? ' selected' : '') + '>양식(Normal Western)</option>' + 	
-								'<option value="H"' + (foodStyle == '양식(Halal)' ? ' selected' : '') + '>양식(Halal)</option>' + 	
-								'<option value="V1"' + (foodStyle == '양식(Veg. fruitarian)' ? ' selected' : '') + '>양식(Veg. fruitarian)</option>' + 	
-								'<option value="V2"' + (foodStyle == '양식(Veg. vegan)' ? ' selected' : '') + '>양식(Veg. vegan)</option>' + 	
-								'<option value="V3"' + (foodStyle == '양식(Veg. lacto-veg.)' ? ' selected' : '') + '>양식(Veg. lacto-veg.)</option>' + 	
-								'<option value="V4"' + (foodStyle == '양식(Veg. ovo-veg.)' ? ' selected' : '') + '>양식(Veg. ovo-veg.)</option>' + 	
-								'<option value="V5"' + (foodStyle == '양식(Veg. lacto-ovo-veg.)' ? ' selected' : '') + '>양식(Veg. lacto-ovo-veg.)</option>' + 	
-								'<option value="V6"' + (foodStyle == '양식(Veg. pesco-veg.)' ? ' selected' : '') + '>양식(Veg. pesco-veg.)</option>' + 	
-								'<option value="V7"' + (foodStyle == '양식(Veg. pollo-veg.)' ? ' selected' : '') + '>양식(Veg. pollo-veg.)</option>' + 	
-								'<option value="V8"' + (foodStyle == '양식(Veg. flexitarian)' ? ' selected' : '') + '>양식(Veg. flexitarian)</option>';
-								
-					text += '</select>' +
-						'</td>' + 
-						'<td class="text-center">' + '<input name="personNo" type="text" placeholder="XXXXXX-X" value="' + personNo + '">' + '</td>' + 
-						'<td class="text-center">' + 
-								'<select name="gender">';
-								
-							text += '<option value="M"' + (gender == '남' ? ' selected' : '') + '>남</option>' + 
-									'<option value="F"' + (gender == '여' ? ' selected' : '') + '>여</option>' ;
+							text += '<option value="K"' + (foodStyle == 'K' ? ' selected' : '') + '>한식</option>' + 
+									'<option value="W"' + (foodStyle == 'W' ? ' selected' : '') + '>양식(Normal Western)</option>' + 	
+									'<option value="H"' + (foodStyle == 'H' ? ' selected' : '') + '>양식(Halal)</option>' + 	
+									'<option value="V1"' + (foodStyle == 'V1' ? ' selected' : '') + '>양식(Veg. fruitarian)</option>' + 	
+									'<option value="V2"' + (foodStyle == 'V2' ? ' selected' : '') + '>양식(Veg. vegan)</option>' + 	
+									'<option value="V3"' + (foodStyle == 'V3' ? ' selected' : '') + '>양식(Veg. lacto-veg.)</option>' + 	
+									'<option value="V4"' + (foodStyle == 'V4' ? ' selected' : '') + '>양식(Veg. ovo-veg.)</option>' + 	
+									'<option value="V5"' + (foodStyle == 'V5' ? ' selected' : '') + '>양식(Veg. lacto-ovo-veg.)</option>' + 	
+									'<option value="V6"' + (foodStyle == 'V6' ? ' selected' : '') + '>양식(Veg. pesco-veg.)</option>' + 	
+									'<option value="V7"' + (foodStyle == 'V7' ? ' selected' : '') + '>양식(Veg. pollo-veg.)</option>' + 	
+									'<option value="V8"' + (foodStyle == 'V8' ? ' selected' : '') + '>양식(Veg. flexitarian)</option>';
 									
 						text += '</select>' +
-						'</td>' + 
-						'<td class="text-center">' + '<input name="phone" type="text" value="' + phone + '">' + '</td>';
-						
-					text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="text" value="' + inDate + '" >' + '</td>' + 
-							'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="text" value="' + outDate + '" >' + '</td>';
+							'</td>' +
 							
-					text += '<td class="text-center">' + '<input name="terminal" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (terminal === 'Y' ? 'checked' : '') + '>' + '</td>' +
-							'<td class="text-center">' + '<input name="laptop" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (laptop === 'Y' ? 'checked' : '') + '>' + '</td>' +
-							'<td class="text-center">' + '<input name="modelNm" type="text" value="'+ modelNm +'">' + '</td>' +
-							'<td class="text-center">' + '<input name="serialNo" type="text" value="'+ serialNo +'">' + '</td>' +
-							'<td class="text-center">' + '<input name="foreigner" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (foreigner === 'Y' ? 'checked' : '') + '>' + '</td>' +
-							'<td class="text-center">' + '<input name="passportNo" type="text" value="'+ passportNo +'">' + '</td>' +
-							'<td class="text-center">' + '<input name="orderStatus" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>';
-							//'<td class="text-center">' + '<input name="deleteYn" type="checkbox" onclick="setRowSelected()">' + '</td>';
-		text += '</tr>';
+							'<td style = "border: 1px soild red" class="text-center  align-middle crew-inout-label p-0">' + 
+								'<div class="align-items-center border-bottom px-1 inout_scheduler_h">' + $.i18n.t('list.plan') + '</div>' + 
+								'<div class="align-items-center inout_performance_h">' + $.i18n.t('list.result') + '</div>' + 
+							'</td>'
+							 
+							text += '<td class="text-center align-middle p-0" >' + 
+										'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
+										'<input style="width: 100px;" name="breakfastP" class="text-center" type="text" value="' + breakfastP + '" >' +
+										'</div>' + 
+										'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
+											'<input style="width: 100px;" name="breakfastR" disabled class="text-center" type="text" value="' + breakfastR + '" >' +
+										'</div>' + 
+									'</td>';
+							text += '<td class="text-center align-middle p-0">' + 
+										'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
+										'<input style="width: 100px;" name="lunchP" class="text-center" type="text" value="' + lunchP + '" >' +
+										'</div>' + 
+										'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
+											'<input style="width: 100px;" name="lunchR" disabled class="text-center" type="text" value="' + lunchR + '" >' +
+										'</div>' + 
+									'</td>';
+
+							text += '<td class="text-center align-middle p-0">' + 
+										'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
+										'<input style="width: 100px;" name="dinnerP" class="text-center" type="text" value="' + dinnerP + '" >' +
+										'</div>' + 
+										'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
+											'<input style="width: 100px;" name="dinnerR" disabled class="text-center" type="text" value="' + dinnerR + '" >' +
+										'</div>' + 
+									'</td>';							
+
+							text += '<td  class="text-center align-middle p-0">' + 
+										'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
+										'<input style="width: 100px;" name="lateNightP" class="text-center" type="text" value="' + lateNightP + '" >' +
+										'</div>' + 
+										'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
+											'<input style="width: 100px;" name="lateNightR" disabled class="text-center" type="text" value="' + lateNightR + '" >' +
+										'</div>' + 
+									'</td>'+						
+																
+							'<td class="text-center">' + '<input name="orderStatus" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>'+
+							'<td class="text-center">' + '<input name="orderDate" type="text" disabled value="' + orderDate + '">' + '</td>' + 												
+							'<td class="text-center">' + '<input name="orderUid" type="text" disabled value="' + orderUid + '">' + '</td>' + 												
+							'<td class="text-center">' + '<input name="deleteYn" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (deleteYn === 'Y' ? 'checked' : '') + '>' + '</td>'+
+							'<td class="text-center">' + '<input name="comment" type="text" value="' + comment + '">' + '</td>' + 												
+							'<td class="text-center">' + '<input name="inputUid" type="text" disabled value="' + inputUid + '">' + '</td>' + 												
+							'<td class="text-center">' + '<input name="inputDate" type="text" disabled value="' + inputDate + '">' + '</td>' ;
+				text += '</tr>';	
 	
 		$('#tbRowList').append(text);
 	}
-	
 	setListEmpty();
 }
 
@@ -1362,7 +1371,7 @@ function save() {
 	let dinnerRVl = document.getElementsByName('dinnerR');
 	let lateNightRVl = document.getElementsByName('lateNightR');
 	
-	alert(projNoVl.length);
+	//alert(projNoVl.length);
 	//alert(lateNightPVl.length);
 	/*let planMealDateVl = document.getElementsByName('planMealDate');
 	let planMealTimeVl = document.getElementsByName('planMealTime');
@@ -1387,7 +1396,7 @@ function save() {
 		lunchRVl[i].value = lunchRVl[i] && lunchRVl[i].value !== "" ? lunchRVl[i].value : 0;
 		dinnerRVl[i].value = dinnerRVl[i] && dinnerRVl[i].value !== "" ? dinnerRVl[i].value : 0;
 		lateNightRVl[i].value = lateNightRVl[i] && lateNightRVl[i].value !== "" ? lateNightRVl[i].value : 0;
-		alert(projNoVl[i].value);
+		//alert(projNoVl[i].value);
 	}
 
 	if(kindVl.length < 1) {
@@ -1418,7 +1427,7 @@ function save() {
 			projNoVl[i].value = $("#ship option:selected").text();
 		}
 		
-		alert(projNoVl[i].value);
+		//alert(projNoVl[i].value);
 		
 		// alert(terminalVl[i].checked);
 		
@@ -1583,7 +1592,7 @@ function searchList() {
 	let departmentVl = document.getElementsByName('department');
 	let commentVl = document.getElementsByName('comment');
 	
-	alert(kind);
+	//alert(kind);
 	for(let i = 0; i < kindVl.length; i++) {
 		let isHide = false;
 		

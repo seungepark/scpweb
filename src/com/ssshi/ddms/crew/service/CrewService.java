@@ -16,6 +16,9 @@ import org.apache.poi.ss.usermodel.DataValidationHelper;
 import org.apache.poi.ss.usermodel.Name;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.DateUtil;
+
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -834,5 +837,197 @@ public class CrewService implements CrewServiceI {
 		resultMap.put(Const.RESULT, isResult);
 		
 		return resultMap;
+	}
+	
+	@Override
+	public void downAnchExcel(HttpServletResponse response) throws Exception {
+		System.out.println("downCrewExcel 오나요");
+		
+		//엑셀 양식 생성
+		XSSFWorkbook wb = new XSSFWorkbook();
+		Sheet sheet = wb.createSheet("앵카링 식사신청");
+		//Sheet dataSheet = wb.createSheet("dataSheet");
+		Row row = null;
+		Cell cell = null;
+		int rowNo = 0;
+		int cellIdx = 0;
+		double startDate = DateUtil.getExcelDate(java.sql.Date.valueOf("2000-01-01"));
+		double endDate = DateUtil.getExcelDate(java.sql.Date.valueOf("2100-12-31"));
+		
+		/// Columm *****/
+		/// No., 구분, 내국/외국, 부서, 날자, 한식/양식, 발주, 특이사항
+		sheet.setColumnWidth(1, 3500);
+		sheet.setColumnWidth(2, 3500);
+		sheet.setColumnWidth(3, 3500);
+		sheet.setColumnWidth(4, 3500);
+		sheet.setColumnWidth(5, 3500);
+		sheet.setColumnWidth(6, 3500);
+		sheet.setColumnWidth(7, 3500);
+		sheet.setColumnWidth(8, 3500);
+		sheet.setColumnWidth(9, 3500);
+		sheet.setColumnWidth(10, 3500);
+		sheet.setColumnWidth(11, 3500);
+		sheet.setColumnWidth(12, 3500);
+		
+		/// Style *****/		
+		CellStyle headStyle = wb.createCellStyle();
+		headStyle.setBorderBottom(CellStyle.BORDER_THIN);
+		headStyle.setBorderLeft(CellStyle.BORDER_THIN);
+		headStyle.setBorderTop(CellStyle.BORDER_THIN);
+		headStyle.setBorderRight(CellStyle.BORDER_THIN);
+		headStyle.setFillForegroundColor(HSSFColor.LIGHT_YELLOW.index);
+		headStyle.setFillPattern(CellStyle.SOLID_FOREGROUND);
+		headStyle.setAlignment(CellStyle.ALIGN_CENTER);
+		
+		CellStyle bodyStyle = wb.createCellStyle();
+		bodyStyle.setBorderBottom(CellStyle.BORDER_THIN);
+		bodyStyle.setBorderLeft(CellStyle.BORDER_THIN);
+		bodyStyle.setBorderTop(CellStyle.BORDER_THIN);
+		bodyStyle.setBorderRight(CellStyle.BORDER_THIN);
+		
+		CellStyle bodyCenterStyle = wb.createCellStyle();
+		bodyCenterStyle.setBorderBottom(CellStyle.BORDER_THIN);
+		bodyCenterStyle.setBorderLeft(CellStyle.BORDER_THIN);
+		bodyCenterStyle.setBorderTop(CellStyle.BORDER_THIN);
+		bodyCenterStyle.setBorderRight(CellStyle.BORDER_THIN);
+		bodyCenterStyle.setAlignment(CellStyle.ALIGN_CENTER);
+		
+		// 날짜 입력 형식(DatePicker 스타일)
+		CreationHelper creationHelper = wb.getCreationHelper();
+		CellStyle dateStyle = wb.createCellStyle();
+		dateStyle.cloneStyleFrom(bodyStyle);
+		short dateFormat = creationHelper.createDataFormat().getFormat("yyyy-MM-dd");
+		dateStyle.setDataFormat(dateFormat);
+		
+		/// Head
+		row = sheet.createRow(rowNo++);
+		cell = row.createCell(cellIdx++);
+		cell.setCellStyle(headStyle);
+		cell.setCellValue("No.");
+		cell = row.createCell(cellIdx++);
+		cell.setCellStyle(headStyle);
+		cell.setCellValue("구분");
+		cell = row.createCell(cellIdx++);
+		cell.setCellStyle(headStyle);
+		cell.setCellValue("내국/외국");
+		cell = row.createCell(cellIdx++);
+		cell.setCellStyle(headStyle);
+		cell.setCellValue("부서");
+		cell = row.createCell(cellIdx++);
+		cell.setCellStyle(headStyle);
+		cell.setCellValue("날짜");
+		cell = row.createCell(cellIdx++);
+		cell.setCellStyle(headStyle);
+		cell.setCellValue("한식/양식");
+		cell = row.createCell(cellIdx++);
+		cell.setCellStyle(headStyle);
+		cell.setCellValue("조식(계획)");
+		cell = row.createCell(cellIdx++);
+		cell.setCellStyle(headStyle);
+		cell.setCellValue("중식(계획)");
+		cell = row.createCell(cellIdx++);
+		cell.setCellStyle(headStyle);
+		cell.setCellValue("석식(계획)");
+		cell = row.createCell(cellIdx++);
+		cell.setCellStyle(headStyle);
+		cell.setCellValue("야식(계획)");
+		cell = row.createCell(cellIdx++);
+		cell.setCellStyle(headStyle);
+		cell.setCellValue("발주");
+		cell = row.createCell(cellIdx++);
+		cell.setCellStyle(headStyle);
+		cell.setCellValue("특이사항");
+		
+		for(int i = 0; i < 20; i++) {
+			cellIdx = 0;
+			
+			row = sheet.createRow(rowNo);
+			
+			cell = row.createCell(cellIdx++);
+			cell.setCellStyle(bodyCenterStyle);
+			cell.setCellValue(i + 1);
+			
+			cell = row.createCell(cellIdx++);
+			cell.setCellStyle(bodyStyle);
+			ExcelUtil.createSelectBox(sheet, cell, new String[]{"직영", "협력사", "방문객", "Owner/Class"});
+			cell.setCellValue("직영");
+			
+			cell = row.createCell(cellIdx++);
+			cell.setCellStyle(bodyStyle);
+			ExcelUtil.createSelectBox(sheet, cell, new String[]{"내국", "외국"});
+			cell.setCellValue("내국");
+			
+			//부서
+			cell = row.createCell(cellIdx++);
+			cell.setCellStyle(bodyStyle);
+			cell.setCellType(Cell.CELL_TYPE_STRING);
+			
+			//날짜
+			cell = row.createCell(cellIdx++);
+			cell.setCellStyle(bodyStyle);
+			cell.setCellType(Cell.CELL_TYPE_STRING);
+
+//			// 날짜(yyyy-mm-dd 양식에 맞추기)
+//			cell = row.createCell(cellIdx++);
+//			cell.setCellStyle(dateStyle);
+//			cell.setCellValue(""); // 빈 값 초기화
+//
+//			// 데이터 유효성 검사(달력 입력 유도)
+//			DataValidationHelper dvHelper = sheet.getDataValidationHelper();
+//			DataValidationConstraint dvConstraint = dvHelper.createNumericConstraint(
+//			        DataValidationConstraint.ValidationType.DECIMAL,
+//			        DataValidationConstraint.OperatorType.BETWEEN,
+//			        String.valueOf(startDate),
+//			        String.valueOf(endDate)
+//			);
+//			CellRangeAddressList addressList = new CellRangeAddressList(1, 20, 4, 4); // 5번째 컬럼(인덱스 4)
+//			DataValidation validation = dvHelper.createValidation(dvConstraint, addressList);
+//			validation.setSuppressDropDownArrow(true);
+//			validation.setShowErrorBox(true);
+//			sheet.addValidationData(validation);
+
+			cell = row.createCell(cellIdx++);
+			cell.setCellStyle(bodyStyle);
+			ExcelUtil.createSelectBox(sheet, cell, new String[]{"한식", "양식(Normal Western)", "양식(Halal)", 
+					"양식(Veg. fruitarian)", "양식(Veg. vegan)", "양식(Veg. lacto-veg.)", "양식(Veg. ovo-veg.)",
+					"양식(Veg. lacto-ovo-veg.)", "양식(Veg. pesco-veg.)", "양식(Veg. pollo-veg.)", "양식(Veg. flexitarian)"});
+			cell.setCellValue("한식");
+			
+			cell = row.createCell(cellIdx++);
+			cell.setCellStyle(bodyCenterStyle);
+			cell.setCellType(Cell.CELL_TYPE_NUMERIC);
+			
+			cell = row.createCell(cellIdx++);
+			cell.setCellStyle(bodyCenterStyle);
+			cell.setCellType(Cell.CELL_TYPE_NUMERIC);
+			
+			cell = row.createCell(cellIdx++);
+			cell.setCellStyle(bodyCenterStyle);
+			cell.setCellType(Cell.CELL_TYPE_NUMERIC);
+			
+			cell = row.createCell(cellIdx++);
+			cell.setCellStyle(bodyCenterStyle);
+			cell.setCellType(Cell.CELL_TYPE_NUMERIC);
+			
+			//발주
+			cell = row.createCell(cellIdx++);
+			cell.setCellStyle(bodyCenterStyle);
+			ExcelUtil.createSelectBox(sheet, cell, new String[]{ "Y", "N"});
+			cell.setCellValue("N");
+			
+			//특이사항
+			cell = row.createCell(cellIdx++);
+			cell.setCellStyle(bodyStyle);
+			cell.setCellType(Cell.CELL_TYPE_STRING);
+			
+			rowNo++;
+		}
+		
+		response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		String outputFileName = new String("앵카링_식사신청.xlsx".getBytes("KSC5601"), "8859_1");
+		response.setHeader("Content-Disposition", "attachment; fileName=\"" + outputFileName + "\"");
+
+		wb.write(response.getOutputStream());
+		wb.close();
 	}
 }

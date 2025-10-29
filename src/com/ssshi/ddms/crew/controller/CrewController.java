@@ -132,7 +132,7 @@ public class CrewController {
 	    return "share/resultCode";
 	}
 	
-	//승선자 발주
+	//앵카링 발주
 	@RequestMapping(value="/crew/anchOrderUpdate.html", method=RequestMethod.POST)
 	public String anchOrderUpdate(HttpServletRequest request, ModelMap model, ParamBean bean) throws Exception {
 		model.addAllAttributes(service.anchOrderUpdate(request, bean));
@@ -140,8 +140,14 @@ public class CrewController {
 	    return "share/resultCode";
 	}
 	
+	//앵카링 양식 다운로드
+		@RequestMapping(value="/crew/downAnchExcel.html")
+		public void downAnchExcel(HttpServletRequest request, HttpServletResponse response) throws Exception {
+			service.downAnchExcel(response);
+		}
+	
 	//앵카링 식사 신청 파일 업로드
-	@RequestMapping(value="/sche/anchorageMealDRM.html")
+	@RequestMapping(value="/crew/anchorageMealDRM.html")
 	public String anchorageMealDRM(HttpServletRequest request, ModelMap model, @RequestParam("file") MultipartFile file) throws Exception {
 		
 		// 암호화 해제
@@ -154,7 +160,7 @@ public class CrewController {
 		}
 		// 정상인 경우 엑셀 파일 기반으로 승선자 데이터 생성
 		else {
-			String rtnDataFormat = "sche/getPlanCrewDRMList";
+			String rtnDataFormat = "crew/getAnchMealDRMList";
 			
 			XSSFWorkbook workbook = new XSSFWorkbook(path);
 			
@@ -162,65 +168,82 @@ public class CrewController {
 			int rowNum = 0;
 
 			try {
-				List<ScheCrewBean> schedulerCrewInfoList = new ArrayList<ScheCrewBean>();
+				List<AnchorageMealRequestBean> anchorageMealList = new ArrayList<AnchorageMealRequestBean>();
 				for (Row row : sheet) {
 					if (rowNum != 0) {
-						ScheCrewBean crewBean = new ScheCrewBean();
+						AnchorageMealRequestBean anchBean = new AnchorageMealRequestBean();
 						
 						// 각 데이터 읽기
 						String no = ExcelUtil.getCellValue(row.getCell(0)).toString();
 						String kind = ExcelUtil.getCellValue(row.getCell(1)).toString();
-						String company = ExcelUtil.getCellValue(row.getCell(2)).toString();
+						String domesticYn = ExcelUtil.getCellValue(row.getCell(2)).toString();
 						String department = ExcelUtil.getCellValue(row.getCell(3)).toString();
-						String name = ExcelUtil.getCellValue(row.getCell(4)).toString();
+						String mealDate = CommonUtil.excelDateStringFormatDate(ExcelUtil.getCellValue(row.getCell(4)).toString());
 						
-						String rank =  ExcelUtil.getCellValue(row.getCell(5)).toString();
-						String idno = ExcelUtil.getCellValue(row.getCell(6)).toString();
-						String worktype1 = ExcelUtil.getCellValue(row.getCell(7)).toString();
-						String worktype2 = ExcelUtil.getCellValue(row.getCell(8)).toString();
-						String mainsub = ExcelUtil.getCellValue(row.getCell(9)).toString();
+						String foodStyle =  ExcelUtil.getCellValue(row.getCell(5)).toString();
+						int breakfastP = Integer.parseInt(ExcelUtil.getCellValue(row.getCell(6)).toString());
+						int lunchP = Integer.parseInt(ExcelUtil.getCellValue(row.getCell(7)).toString());
+						int dinnerP = Integer.parseInt(ExcelUtil.getCellValue(row.getCell(8)).toString());
+						int lateNightP = Integer.parseInt(ExcelUtil.getCellValue(row.getCell(9)).toString());
 						
-						String foodstyle = ExcelUtil.getCellValue(row.getCell(10)).toString();
-						String personno = ExcelUtil.getCellValue(row.getCell(11)).toString();
-						String phone = ExcelUtil.getCellValue(row.getCell(12)).toString();
-						String inDate = CommonUtil.excelDateStringFormatDate(ExcelUtil.getCellValue(row.getCell(13)).toString());
-						String outDate = CommonUtil.excelDateStringFormatDate(ExcelUtil.getCellValue(row.getCell(14)).toString());
+						String orderStatus = ExcelUtil.getCellValue(row.getCell(10)).toString();
+						String comment = ExcelUtil.getCellValue(row.getCell(11)).toString();
 						
-//						System.out.println("@@@ ScheController.planCrewDRM inDate: " + inDate);
-//						System.out.println("@@@ ScheController.planCrewDRM outDate: " + outDate);
-	
 						// Bean에 데이터 입력
-						crewBean.setCnt(Integer.parseInt(no));
-						crewBean.setKind(kind);
-						crewBean.setCompany(company);
-						crewBean.setDepartment(department);
-						crewBean.setName(name);
+						anchBean.setCnt(Integer.parseInt(no));
+						anchBean.setKind(kind);
+						anchBean.setDomesticYn(domesticYn);
+						anchBean.setDepartment(department);
+						anchBean.setMealDate(mealDate);
 						
-						crewBean.setRank(rank);
-						crewBean.setIdNo(idno);
-						crewBean.setWorkType1(worktype1);
-						crewBean.setWorkType2(worktype2);
-						crewBean.setMainSub(mainsub);
+						anchBean.setFoodStyle(foodStyle);
+//						anchBean.setBreakfastP(breakfastP);
+//						anchBean.setLunchP(lunchP);
+//						anchBean.setDinnerP(dinnerP);
+//						anchBean.setLateNightP(lateNightP);
 						
-						crewBean.setFoodStyle(foodstyle);
-						crewBean.setPersonNo(personno);
-						crewBean.setPhone(phone);
+						anchBean.setOrderStatus(orderStatus);
+						anchBean.setComment(comment);
 						
-						// 승/하선일 입력
-						List<ScheCrewInOutBean> inoutList = new ArrayList<ScheCrewInOutBean>();
-						ScheCrewInOutBean inBean = new ScheCrewInOutBean();
-						inBean.setSchedulerInOut("B");
-						inBean.setInOutDate(inDate);
-						inoutList.add(inBean);
+						// 수량
+						List<AnchorageMealQtyBean> mealQtyList = new ArrayList<AnchorageMealQtyBean>();
+						AnchorageMealQtyBean breakfastBean = new AnchorageMealQtyBean();
+						AnchorageMealQtyBean lunchBean = new AnchorageMealQtyBean();
+						AnchorageMealQtyBean dinnerBean = new AnchorageMealQtyBean();
+						AnchorageMealQtyBean lateNightBean = new AnchorageMealQtyBean();
 						
-						ScheCrewInOutBean outBean = new ScheCrewInOutBean();
-						outBean.setSchedulerInOut("N");
-						outBean.setInOutDate(outDate);
-						inoutList.add(outBean);
+						if(breakfastP > 0) {
+							breakfastBean.setPlanMealDate(mealDate);
+							breakfastBean.setPlanMealGubun(foodStyle);
+							breakfastBean.setPlanMealTime("조식");
+							breakfastBean.setPlanMealQty(breakfastP);
+						}
+						if(lunchP > 0) {
+							lunchBean.setPlanMealDate(mealDate);
+							lunchBean.setPlanMealGubun(foodStyle);
+							lunchBean.setPlanMealTime("중식");
+							lunchBean.setPlanMealQty(lunchP);
+						}
+						if(dinnerP > 0) {
+							dinnerBean.setPlanMealDate(mealDate);
+							dinnerBean.setPlanMealGubun(foodStyle);
+							dinnerBean.setPlanMealTime("석식");
+							dinnerBean.setPlanMealQty(dinnerP);
+						}
+						if(lateNightP > 0) {
+							lateNightBean.setPlanMealDate(mealDate);
+							lateNightBean.setPlanMealGubun(foodStyle);
+							lateNightBean.setPlanMealTime("야식");
+							lateNightBean.setPlanMealQty(lateNightP);
+						}
 						
-						crewBean.setInOutList(inoutList);
+						mealQtyList.add(breakfastBean);
+						mealQtyList.add(lunchBean);
+						mealQtyList.add(dinnerBean);
+						mealQtyList.add(lateNightBean);
 						
-						schedulerCrewInfoList.add(crewBean);
+						anchBean.setPlanList(mealQtyList);
+						anchorageMealList.add(anchBean);
 					}
 					rowNum++;
 				}
@@ -228,7 +251,7 @@ public class CrewController {
 				// 워크북 닫기
 				workbook.close();
 	
-				model.addAttribute(Const.LIST, schedulerCrewInfoList);
+				model.addAttribute(Const.LIST, anchorageMealList);
 			} catch(Exception e) {
 				rtnDataFormat = "share/exception";
 				

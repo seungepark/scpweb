@@ -2,6 +2,8 @@ package com.ssshi.ddms.dto;
 
 import java.util.List;
 
+import com.ssshi.ddms.util.ExcelUtil;
+
 public class AnchorageMealRequestBean {
 
 	private int uid;
@@ -20,6 +22,11 @@ public class AnchorageMealRequestBean {
 	private String deleteYn;
 	private String comment;
 	private String isPlan;
+
+	private int breakfastP;
+	private int lunchP;
+	private int dinnerP;
+	private int lateNightP;
 	
 	private String inputUid;
 	private String inputDate;
@@ -247,4 +254,30 @@ public class AnchorageMealRequestBean {
 	public void setRevDay(String revDay) {
 		this.revDay = revDay;
 	}
+	
+	public int getBreakfastP() {
+		return breakfastP;
+	}
+	public void setBreakfastP(int breakfastP) {
+		this.breakfastP = breakfastP;
+	}
+	public int getLunchP() {
+		return lunchP;
+	}
+	public void setLunchP(int lunchP) {
+		this.lunchP = lunchP;
+	}
+	public int getDinnerP() {
+		return dinnerP;
+	}
+	public void setDinnerP(int dinnerP) {
+		this.dinnerP = dinnerP;
+	}
+	public int getLateNightP() {
+		return lateNightP;
+	}
+	public void setLateNightP(int lateNightP) {
+		this.lateNightP = lateNightP;
+	}
+	
 }

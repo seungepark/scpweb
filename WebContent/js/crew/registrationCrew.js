@@ -951,7 +951,7 @@ function excelUpload(event) {
 		try {
 			let fileData = reader.result;
 			let json = null;
-			
+			alert(fileData.indexOf('Fasoo DRM'));
 			// DRM 걸린 파일 인지 확인
 			if(fileData.indexOf('Fasoo DRM') > -1){
 				

@@ -95,7 +95,7 @@
 							<input class="cursor-pointer" type="file" id="fileInput" onchange="excelUpload(event)" accept=".xlsx">
                    		</div> 
                    		
-                   		<div style="padding-right: 44px;"></div> 	
+                   		<!-- <div style="padding-right: 44px;"></div> 	 -->
                    	</div> 
 					</div> 
 					
@@ -132,7 +132,7 @@
                				<button id="filterSearchBtn" onclick="searchList()"><img src="${pageContext.request.contextPath}/img/new/search.png"></button>
            				</div>
            				
-           			    <div style="padding-right: 40px;"></div> 
+           			    <!-- <div style="padding-right: 40px;"></div>  -->
            				
 						<a href="${pageContext.request.contextPath}/mobile/mobileCrewinfo.html?uid=${bean.uid}" class="bt-obj bt-secondary mr-2" target="_blank">
 							<i class="fas fa-mobile-alt"></i> QR발송
@@ -144,8 +144,8 @@
                    		
 					</div>
                    	<div class="sp-16"></div>
-                    <div class="tb-wrap table_fixed_head">
-                        <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap " style="width:3000px; height:200px; overflow-y: auto; white-space: nowrap;"> 
+                    <div class="tb-wrap table_fixed_head" style = "height:800px;">
+                        <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap " style="width:3000px; overflow-x : auto; overflow-y: auto; white-space: nowrap;"> 
                             <thead>
                                 <tr id="tbHeader"></tr>
                             </thead>
