@@ -101,10 +101,11 @@ function initTableHeader() {
 	_crewCnt = 0;
 
 	let text = '<th class="th-w-40"><div class="tb-th-col"><span class="tb-th-content"><input type="checkbox" id="tbRowAllChk"></span></div></th>' +
-				'<th class="th-w-60"><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.no') + '</span></div></th>' +				
-				'<th style="display: none"><div class="tb-th-col"><span class="tb-th-content">' + "UID" + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.trialKey') + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.pjt') + '</span></div></th>' +				
+			'<th class="th-w-20"><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.no') + '</span></div></th>' +				
+			'<th style="display: none"><div class="tb-th-col"><span class="tb-th-content">' + "UID" + '</span></div></th>' +
+			'<th><div class="tb-th-col"><span class="tb-th-content">스케줄UID</span></div></th>' +
+			'<th><div class="tb-th-col"><span class="tb-th-content">스케줄KEY</span></div></th>' +
+				//'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.pjt') + '</span></div></th>' +				
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.kind') + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.company') + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.department') + '</span></div></th>' +
@@ -204,7 +205,7 @@ function initData() {
 		if(orderStatus == 'Y'){
 			text += '<tr id="tbRow_' + rowId + '">' + 
 									'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()" disabled></td>' +
-									'<td class="text-center th-w-60"><div name="no">' + _crewCnt + '</div></td>' +
+									'<td class="text-center th-w-20"><div name="no">' + _crewCnt + '</div></td>' +
 									'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '" disabled>' + '</td>' +
 									'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
 									'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 												
@@ -348,7 +349,7 @@ function initData() {
 		else{
 			text += '<tr id="tbRow_' + rowId + '">' + 
 							'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
-							'<td class="text-center th-w-60"><div name="no">' + _crewCnt + '</div></td>' +
+							'<td class="text-center th-w-20"><div name="no">' + _crewCnt + '</div></td>' +
 							'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
 							'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
 							'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 												
@@ -698,6 +699,17 @@ function addCrew() {
 		return;
 	}
 	
+	// 스케줄번호 선택 확인
+	let selectedShip = $('#ship').val();
+	if(!selectedShip || selectedShip === 'ALL' || selectedShip === '') {
+		alertPop('스케줄번호를 선택하세요');
+		return;
+	}
+	
+	// 선택된 스케줄의 UID와 TRIALKEY 가져오기
+	let selectedShipUid = selectedShip; // ship.val은 UID
+	let selectedShipTrialKey = $('#ship option:selected').text(); // ship.description은 TRIALKEY
+	
 	if(_crewCnt == 0) {
 		$('#tbRowList').empty();
 	}
@@ -707,10 +719,10 @@ function addCrew() {
 	
 	let text = '<tr id="tbRow_' + rowId + '">' + 
 					'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
-					'<td class="text-center th-w-60"><div name="no">' + _crewCnt + '</div></td>' +
-					'<td class="text-center" style="display: none">' + '<input name="uid" type="text" disabled>' + '</td>' + 
-					
-					'<td class="text-center">' + '<input name="trialKey" type="text" disabled>' + '</td>' + 
+					'<td class="text-center th-w-20"><div name="no">' + _crewCnt + '</div></td>' +
+					'<td class="text-center" style="display: none">' + '<input name="uid" type="text" disabled value="' + selectedShipUid + '">' + '</td>' + 
+					'<td class="text-center">' + '<input name="scheduleUid" type="text" disabled value="' + selectedShipUid + '">' + '</td>' +
+					'<td class="text-center">' + '<input name="trialKey" type="text" disabled value="' + selectedShipTrialKey + '">' + '</td>' + 
 					'<td class="text-center">' + '<input name="pjt" type="text" disabled>' + '</td>' + 
 					
 					'<td class="text-center">' + 
@@ -1713,12 +1725,16 @@ function getRegistrationCrewList(page) {
 						}
 					}
 					
-					if(orderStatus == 'Y'){
-						text += '<tr id="tbRow_' + rowId + '">' + 
-									'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
-									'<td class="text-center th-w-60"><div name="no">' + rowId + '</div></td>' +
-									'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
-									'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
+				if(orderStatus == 'Y'){
+					// 선택된 ship UID 가져오기 (스케줄UID 필터링용)
+					let selectedShipUid = ship && ship != 'ALL' ? ship : '';
+					
+					text += '<tr id="tbRow_' + rowId + '">' + 
+								'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
+								'<td class="text-center th-w-20"><div name="no">' + rowId + '</div></td>' +
+								'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
+								'<td class="text-center">' + '<input name="scheduleUid" type="text" disabled value="' + selectedShipUid + '">' + '</td>' +
+								'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' +
 									'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 
 									'<td class="text-center">' + 
 										'<select name="kind" disabled>';
@@ -1852,11 +1868,15 @@ function getRegistrationCrewList(page) {
 						text += '</tr>';
 					}
 					else{
+						// 선택된 ship UID 가져오기 (스케줄UID 필터링용)
+						let selectedShipUidForElse = ship && ship != 'ALL' ? ship : '';
+						
 						text += '<tr id="tbRow_' + rowId + '">' + 
 										'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
-										'<td class="text-center th-w-60"><div name="no">' + rowId + '</div></td>' +
+										'<td class="text-center th-w-20"><div name="no">' + rowId + '</div></td>' +
 										'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
-										'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
+										'<td class="text-center">' + '<input name="scheduleUid" type="text" disabled value="' + selectedShipUidForElse + '">' + '</td>' +
+										'<td class="text-center th-w-60">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
 										'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 
 										'<td class="text-center">' + 
 											'<select name="kind">';
@@ -2020,6 +2040,7 @@ function searchList() {
 	let mainSub = $('#filterMainSub').val();
 	let foodStyle = $('#filterFoodStyle').val();
 	let word = $('#filterWord').val();
+	let selectedShip = $('#ship').val();
 	
 	let kindVl = document.getElementsByName('kind');
 	let workType1Vl = document.getElementsByName('workType1');
@@ -2034,6 +2055,11 @@ function searchList() {
 	let idNoVl = document.getElementsByName('idNo');
 	let personNoVl = document.getElementsByName('personNo');
 	let phoneVl = document.getElementsByName('phone');
+	
+	// ship 필터를 위한 필드 가져오기
+	let scheduleUidVl = document.getElementsByName('scheduleUid');
+	let uidVl = document.getElementsByName('uid');
+	let trialKeyVl = document.getElementsByName('trialKey');
 	
 	for(let i = 0; i < kindVl.length; i++) {
 		let isHide = false;
@@ -2057,6 +2083,23 @@ function searchList() {
 		if(foodStyle != 'ALL' && foodStyle != foodStyleVl[i].value) {
 			isHide = true;
 		}
+		
+		// pse 2025-10-30 ship 필터 추가 중........ 음...
+		if(selectedShip && selectedShip != 'ALL' && selectedShip != '') {
+			// scheduleUid 필드가 있으면 그것과 비교, 없으면 uid 필드와 비교
+			let rowScheduleUid = '';
+			if(scheduleUidVl.length > i && scheduleUidVl[i]) {
+				rowScheduleUid = scheduleUidVl[i].value;
+			} else if(uidVl.length > i && uidVl[i]) {
+				rowScheduleUid = uidVl[i].value;
+			}
+			
+			// 선택된 ship UID와 행의 스케줄 UID 비교
+			if(rowScheduleUid != selectedShip) {
+				isHide = true;
+			}
+		}
+		// pse 2025-10-30 ship 필터 추가 중........ 음...
 		
 		if(word.length > 0 
 			&& !companyVl[i].value.includes(word) && !departmentVl[i].value.includes(word) && !nameVl[i].value.includes(word) 
