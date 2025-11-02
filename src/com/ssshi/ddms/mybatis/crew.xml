@@ -207,4 +207,131 @@
 		WHERE UID = #{anchUid}
 	</update>
 	
+	<!-- 방정보 저장 -->
+	<insert id="insertMobileRoomInfo" parameterType="MobileRoomInfoBean">
+		INSERT INTO mobile_room_info (
+			PROJ_NO, SCHEDULERINFOUID, TRIALKEY, DECK, ROOM_NO, ROOM_NAME, 
+			TEL, SIZE_M2, BED_COUNT, BATHROOM_YN, STATUS, DEL_YN,
+			ANDROID_ID, MOBILE_DEVICE_ID, REG_USERNAME, UPDATE_USERNAME
+		)
+		VALUES (
+			#{projNo}, #{schedulerInfoUid}, #{trialKey}, #{deck}, #{roomNo}, #{roomName},
+			NULLIF(#{tel}, ''), #{sizeM2}, #{bedCount}, NULLIF(#{bathroomYn}, ''), 
+			COALESCE(#{status}, 'AVAILABLE'), COALESCE(#{delYn}, 'N'),
+			NULLIF(#{androidId}, ''), NULLIF(#{mobileDeviceId}, ''), 
+			#{regUsername}, #{updateUsername}
+		)
+		<selectKey resultType="long" keyProperty="uid" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+	
+	<delete id="deleteMobileRoomInfoBySchedulerInfoUid" parameterType="int">
+		DELETE FROM mobile_room_info
+		WHERE SCHEDULERINFOUID = #{schedulerInfoUid}
+	</delete>
+	
+	<!-- 방배정명단 저장 -->
+	<insert id="insertMobileRoomUserlist" parameterType="MobileRoomUserlistBean">
+		INSERT INTO mobile_room_userlist (
+			PROJ_NO, SCHEDULERINFOUID, TRIALKEY, ROOM_NO, DEPARTMENT, NAME,
+			PHONE, USER_UID, CHECK_IN_DATE, CHECK_OUT_DATE, STATUS, DEL_YN,
+			ANDROID_ID, MOBILE_DEVICE_ID, REG_USERNAME, UPDATE_USERNAME
+		)
+		VALUES (
+			#{projNo}, #{schedulerInfoUid}, #{trialKey}, #{roomNo}, 
+			NULLIF(#{department}, ''), #{name}, NULLIF(#{phone}, ''),
+			#{userUid}, 
+			<choose>
+				<when test="checkInDate != null and checkInDate != ''">
+					STR_TO_DATE(#{checkInDate}, '%Y-%m-%d')
+				</when>
+				<otherwise>
+					NULL
+				</otherwise>
+			</choose>,
+			<choose>
+				<when test="checkOutDate != null and checkOutDate != ''">
+					STR_TO_DATE(#{checkOutDate}, '%Y-%m-%d')
+				</when>
+				<otherwise>
+					NULL
+				</otherwise>
+			</choose>,
+			COALESCE(#{status}, 'CHECKED_IN'), COALESCE(#{delYn}, 'N'),
+			NULLIF(#{androidId}, ''), NULLIF(#{mobileDeviceId}, ''), 
+			#{regUsername}, #{updateUsername}
+		)
+		<selectKey resultType="long" keyProperty="uid" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+	
+	<delete id="deleteMobileRoomUserlistBySchedulerInfoUid" parameterType="int">
+		DELETE FROM mobile_room_userlist
+		WHERE SCHEDULERINFOUID = #{schedulerInfoUid}
+	</delete>
+	
+	<!-- 방정보 목록 조회 -->
+	<select id="getMobileRoomInfoList" parameterType="int" resultType="MobileRoomInfoBean">
+		SELECT 
+			UID as uid,
+			PROJ_NO as projNo,
+			SCHEDULERINFOUID as schedulerInfoUid,
+			TRIALKEY as trialKey,
+			DECK as deck,
+			ROOM_NO as roomNo,
+			ROOM_NAME as roomName,
+			TEL as tel,
+			SIZE_M2 as sizeM2,
+			BED_COUNT as bedCount,
+			BATHROOM_YN as bathroomYn,
+			STATUS as status,
+			DEL_YN as delYn,
+			ANDROID_ID as androidId,
+			MOBILE_DEVICE_ID as mobileDeviceId,
+			INSERT_DATE as insertDate,
+			REG_USERNAME as regUsername,
+			UPDATE_DATE as updateDate,
+			UPDATE_USERNAME as updateUsername
+		FROM mobile_room_info
+		WHERE SCHEDULERINFOUID = #{schedulerInfoUid}
+			AND DEL_YN = 'N'
+		ORDER BY ROOM_NO
+	</select>
+	
+	<!-- 방배정명단 목록 조회 -->
+	<select id="getMobileRoomUserlist" parameterType="int" resultType="MobileRoomUserlistBean">
+		SELECT 
+			MR.UID as uid,
+			MR.PROJ_NO as projNo,
+			MR.SCHEDULERINFOUID as schedulerInfoUid,
+			MR.TRIALKEY as trialKey,
+			MR.ROOM_NO as roomNo,
+			MR.DEPARTMENT as department,
+			MR.NAME as name,
+			MR.PHONE as phone,
+			COALESCE(MR.USER_UID, SC.UID) as userUid,
+			DATE_FORMAT(MR.CHECK_IN_DATE, '%Y-%m-%d') as checkInDate,
+			DATE_FORMAT(MR.CHECK_OUT_DATE, '%Y-%m-%d') as checkOutDate,
+			MR.STATUS as status,
+			MR.DEL_YN as delYn,
+			MR.ANDROID_ID as androidId,
+			MR.MOBILE_DEVICE_ID as mobileDeviceId,
+			MR.INSERT_DATE as insertDate,
+			MR.REG_USERNAME as regUsername,
+			MR.UPDATE_DATE as updateDate,
+			MR.UPDATE_USERNAME as updateUsername
+		FROM mobile_room_userlist MR
+		LEFT OUTER JOIN SCHECREW SC ON (
+			MR.USER_UID IS NULL
+			AND SC.SCHEDULERINFOUID = MR.SCHEDULERINFOUID
+			AND SC.PHONE = MR.PHONE
+			AND (SC.DELETE_YN IS NULL OR SC.DELETE_YN != 'Y')
+		)
+		WHERE MR.SCHEDULERINFOUID = #{schedulerInfoUid}
+			AND MR.DEL_YN = 'N'
+		ORDER BY MR.ROOM_NO, MR.NAME
+	</select>
+	
 </mapper>

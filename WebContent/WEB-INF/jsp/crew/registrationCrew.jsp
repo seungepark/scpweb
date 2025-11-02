@@ -79,23 +79,19 @@
 						<a href="javascript:void(0);" class="bt-obj bt-secondary mr-2" onclick="alertPop('개발중입니다');">
 							<i class="fas fa-mobile-alt"></i> QR발송
 						</a>
-						<c:choose>
-							<c:when test="${bean.isOff eq 'Y' or empty P_REG_CREW_W}">
-								<button class="bt-obj bt-primary" disabled><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
-							</c:when>
-							<c:otherwise>
-								<button class="bt-obj bt-primary" onclick="save()"><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
-							</c:otherwise>
-						</c:choose>
 						
-                   		<button class="bt-obj bt-primary" onclick="popDeleteCrewModal()"><i class="fa-solid fa-minus"></i></button>
-                   		<button class="bt-obj bt-primary" onclick="addCrew()"><i class="fa-solid fa-plus"></i></button>
-                   		
                    		<!-- 엑셀 업로드/다운로드 -->
                    		<button class="bt-obj bt-secondary" onclick="downCrewExcel()" data-i18n="btnDownload"></button>
                    		<div class="bt-obj bt-secondary file-btn">
                    			<span data-i18n="btnUpload"></span>
 							<input class="cursor-pointer" type="file" id="fileInput" onchange="excelUpload(event)" accept=".xlsx">
+                   		</div>
+                   		
+                   		<!-- 방배정 업로드/다운로드 -->
+                   		<button class="bt-obj bt-secondary" onclick="roomDownExcel()">방배정 다운로드</button>
+                   		<div class="bt-obj bt-secondary file-btn">
+                   			<span>방배정 업로드</span>
+							<input class="cursor-pointer" type="file" id="roomAssignmentFileInput" onchange="roomUpload(event)" accept=".xlsx">
                    		</div> 
                    		
                    		<!-- 승선일/하선일 반영 -->
@@ -158,8 +154,8 @@
            				
            				<div style="padding-right: 145px;"></div>
            				
-						<!-- SELECT -->
-					    <div class="col-auto">
+						<!-- 2025-11-02 pse SCP전송 버튼 클릭 기능 주석처리 
+					    <div class="col-auto" style="display-none;">
 							<select id="ship_scp" class="">
                                 <option value="ALL">전체</option>
                                 <c:forEach var="ship" items="${listShip}">
@@ -167,7 +163,22 @@
                                 </c:forEach>
                             </select>
 						</div>
-						<button class="bt-obj bt-primary" onclick="scpSave()">전송</button>
+						<button class="bt-obj bt-primary"  onclick="scpSave()">전송</button> 
+						-->
+						
+						<c:choose>
+							<c:when test="${bean.isOff eq 'Y' or empty P_REG_CREW_W}">
+								<button class="bt-obj bt-primary" disabled><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
+							</c:when>
+							<c:otherwise>
+								<button class="bt-obj bt-primary" onclick="save()"><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
+							</c:otherwise>
+						</c:choose>
+						
+                   		<button class="bt-obj bt-primary" onclick="popDeleteCrewModal()"><i class="fa-solid fa-minus"></i></button>
+                   		<button class="bt-obj bt-primary" onclick="addCrew()"><i class="fa-solid fa-plus"></i></button>
+                   		
+                   		
 						<button class="bt-obj bt-primary" onclick="orderSave()">발주</button>
 						
 						<!-- <button class="bt-obj bt-primary" onclick="setInOutDate()" target="_blank">다운로드</button> -->

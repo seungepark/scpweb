@@ -175,7 +175,7 @@ function setSearchOption() {
 	
 	let sortNm = getSearchCookie('SK_SORTNM');
 	let sortOd = getSearchCookie('SK_SORTOD');
-	
+  	
 	// URL 파라미터에서 검색조건 가져오기
 	let urlParams = new URLSearchParams(window.location.search);
 	let paramInDate = urlParams.get('inDate');
@@ -192,7 +192,7 @@ function setSearchOption() {
 	if(paramSchedulerInfoUid) {
 		$('#ship').val(paramSchedulerInfoUid).prop('selected', true);
 	} else if(ship != '' && ship !== 'ALL') {
-		$('#ship').val(ship).prop('selected', true);
+  		$('#ship').val(ship).prop('selected', true);
 	} else {
 		// 파라미터나 쿠키에 값이 없으면 "선택하세요"로 유지
 		$('#ship').val('').prop('selected', true);
@@ -520,7 +520,7 @@ function initData() {
 										text += '<option value="M"' + (gender == 'M' ? ' selected' : '') + '>남</option>' + 
 												'<option value="F"' + (gender == 'F' ? ' selected' : '') + '>여</option>' ;
 												
-									text += '</select>' + 
+									text += '</select>' +
 									'</td>' + 
 									
 									// '<td class="text-center position-relative th-w-150">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' + 
@@ -529,7 +529,7 @@ function initData() {
 									// '</td>'; 
 									'<td class="text-center th-w-150">' + '<input name="phone" type="text" disabled value="' + phone + '" style="width: 100%;">' + '</td>'; 
 									
-								text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="date" disabled value="' + inDate + '" >' + '</td>' +
+								text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="date" disabled value="' + inDate + '" >' + '</td>' + 
 										'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="date" disabled value="' + outDate + '" >' + '</td>';
 						
 								text += '<td class="text-center">' + '<input name="terminal" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (terminal === 'Y' ? 'checked' : '') + '>' + '</td>' +
@@ -876,7 +876,7 @@ function orderSave() {
 						$('#loading').css("display","block");
 					},
 					complete: function() {
-						$('#loading').css('display',"none");
+						// success나 error에서 이미 로딩을 숨김
 					}
 		        });
 		    }
@@ -1155,6 +1155,74 @@ function downCrewExcel() {
 	window.location.href = contextPath + '/crew/downCrewExcel.html';
 }
 
+// 방배정 다운로드.
+function roomDownExcel() {
+	// 스케줄번호 필수 선택 체크
+	let ship = $('#ship').val();
+	if(ship == "" || ship == "ALL" || ship == "선택하세요") {
+		alertPop('스케줄번호를 선택해주세요.');
+		return;
+	}
+	
+	// 로딩 이미지 표시
+	$('#loading').css('display','block');
+	
+	// 다운로드 진행
+	try {
+		let schedulerInfoUid = ship && ship != '' && ship != 'ALL' && ship != '선택하세요' ? ship : 0;
+		
+		if(schedulerInfoUid <= 0) {
+			$('#loading').css('display','none');
+			alertPop('스케줄번호를 선택해주세요.');
+			return;
+		}
+		
+		// 다운로드 URL 생성
+		let downloadUrl = contextPath + '/crew/downRoomAssignmentExcel.html?schedulerInfoUid=' + encodeURIComponent(schedulerInfoUid);
+		
+		// iframe을 사용하여 다운로드 (progress 표시를 위해)
+		let iframe = document.createElement('iframe');
+		iframe.style.display = 'none';
+		iframe.style.width = '0px';
+		iframe.style.height = '0px';
+		
+		// iframe 로드 완료 후 처리
+		iframe.onload = function() {
+			// 다운로드 완료 후 약간의 지연 후 로딩 숨김
+			setTimeout(function() {
+				$('#loading').css('display','none');
+				if(iframe.parentNode) {
+					document.body.removeChild(iframe);
+				}
+			}, 1000);
+		};
+		
+		iframe.onerror = function() {
+			$('#loading').css('display','none');
+			alertPop('다운로드 중 오류가 발생했습니다.');
+			if(iframe.parentNode) {
+				document.body.removeChild(iframe);
+			}
+		};
+		
+		document.body.appendChild(iframe);
+		iframe.src = downloadUrl;
+		
+		// 타임아웃 처리 (10초 후 강제 종료)
+		setTimeout(function() {
+			if(iframe.parentNode) {
+				$('#loading').css('display','none');
+				document.body.removeChild(iframe);
+			}
+		}, 10000);
+		
+	} catch(e) {
+		$('#loading').css('display','none');
+		alertPop('다운로드 중 오류가 발생했습니다.');
+		console.error('Error download:', e);
+	}
+}
+
 // 양식 파일 열기.
 function openFileInput() {
 	document.getElementById('fileInput').click();
@@ -1208,7 +1276,7 @@ function excelUpload(event) {
 						$('#loading').css("display","block");
 					},
 					complete: function() {
-						$('#loading').css('display',"none");
+						// success나 error에서 이미 로딩을 숨김
 					}
 				});
 				
@@ -1231,6 +1299,147 @@ function excelUpload(event) {
 	};
 	
 	reader.readAsBinaryString(input.files[0]);
+}
+
+// 방배정 업로드.
+function roomUpload(event) {
+	if(_status == 'ONGO' || _status == 'ARRIVE') {
+		alertPop($.i18n.t('error.upload'));
+		return;
+	}
+	
+	// 스케줄번호 필수 선택 체크
+	if($('#ship').val() == "" || $('#ship').val() == "ALL") {
+		alertPop('스케줄번호를 선택해주세요.');
+		return;
+	}
+	
+	// 로딩 이미지 표시
+	$('#loading').css('display','block');
+	
+	let input = event.target;
+	let reader = new FileReader();
+	
+	reader.onload = function() {
+		try {
+			
+			let fileData = reader.result;
+			let json = null;
+			
+			// DRM 걸린 파일 인지 확인
+			if(fileData.indexOf('Fasoo DRM') > -1){
+				const formData = new FormData();
+				formData.append('file', input.files[0]);
+				
+				// 스케줄 정보 가져오기
+				let ship = $('#ship').val();
+				let schedulerInfoUid = ship && ship != '' && ship != 'ALL' ? ship : 0;
+				let trialKey = $('#ship option:selected').text();
+				let projNo = '';
+				
+				formData.append('schedulerInfoUid', schedulerInfoUid);
+				formData.append('trialKey', trialKey);
+				formData.append('projNo', projNo);
+								
+				$.ajax({
+					type: 'POST',
+					url: contextPath + '/crew/roomAssignmentDRM.html',
+					data: formData,
+					contentType: false,
+					processData: false,
+					dataType: "json",
+					success: function(response) {
+						$('#loading').css('display','none');
+						if(response.result == true || response.result == 'SUCCESS') {
+							let msg = response.msg || '방배정 데이터가 업로드되었습니다.';
+							alertPop(msg);
+						} else {
+							alertPop(response.msg || '방배정 업로드 중 오류가 발생했습니다.');
+						}
+					},
+					error: function(error) {
+						$('#loading').css('display','none');
+						console.error('Error DRM file:', error);
+						alertPop('방배정 업로드 중 오류가 발생했습니다.');
+					},
+					beforeSend: function() {
+						// 로딩 이미지는 이미 표시되어 있으므로 유지 (필요시만)
+					},
+					complete: function() {
+						// success나 error에서 이미 로딩을 숨김
+					}
+				});
+			} else{
+				// 일반 파일인 경우 FormData로 전송
+				const formData = new FormData();
+				formData.append('file', input.files[0]);
+				
+				// 스케줄 정보 가져오기
+				let ship = $('#ship').val();
+				let schedulerInfoUid = ship && ship != '' && ship != 'ALL' ? ship : 0;
+				let trialKey = $('#ship option:selected').text();
+				let projNo = '';
+				
+				// 프로젝트 번호는 나중에 DB에서 조회하거나 trialKey에서 추출 가능
+				
+				formData.append('schedulerInfoUid', schedulerInfoUid);
+				formData.append('trialKey', trialKey);
+				formData.append('projNo', projNo);
+				
+				$.ajax({
+					type: 'POST',
+					url: contextPath + '/crew/roomAssignmentUpload.html',
+					data: formData,
+					contentType: false,
+					processData: false,
+					dataType: "json",
+					success: function(response) {
+						$('#loading').css('display','none');
+						if(response.result == true || response.result == 'SUCCESS') {
+							let msg = response.msg || '방배정 데이터가 업로드되었습니다.';
+							alertPop(msg);
+						} else {
+							alertPop(response.msg || '방배정 업로드 중 오류가 발생했습니다.');
+						}
+					},
+					error: function(error) {
+						$('#loading').css('display','none');
+						console.error('Error upload file:', error);
+						alertPop('방배정 업로드 중 오류가 발생했습니다.');
+					},
+					beforeSend: function() {
+						// 로딩 이미지는 이미 표시되어 있으므로 유지 (필요시만)
+					},
+					complete: function() {
+						// success나 error에서 이미 로딩을 숨김
+					}
+				});
+			}
+			
+		}catch(e) {
+			$('#loading').css('display','none');
+			alertPop($.i18n.t('share:tryAgain'));
+			input.value = '';
+		}
+	};
+	
+	reader.onerror = function() {
+		$('#loading').css('display','none');
+		alertPop('파일 읽기 중 오류가 발생했습니다.');
+		input.value = '';
+	};
+	
+	reader.readAsBinaryString(input.files[0]);
+}
+
+// 방배정 데이터 처리
+function roomProcessData(json) {
+	// 방배정 데이터 처리 로직 구현 필요
+	// 예: 서버로 전송하거나 테이블에 반영
+	console.log('Room assignment data:', json);
+	alertPop('방배정 데이터가 업로드되었습니다.');
+	// 필요시 테이블 리로드 또는 데이터 갱신
+	// getRegistrationCrewList(1);
 }
 
 // 데이터 리스트 생성 및 데이터 세팅 호출
@@ -1494,7 +1703,7 @@ function setExcelData(trialKeyList, pjtList,kindList, companyList, departmentLis
 							text += '<option value="M"' + (gender == '남' ? ' selected' : '') + '>남</option>' + 
 									'<option value="F"' + (gender == '여' ? ' selected' : '') + '>여</option>' ;
 									
-						text += '</select>' + 
+						text += '</select>' +
 						'</td>' + 
 						'<td class="text-center th-w-150">' + '<input name="phone" type="text" value="' + phone + '" style="width: 100%;">' + '</td>';
 						
@@ -1956,9 +2165,9 @@ function getRegistrationCrewList(page) {
 					let actualScheduleUid = schedulerInfoUid || (ship && ship != 'ALL' ? ship : '');
 					
 					text += '<tr id="tbRow_' + rowId + '">' + 
-								'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' + 
+								'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
 								'<td class="text-center th-w-20"><div name="no">' + rowId  +'('+ uid +')'+ + '</div></td>' + 
-								'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' + 
+								'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
 								'<td class="text-center">' + '<input name="scheduleUid" type="text" disabled value="' + actualScheduleUid + '">' + '</td>' +
 								'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' +
 									'<td class="text-center" style="display: none">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 
@@ -2073,7 +2282,7 @@ function getRegistrationCrewList(page) {
 											'<select name="gender" disabled>';
 											
 										text += '<option value="M"' + (gender == 'M' ? ' selected' : '') + '>남</option>' + 
-												'<option value="F"' + (gender == 'F' ? ' selected' : '') + '>여</option>' ; 
+												'<option value="F"' + (gender == 'F' ? ' selected' : '') + '>여</option>' ;
 												
 									text += '</select>' +
 									'</td>' + 
@@ -2083,7 +2292,7 @@ function getRegistrationCrewList(page) {
 									// '</td>';
 									'<td class="text-center th-w-150">' + '<input name="phone" type="text" disabled value="' + phone + '" style="width: 100%;">' + '</td>';
 									
-								text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="text" value="' + inDate + '"  disabled>' + '</td>' +
+								text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="text" value="' + inDate + '"  disabled>' + '</td>' + 
 										'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="text" value="' + outDate + '"  disabled>' + '</td>';
 										
 								text += '<td class="text-center">' + '<input name="terminal" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (terminal === 'Y' ? 'checked' : '') + '>' + '</td>' +
@@ -2101,9 +2310,9 @@ function getRegistrationCrewList(page) {
 						let actualScheduleUidForElse = schedulerInfoUid || (ship && ship != 'ALL' ? ship : '');
 						
 						text += '<tr id="tbRow_' + rowId + '">' + 
-										'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' + 
+										'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
 										'<td class="text-center th-w-20"><div name="no">' + rowId  +'('+ uid +')'+  '</div></td>' + 
-										'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' + 
+										'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
 										'<td class="text-center">' + '<input name="scheduleUid" type="text" disabled value="' + actualScheduleUidForElse + '">' + '</td>' +
 										'<td class="text-center th-w-60">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
 										'<td class="text-center" style="display: none">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' +
@@ -2218,16 +2427,16 @@ function getRegistrationCrewList(page) {
 												'<select name="gender">';
 												
 											text += '<option value="M"' + (gender == 'M' ? ' selected' : '') + '>남</option>' + 
-													'<option value="F"' + (gender == 'F' ? ' selected' : '') + '>여</option>' ; 
+													'<option value="F"' + (gender == 'F' ? ' selected' : '') + '>여</option>' ;
 													
-									text += '</select>' +
-									'</td>' + 
+										text += '</select>' +
+										'</td>' + 
 									// '<td class="text-center position-relative th-w-150">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' + 
 									//     '<span class="mask">*****</span>' + '<input name="phone" type="text" disabled value="' + phone + '" style="width: 100%;">' + 
 									//   '</div>' + 
 									// '</td>';
 									'<td class="text-center th-w-150">' + '<input name="phone" type="text" disabled value="' + phone + '" style="width: 100%;">' + '</td>';
-								text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="text" value="' + inDate + '" >' + '</td>' +
+									text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="text" value="' + inDate + '" >' + '</td>' + 
 											'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="text" value="' + outDate + '" >' + '</td>';
 											
 									text += '<td class="text-center">' + '<input name="terminal" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (terminal === 'Y' ? 'checked' : '') + '>' + '</td>' +

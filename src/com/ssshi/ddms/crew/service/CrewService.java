@@ -23,6 +23,7 @@ import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.ssshi.ddms.constant.Const;
 import com.ssshi.ddms.constant.DBConst;
@@ -35,6 +36,7 @@ import com.ssshi.ddms.dto.RegistrationCrewListBean;
 import com.ssshi.ddms.mybatis.dao.ScheDaoI;
 import com.ssshi.ddms.mybatis.dao.CrewDaoI;
 import com.ssshi.ddms.util.ExcelUtil;
+import com.ssshi.ddms.util.DRMUtil;
 
 import com.ssshi.ddms.dto.AnchorageMealRequestBean;
 import com.ssshi.ddms.dto.AnchorageMealQtyBean;
@@ -51,10 +53,6 @@ import com.ssshi.ddms.dto.AnchorageMealListBean;
  * 
  * 메모 : 없음
  * 
- * Copyright 2024 by SiriusB. Confidential and proprietary information
- * This document contains information, which is the property of SiriusB, 
- * and is furnished for the sole purpose of the operation and the maintenance.  
- * Copyright © 2024 SiriusB.  All rights reserved.
  *
  ********************************************************************************/
 
@@ -1044,5 +1042,613 @@ public class CrewService implements CrewServiceI {
 
 		wb.write(response.getOutputStream());
 		wb.close();
+	}
+	
+	@Override
+	public Map<String, Object> roomAssignmentUpload(HttpServletRequest request, HttpServletResponse response, 
+			MultipartFile file, int schedulerInfoUid, String trialKey, String projNo) throws Exception {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		int userUid = ((UserInfoBean)(request.getSession().getAttribute(Const.SS_USERINFO))).getUid();
+		String username = ((UserInfoBean)(request.getSession().getAttribute(Const.SS_USERINFO))).getFirstName()+ ((UserInfoBean)(request.getSession().getAttribute(Const.SS_USERINFO))).getLastName();
+		
+		String path = null;
+		try {
+			// DRM 파일인 경우
+			if(file.getOriginalFilename().contains("DRM") || file.getInputStream().toString().contains("Fasoo")) {
+				path = DRMUtil.getDecodingExcel(file);
+				if(path.startsWith("ERROR")) {
+					resultMap.put(Const.RESULT, DBConst.FAIL);
+					resultMap.put("msg", "DRM 파일 해제 실패");
+					return resultMap;
+				}
+			} else {
+				// 일반 파일인 경우 임시 저장
+				java.io.File tempFile = java.io.File.createTempFile("room_assignment_", ".xlsx");
+				file.transferTo(tempFile);
+				path = tempFile.getAbsolutePath();
+			}
+			
+			// 엑셀 파일 읽기
+			XSSFWorkbook workbook = new XSSFWorkbook(new java.io.FileInputStream(path));
+			
+			// SCHEDULERINFOUID가 동일한 기존 데이터 삭제 (방정보, 방배정명단)
+			if(schedulerInfoUid > 0) {
+				crewDao.deleteMobileRoomInfoBySchedulerInfoUid(schedulerInfoUid);
+				crewDao.deleteMobileRoomUserlistBySchedulerInfoUid(schedulerInfoUid);
+			}
+			
+			// Step 1: 2번째 탭 읽기 (인덱스 1) - 방정보
+			Sheet sheetRoomInfo = workbook.getSheetAt(1);
+			if(sheetRoomInfo == null) {
+				resultMap.put(Const.RESULT, DBConst.FAIL);
+				resultMap.put("msg", "2번째 탭(방정보)을 찾을 수 없습니다.");
+				workbook.close();
+				return resultMap;
+			}
+			
+			int rowNum = 0;
+			int roomInfoSuccessCount = 0;
+			int roomInfoFailCount = 0;
+			StringBuilder errorMsg = new StringBuilder();
+			
+			// Step 1: 방정보 저장
+			for (Row row : sheetRoomInfo) {
+				if (rowNum == 0) {
+					// 헤더 행 건너뛰기
+					rowNum++;
+					continue;
+				}
+				
+				try {
+					// 셀 값 읽기 (엑셀 양식: 1줄은 헤더, 실제 데이터는 2줄부터)
+					// 컬럼 순서: 호선(PROJ_NO), 스케줄넘버(TRIALKEY), DECK, ROOM_NO, ROOM_NAME, TEL, 크기(SIZE_M2), 침대수(BED_COUNT), 화장실(BATHROOM_YN)
+					String projNoFromExcel = ExcelUtil.getCellValue(row.getCell(0)) != null ? ExcelUtil.getCellValue(row.getCell(0)).toString().trim() : "";
+					String trialKeyFromExcel = ExcelUtil.getCellValue(row.getCell(1)) != null ? ExcelUtil.getCellValue(row.getCell(1)).toString().trim() : "";
+					String deck = ExcelUtil.getCellValue(row.getCell(2)) != null ? ExcelUtil.getCellValue(row.getCell(2)).toString().trim() : "";
+					String roomNo = ExcelUtil.getCellValue(row.getCell(3)) != null ? ExcelUtil.getCellValue(row.getCell(3)).toString().trim() : "";
+					String roomName = ExcelUtil.getCellValue(row.getCell(4)) != null ? ExcelUtil.getCellValue(row.getCell(4)).toString().trim() : "";
+					String tel = ExcelUtil.getCellValue(row.getCell(5)) != null ? ExcelUtil.getCellValue(row.getCell(5)).toString().trim() : "";
+					String sizeM2Str = ExcelUtil.getCellValue(row.getCell(6)) != null ? ExcelUtil.getCellValue(row.getCell(6)).toString().trim() : "";
+					String bedCountStr = ExcelUtil.getCellValue(row.getCell(7)) != null ? ExcelUtil.getCellValue(row.getCell(7)).toString().trim() : "";
+					String bathroomYnRaw = ExcelUtil.getCellValue(row.getCell(8)) != null ? ExcelUtil.getCellValue(row.getCell(8)).toString().trim() : "";
+					
+					// BATHROOM_YN 값 매핑 (varchar(20): Y:있음, N:없음)
+					String bathroomYn = null;
+					if(!bathroomYnRaw.isEmpty()) {
+						// 값 매핑: "있음", "O", "o", "Y", "y" -> "Y", "없음", "X", "x", "N", "n" -> "N"
+						String mappedValue = bathroomYnRaw.toUpperCase();
+						if(mappedValue.contains("있음") || mappedValue.equals("O") || mappedValue.equals("Y")) {
+							bathroomYn = "Y";
+						} else if(mappedValue.contains("없음") || mappedValue.equals("X") || mappedValue.equals("N")) {
+							bathroomYn = "N";
+						} else if(mappedValue.length() <= 20) {
+							// 20자 이하면 그대로 사용
+							bathroomYn = mappedValue;
+						} else {
+							// 20자 초과면 첫 20자만 사용
+							bathroomYn = mappedValue.substring(0, 20);
+						}
+					}
+					
+					// 필수값 체크
+					if(deck.isEmpty() || roomNo.isEmpty()) {
+						roomInfoFailCount++;
+						errorMsg.append("[방정보] 행 ").append(rowNum + 1).append(": DECK 또는 ROOM_NO가 비어있습니다.\n");
+						rowNum++;
+						continue;
+					}
+					
+					// Bean 생성
+					com.ssshi.ddms.dto.MobileRoomInfoBean roomBean = new com.ssshi.ddms.dto.MobileRoomInfoBean();
+					// 엑셀에서 읽은 값이 있으면 우선 사용, 없으면 파라미터 값 사용
+					roomBean.setProjNo(projNoFromExcel.isEmpty() ? projNo : projNoFromExcel);
+					roomBean.setSchedulerInfoUid(schedulerInfoUid > 0 ? schedulerInfoUid : null);
+					roomBean.setTrialKey(trialKeyFromExcel.isEmpty() ? trialKey : trialKeyFromExcel);
+					roomBean.setDeck(deck);
+					roomBean.setRoomNo(roomNo);
+					roomBean.setRoomName(roomName.isEmpty() ? null : roomName);
+					roomBean.setTel(tel.isEmpty() ? null : tel);
+					
+					// SIZE_M2 파싱
+					if(!sizeM2Str.isEmpty()) {
+						try {
+							roomBean.setSizeM2(new java.math.BigDecimal(sizeM2Str));
+						} catch(Exception e) {
+							// 숫자 변환 실패 시 null
+							roomBean.setSizeM2(null);
+						}
+					}
+					
+					// BED_COUNT 파싱
+					if(!bedCountStr.isEmpty()) {
+						try {
+							roomBean.setBedCount(Integer.parseInt(bedCountStr));
+						} catch(Exception e) {
+							// 숫자 변환 실패 시 null
+							roomBean.setBedCount(null);
+						}
+					}
+					
+					roomBean.setBathroomYn(bathroomYn);
+					roomBean.setStatus("AVAILABLE"); // 기본값
+					roomBean.setDelYn("N");
+					roomBean.setRegUsername(username);
+					roomBean.setUpdateUsername(username);
+					
+					// DB 저장
+					crewDao.insertMobileRoomInfo(roomBean);
+					roomInfoSuccessCount++;
+					
+				} catch(Exception e) {
+					roomInfoFailCount++;
+					errorMsg.append("[방정보] 행 ").append(rowNum + 1).append(": ").append(e.getMessage()).append("\n");
+					e.printStackTrace();
+				}
+				
+				rowNum++;
+			}
+			
+			// Step 2: 1번째 탭 읽기 (인덱스 0) - 방배정명단
+			Sheet sheetUserlist = workbook.getSheetAt(0);
+			if(sheetUserlist == null) {
+				resultMap.put(Const.RESULT, DBConst.FAIL);
+				resultMap.put("msg", "1번째 탭(방배정명단)을 찾을 수 없습니다.");
+				workbook.close();
+				return resultMap;
+			}
+			
+			rowNum = 0;
+			int userlistSuccessCount = 0;
+			int userlistFailCount = 0;
+			
+			for (Row row : sheetUserlist) {
+				if (rowNum == 0) {
+					// 헤더 행 건너뛰기
+					rowNum++;
+					continue;
+				}
+				
+				try {
+					// 셀 값 읽기 (엑셀 양식: 1줄은 헤더, 실제 데이터는 2줄부터)
+					// 컬럼 순서: 호선(PROJ_NO), 스케줄넘버(TRIALKEY), 방번호(ROOM_NO), 부서(DEPARTMENT), 이름(NAME), 휴대폰번호(PHONE), USER_UID, 입실일(CHECK_IN_DATE), 퇴실일(CHECK_OUT_DATE)
+					String projNoFromExcel = ExcelUtil.getCellValue(row.getCell(0)) != null ? ExcelUtil.getCellValue(row.getCell(0)).toString().trim() : "";
+					String trialKeyFromExcel = ExcelUtil.getCellValue(row.getCell(1)) != null ? ExcelUtil.getCellValue(row.getCell(1)).toString().trim() : "";
+					String roomNo = ExcelUtil.getCellValue(row.getCell(2)) != null ? ExcelUtil.getCellValue(row.getCell(2)).toString().trim() : "";
+					String department = ExcelUtil.getCellValue(row.getCell(3)) != null ? ExcelUtil.getCellValue(row.getCell(3)).toString().trim() : "";
+					String name = ExcelUtil.getCellValue(row.getCell(4)) != null ? ExcelUtil.getCellValue(row.getCell(4)).toString().trim() : "";
+					String phone = ExcelUtil.getCellValue(row.getCell(5)) != null ? ExcelUtil.getCellValue(row.getCell(5)).toString().trim() : "";
+					Object userUidObj = ExcelUtil.getCellValue(row.getCell(6));
+					Object checkInDateObj = ExcelUtil.getCellValue(row.getCell(7));
+					Object checkOutDateObj = ExcelUtil.getCellValue(row.getCell(8));
+					
+					// 필수값 체크
+					if(roomNo.isEmpty() || name.isEmpty()) {
+						userlistFailCount++;
+						errorMsg.append("[방배정명단] 행 ").append(rowNum + 1).append(": ROOM_NO 또는 NAME이 비어있습니다.\n");
+						rowNum++;
+						continue;
+					}
+					
+					// Bean 생성
+					com.ssshi.ddms.dto.MobileRoomUserlistBean userlistBean = new com.ssshi.ddms.dto.MobileRoomUserlistBean();
+					// 엑셀에서 읽은 값이 있으면 우선 사용, 없으면 파라미터 값 사용
+					userlistBean.setProjNo(projNoFromExcel.isEmpty() ? projNo : projNoFromExcel);
+					userlistBean.setSchedulerInfoUid(schedulerInfoUid > 0 ? schedulerInfoUid : null);
+					userlistBean.setTrialKey(trialKeyFromExcel.isEmpty() ? trialKey : trialKeyFromExcel);
+					userlistBean.setRoomNo(roomNo);
+					userlistBean.setDepartment(department.isEmpty() ? null : department);
+					userlistBean.setName(name);
+					userlistBean.setPhone(phone.isEmpty() ? null : phone);
+					
+					// USER_UID 처리
+					userUid = -1;
+					if(userUidObj != null) {
+						try {
+							if(userUidObj instanceof Number) {
+								userUid = ((Number)userUidObj).intValue();
+							} else {
+								String userUidStr = userUidObj.toString().trim();
+								if(!userUidStr.isEmpty()) {
+									userUid = Integer.parseInt(userUidStr);
+								}
+							}
+						} catch(Exception e) {
+							// 숫자 변환 실패 시 null
+							userUid =  -1;
+						}
+					}
+					userlistBean.setUserUid(userUid);
+					
+					// 날짜 파싱 (YYYY-MM-DD 형식으로 변환)
+					String checkInDateStr = null;
+					if(checkInDateObj != null && !checkInDateObj.toString().trim().isEmpty()) {
+						if(checkInDateObj instanceof java.util.Date) {
+							// Date 객체인 경우
+							java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+							checkInDateStr = sdf.format((java.util.Date)checkInDateObj);
+						} else {
+							// 문자열인 경우
+							String dateStr = checkInDateObj.toString().trim();
+							// CommonUtil을 사용하여 날짜 형식 변환
+							checkInDateStr = com.ssshi.ddms.util.CommonUtil.excelDateStringFormatDate(dateStr);
+							// yyyy-MM-dd 형식이 아니면 null로 설정
+							if(!checkInDateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
+								checkInDateStr = null;
+							}
+						}
+					}
+					userlistBean.setCheckInDate(checkInDateStr);
+					
+					String checkOutDateStr = null;
+					if(checkOutDateObj != null && !checkOutDateObj.toString().trim().isEmpty()) {
+						if(checkOutDateObj instanceof java.util.Date) {
+							java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+							checkOutDateStr = sdf.format((java.util.Date)checkOutDateObj);
+						} else {
+							String dateStr = checkOutDateObj.toString().trim();
+							checkOutDateStr = com.ssshi.ddms.util.CommonUtil.excelDateStringFormatDate(dateStr);
+							if(!checkOutDateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
+								checkOutDateStr = null;
+							}
+						}
+					}
+					userlistBean.setCheckOutDate(checkOutDateStr);
+					
+					userlistBean.setStatus("CHECKED_IN"); // 기본값
+					userlistBean.setDelYn("N");
+					userlistBean.setRegUsername(username);
+					userlistBean.setUpdateUsername(username);
+					
+					// DB 저장
+					crewDao.insertMobileRoomUserlist(userlistBean);
+					userlistSuccessCount++;
+					
+				} catch(Exception e) {
+					userlistFailCount++;
+					errorMsg.append("[방배정명단] 행 ").append(rowNum + 1).append(": ").append(e.getMessage()).append("\n");
+					e.printStackTrace();
+				}
+				
+				rowNum++;
+			}
+			
+			workbook.close();
+			
+			// 임시 파일 삭제
+			if(path != null && !path.contains("DRM")) {
+				java.io.File tempFile = new java.io.File(path);
+				if(tempFile.exists()) {
+					tempFile.delete();
+				}
+			}
+			
+			resultMap.put(Const.RESULT, DBConst.SUCCESS);
+			resultMap.put("roomInfoSuccessCount", roomInfoSuccessCount);
+			resultMap.put("roomInfoFailCount", roomInfoFailCount);
+			resultMap.put("userlistSuccessCount", userlistSuccessCount);
+			resultMap.put("userlistFailCount", userlistFailCount);
+			resultMap.put("successCount", roomInfoSuccessCount + userlistSuccessCount); // 총 성공 건수
+			resultMap.put("failCount", roomInfoFailCount + userlistFailCount); // 총 실패 건수
+			
+			if(errorMsg.length() > 0) {
+				resultMap.put("msg", errorMsg.toString());
+			}
+			
+			// 완료 메시지 생성
+			String msg = "방정보 " + roomInfoSuccessCount + "건, 방배정인원 " + userlistSuccessCount + "건 업로드가 완료되었습니다.";
+			if(roomInfoFailCount > 0 || userlistFailCount > 0) {
+				msg += " (방정보 실패: " + roomInfoFailCount + "건, 방배정인원 실패: " + userlistFailCount + "건)";
+			}
+			resultMap.put("msg", msg);
+			
+		} catch(Exception e) {
+			e.printStackTrace();
+			resultMap.put(Const.RESULT, DBConst.FAIL);
+			resultMap.put("msg", "업로드 중 오류가 발생했습니다: " + e.getMessage());
+		}
+		
+		return resultMap;
+	}
+	
+	@Override
+	public void downRoomAssignmentExcel(HttpServletResponse response, int schedulerInfoUid) throws Exception {
+		XSSFWorkbook wb = null;
+		java.io.ByteArrayOutputStream baos = null;
+		
+		try {
+			// 데이터 조회
+			List<com.ssshi.ddms.dto.MobileRoomInfoBean> roomInfoList = crewDao.getMobileRoomInfoList(schedulerInfoUid);
+			List<com.ssshi.ddms.dto.MobileRoomUserlistBean> userlist = crewDao.getMobileRoomUserlist(schedulerInfoUid);
+			
+			// 엑셀 파일 생성
+			wb = new XSSFWorkbook();
+			
+			// 스타일 정의
+			CellStyle headStyle = wb.createCellStyle();
+			headStyle.setBorderBottom(CellStyle.BORDER_THIN);
+			headStyle.setBorderLeft(CellStyle.BORDER_THIN);
+			headStyle.setBorderTop(CellStyle.BORDER_THIN);
+			headStyle.setBorderRight(CellStyle.BORDER_THIN);
+			headStyle.setFillForegroundColor(HSSFColor.LIGHT_YELLOW.index);
+			headStyle.setFillPattern(CellStyle.SOLID_FOREGROUND);
+			headStyle.setAlignment(CellStyle.ALIGN_CENTER);
+			
+			CellStyle bodyStyle = wb.createCellStyle();
+			bodyStyle.setBorderBottom(CellStyle.BORDER_THIN);
+			bodyStyle.setBorderLeft(CellStyle.BORDER_THIN);
+			bodyStyle.setBorderTop(CellStyle.BORDER_THIN);
+			bodyStyle.setBorderRight(CellStyle.BORDER_THIN);
+			
+			CellStyle bodyCenterStyle = wb.createCellStyle();
+			bodyCenterStyle.setBorderBottom(CellStyle.BORDER_THIN);
+			bodyCenterStyle.setBorderLeft(CellStyle.BORDER_THIN);
+			bodyCenterStyle.setBorderTop(CellStyle.BORDER_THIN);
+			bodyCenterStyle.setBorderRight(CellStyle.BORDER_THIN);
+			bodyCenterStyle.setAlignment(CellStyle.ALIGN_CENTER);
+			
+			// 날짜 스타일
+			CreationHelper creationHelper = wb.getCreationHelper();
+			CellStyle dateStyle = wb.createCellStyle();
+			dateStyle.cloneStyleFrom(bodyStyle);
+			short dateFormat = creationHelper.createDataFormat().getFormat("yyyy-MM-dd");
+			dateStyle.setDataFormat(dateFormat);
+			
+			// Step 1: 첫번째 탭 - 필수)방배정명단
+			Sheet sheetUserlist = wb.createSheet("필수)방배정명단");
+			sheetUserlist.setColumnWidth(0, 3500); // 호선
+			sheetUserlist.setColumnWidth(1, 4000); // 스케줄넘버
+			sheetUserlist.setColumnWidth(2, 3000); // 방번호
+			sheetUserlist.setColumnWidth(3, 3500); // 부서
+			sheetUserlist.setColumnWidth(4, 3000); // 이름
+			sheetUserlist.setColumnWidth(5, 3500); // 휴대폰번호
+			sheetUserlist.setColumnWidth(6, 3000); // USER_UID
+			sheetUserlist.setColumnWidth(7, 3500); // 입실일
+			sheetUserlist.setColumnWidth(8, 3500); // 퇴실일
+			
+			int rowNo = 0;
+			int cellIdx = 0;
+			
+			// 헤더
+			Row headerRow = sheetUserlist.createRow(rowNo++);
+			cellIdx = 0;
+			Cell headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("호선");
+			headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("스케줄넘버");
+			headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("방번호");
+			headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("부서");
+			headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("이름");
+			headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("휴대폰번호");
+			headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("USER_UID");
+			headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("방사용시작일");
+			headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("방사용종료일");
+			
+			// 데이터 행
+			if(userlist != null) {
+				for(com.ssshi.ddms.dto.MobileRoomUserlistBean bean : userlist) {
+					Row row = sheetUserlist.createRow(rowNo++);
+					cellIdx = 0;
+					
+					Cell cell = row.createCell(cellIdx++);
+					cell.setCellStyle(bodyStyle);
+					cell.setCellValue(bean.getProjNo() != null ? bean.getProjNo() : "");
+					
+					cell = row.createCell(cellIdx++);
+					cell.setCellStyle(bodyStyle);
+					cell.setCellValue(bean.getTrialKey() != null ? bean.getTrialKey() : "");
+					
+					cell = row.createCell(cellIdx++);
+					cell.setCellStyle(bodyCenterStyle);
+					cell.setCellValue(bean.getRoomNo() != null ? bean.getRoomNo() : "");
+					
+					cell = row.createCell(cellIdx++);
+					cell.setCellStyle(bodyStyle);
+					cell.setCellValue(bean.getDepartment() != null ? bean.getDepartment() : "");
+					
+					cell = row.createCell(cellIdx++);
+					cell.setCellStyle(bodyStyle);
+					cell.setCellValue(bean.getName() != null ? bean.getName() : "");
+					
+					cell = row.createCell(cellIdx++);
+					cell.setCellStyle(bodyCenterStyle);
+					cell.setCellValue(bean.getPhone() != null ? bean.getPhone() : "");
+					
+					cell = row.createCell(cellIdx++);
+					cell.setCellStyle(bodyCenterStyle);
+					if(bean.getUserUid() != null && bean.getUserUid() > 0) {
+						cell.setCellType(Cell.CELL_TYPE_NUMERIC);
+						cell.setCellValue(bean.getUserUid());
+					} else {
+						cell.setCellValue("");
+					}
+					
+					cell = row.createCell(cellIdx++);
+					cell.setCellStyle(dateStyle);
+					if(bean.getCheckInDate() != null && !bean.getCheckInDate().isEmpty()) {
+						try {
+							java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+							java.util.Date date = sdf.parse(bean.getCheckInDate());
+							cell.setCellValue(date);
+						} catch(Exception e) {
+							cell.setCellValue(bean.getCheckInDate());
+						}
+					}
+					
+					cell = row.createCell(cellIdx++);
+					cell.setCellStyle(dateStyle);
+					if(bean.getCheckOutDate() != null && !bean.getCheckOutDate().isEmpty()) {
+						try {
+							java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+							java.util.Date date = sdf.parse(bean.getCheckOutDate());
+							cell.setCellValue(date);
+						} catch(Exception e) {
+							cell.setCellValue(bean.getCheckOutDate());
+						}
+					}
+				}
+			}
+			
+			// Step 2: 두번째 탭 - 필수)방정보
+			Sheet sheetRoomInfo = wb.createSheet("필수)방정보");
+			sheetRoomInfo.setColumnWidth(0, 3500); // 호선
+			sheetRoomInfo.setColumnWidth(1, 4000); // 스케줄넘버
+			sheetRoomInfo.setColumnWidth(2, 2500); // DECK
+			sheetRoomInfo.setColumnWidth(3, 3000); // ROOM_NO
+			sheetRoomInfo.setColumnWidth(4, 4000); // ROOM_NAME
+			sheetRoomInfo.setColumnWidth(5, 3500); // TEL
+			sheetRoomInfo.setColumnWidth(6, 3000); // 크기
+			sheetRoomInfo.setColumnWidth(7, 3000); // 침대수
+			sheetRoomInfo.setColumnWidth(8, 3000); // 화장실
+			
+			rowNo = 0;
+			cellIdx = 0;
+			
+			// 헤더
+			headerRow = sheetRoomInfo.createRow(rowNo++);
+			cellIdx = 0;
+			headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("호선");
+			headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("스케줄넘버");
+			headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("DECK");
+			headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("ROOM_NO");
+			headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("ROOM_NAME");
+			headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("TEL");
+			headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("크기");
+			headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("침대수");
+			headerCell = headerRow.createCell(cellIdx++);
+			headerCell.setCellStyle(headStyle);
+			headerCell.setCellValue("화장실");
+			
+			// 데이터 행
+			if(roomInfoList != null) {
+				for(com.ssshi.ddms.dto.MobileRoomInfoBean bean : roomInfoList) {
+					Row row = sheetRoomInfo.createRow(rowNo++);
+					cellIdx = 0;
+					
+					Cell cell = row.createCell(cellIdx++);
+					cell.setCellStyle(bodyStyle);
+					cell.setCellValue(bean.getProjNo() != null ? bean.getProjNo() : "");
+					
+					cell = row.createCell(cellIdx++);
+					cell.setCellStyle(bodyStyle);
+					cell.setCellValue(bean.getTrialKey() != null ? bean.getTrialKey() : "");
+					
+					cell = row.createCell(cellIdx++);
+					cell.setCellStyle(bodyCenterStyle);
+					cell.setCellValue(bean.getDeck() != null ? bean.getDeck() : "");
+					
+					cell = row.createCell(cellIdx++);
+					cell.setCellStyle(bodyCenterStyle);
+					cell.setCellValue(bean.getRoomNo() != null ? bean.getRoomNo() : "");
+					
+					cell = row.createCell(cellIdx++);
+					cell.setCellStyle(bodyStyle);
+					cell.setCellValue(bean.getRoomName() != null ? bean.getRoomName() : "");
+					
+					cell = row.createCell(cellIdx++);
+					cell.setCellStyle(bodyCenterStyle);
+					cell.setCellValue(bean.getTel() != null ? bean.getTel() : "");
+					
+					cell = row.createCell(cellIdx++);
+					cell.setCellStyle(bodyCenterStyle);
+					if(bean.getSizeM2() != null) {
+						cell.setCellType(Cell.CELL_TYPE_NUMERIC);
+						cell.setCellValue(bean.getSizeM2().doubleValue());
+					} else {
+						cell.setCellValue("");
+					}
+					
+					cell = row.createCell(cellIdx++);
+					cell.setCellStyle(bodyCenterStyle);
+					if(bean.getBedCount() != null) {
+						cell.setCellType(Cell.CELL_TYPE_NUMERIC);
+						cell.setCellValue(bean.getBedCount());
+					} else {
+						cell.setCellValue("");
+					}
+					
+					cell = row.createCell(cellIdx++);
+					cell.setCellStyle(bodyCenterStyle);
+					cell.setCellValue(bean.getBathroomYn() != null ? bean.getBathroomYn() : "");
+				}
+			}
+			
+			// 엑셀 파일을 메모리에 먼저 작성
+			baos = new java.io.ByteArrayOutputStream();
+			wb.write(baos);
+			baos.flush();
+			
+			// 파일명 생성 (현재시간 포함)
+			java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss");
+			String timestamp = sdf.format(new java.util.Date());
+			String fileName = "방배정양식_rev1_" + timestamp + ".xlsx";
+			
+			// 응답 설정 (엑셀 생성이 완료된 후에만 설정)
+			response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+			String outputFileName = new String(fileName.getBytes("KSC5601"), "8859_1");
+			response.setHeader("Content-Disposition", "attachment; fileName=\"" + outputFileName + "\"");
+			response.setContentLength(baos.size());
+			
+			// 응답 스트림에 쓰기
+			baos.writeTo(response.getOutputStream());
+			response.getOutputStream().flush();
+			
+		} catch(Exception e) {
+			e.printStackTrace();
+			// 예외 발생 시 응답이 커밋되지 않았으면 에러 페이지로 이동 가능
+			if(!response.isCommitted()) {
+				response.reset();
+				throw e;
+			} else {
+				throw e;
+			}
+		} finally {
+			// 리소스 정리
+			if(wb != null) {
+				try {
+					wb.close();
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+			}
+			if(baos != null) {
+				try {
+					baos.close();
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 }
