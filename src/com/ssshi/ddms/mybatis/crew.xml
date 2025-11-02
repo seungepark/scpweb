@@ -5,7 +5,8 @@
     
 <mapper namespace="com.ssshi.ddms.mybatis.dao.CrewDaoI"> 
 
-	<select id="getShipList" resultType="domainInfoBean">		<!-- UID, trialKey, shipType -->
+	<select id="getShipList" resultType="domainInfoBean">
+		<!-- UID, trialKey, shipType -->
 		SELECT 
 		    S.HULLNUM as projNo,        
 		    S.UID as val,           
@@ -46,7 +47,7 @@
     </select>
 	
 	<select id="getRegistrationCrewList" parameterType="RegistrationCrewBean" resultType="RegistrationCrewBean">
-		SELECT S.UID,  S.TRIALKEY , S.PROJECT, S.KIND, S.COMPANY, S.DEPARTMENT, S.NAME, S.RANK, S.IDNO, S.WORKTYPE1,
+		SELECT S.UID, S.SCHEDULERINFOUID as schedulerInfoUid, S.TRIALKEY , S.PROJECT, S.KIND, S.COMPANY, S.DEPARTMENT, S.NAME, S.RANK, S.IDNO, S.WORKTYPE1,
 			   S.WORKTYPE2, S.WORK, S.MAINSUB, S.FOODSTYLE, S.PERSONNO, S.GENDER, S.PHONE, S.ISPLAN, SD.TERMINAL,
 			   SD.NOTEBOOK AS LAPTOP, SD.MODEL_NAME AS MODELNM, SD.SERIAL_NUMBER AS SERIALNO,  SD.FOREIGNER, SD.PASSPORT_NUMBER AS PASSPORTNO, SD.ORDER_STATUS AS ORDERSTATUS, S.ISNONE, S.DELETE_YN
 		  FROM SCHECREW S
@@ -59,6 +60,17 @@
 		 <if test="ship != null and ship != 'ALL'" >
 			AND S.TRIALKEY <![CDATA[ = ]]> #{ship}
 		</if>	
+	</select>
+	
+	<select id="getRegistrationCrewListBySchedulerInfoUid" parameterType="int" resultType="RegistrationCrewBean">
+		SELECT S.UID, S.SCHEDULERINFOUID as schedulerInfoUid, S.TRIALKEY , S.PROJECT, S.KIND, S.COMPANY, S.DEPARTMENT, S.NAME, S.RANK, S.IDNO, S.WORKTYPE1,
+			   S.WORKTYPE2, S.WORK, S.MAINSUB, S.FOODSTYLE, S.PERSONNO, S.GENDER, S.PHONE, S.ISPLAN, SD.TERMINAL,
+			   SD.NOTEBOOK AS LAPTOP, SD.MODEL_NAME AS MODELNM, SD.SERIAL_NUMBER AS SERIALNO,  SD.FOREIGNER, SD.PASSPORT_NUMBER AS PASSPORTNO, SD.ORDER_STATUS AS ORDERSTATUS, S.ISNONE, S.DELETE_YN
+		  FROM SCHECREW S
+		  LEFT OUTER JOIN SCHECREWDETAILINFO SD ON S.UID = SD.SCHEDULERINFOUID
+		WHERE 1=1
+		  AND S.UID IS NOT NULL
+		  AND S.SCHEDULERINFOUID = #{schedulerInfoUid}
 	</select>
 	
 	<select id="getCrewInOutList" parameterType="ParamBean" resultType="scheCrewInOutBean">

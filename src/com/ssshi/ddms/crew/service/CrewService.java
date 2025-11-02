@@ -70,7 +70,14 @@ public class CrewService implements CrewServiceI {
 	@Override
 	public Map<String, Object> registrationCrew(HttpServletRequest request, RegistrationCrewBean bean) throws Exception {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		List<RegistrationCrewBean> crewList = crewDao.getRegistrationCrewList(bean);
+		List<RegistrationCrewBean> crewList = null;
+		
+		// schedulerInfoUid가 있으면 해당 스케줄의 승선자 리스트 조회
+		if(bean.getSchedulerInfoUid() > 0) {
+			crewList = crewDao.getRegistrationCrewListBySchedulerInfoUid(bean.getSchedulerInfoUid());
+		} else {
+			//crewList = crewDao.getRegistrationCrewList(bean);
+		}
 		
 		if(crewList != null) {
 			for(int i = 0; i < crewList.size(); i++) {
@@ -78,9 +85,16 @@ public class CrewService implements CrewServiceI {
 			}
 		}
 		
-		resultMap.put(Const.BEAN, dao.getScheduler(bean.getUid()));
+		// schedulerInfoUid가 있으면 해당 스케줄 정보 가져오기
+		if(bean.getSchedulerInfoUid() > 0) {
+			resultMap.put(Const.BEAN, dao.getScheduler(bean.getSchedulerInfoUid()));
+			resultMap.put("status", dao.getTrialStatus(bean.getSchedulerInfoUid()));
+		} else {
+			resultMap.put(Const.BEAN, dao.getScheduler(bean.getUid()));
+			resultMap.put("status", dao.getTrialStatus(bean.getUid()));
+		}
+		
 		resultMap.put(Const.LIST, crewList);
-		resultMap.put("status", dao.getTrialStatus(bean.getUid()));
 		
 		/* 조회조건 : 호선리스트 */
 		resultMap.put(Const.LIST + "Ship", crewDao.getShipList());
@@ -784,6 +798,7 @@ public class CrewService implements CrewServiceI {
 		return resultMap;
 	}
 	
+	@Override
 	public Map<String, Object> anchorageMealRemove(HttpServletRequest request, ParamBean bean) throws Exception {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		System.out.println("anchorageMealRemove");

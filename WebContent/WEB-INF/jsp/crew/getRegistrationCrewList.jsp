@@ -3,11 +3,12 @@
 {
 	"list": [
 		<c:forEach var="tmp" items="${list}" varStatus="status">
-			{
-				"uid":"${tmp.uid}",
-				"kind": "${tmp.kind}",
-				"trialKey": "${tmp.trialKey}",
-				"pjt": "${tmp.project}",
+		{
+			"uid":"${tmp.uid}",
+			"schedulerInfoUid": "${tmp.schedulerInfoUid}",
+			"kind": "${tmp.kind}",
+			"trialKey": "${tmp.trialKey}",
+			"pjt": "${tmp.project}",
 				"company": "${tmp.company}",
 				"department": "${tmp.department}",
 				"name": "${tmp.name}",

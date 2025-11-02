@@ -46,22 +46,22 @@
 					<div class="d-flex">
 					<div class="d-flex flex-row-reverse">				
 						<!-- 승선일/하선일 기간 조회 -->
-						<button class="bt-obj bt-primary" onclick="getAnchList()">
+						<button class="bt-obj bt-primary" onclick="searchAndReload()">
 									<img src="${pageContext.request.contextPath}/img/i_btn_search.svg" class="bt-icon" height="16px">
 									<span data-i18n="listOp.btnSearch"></span>
 						</button>
 						<!--<button class="bt-obj bt-primary mr-5" onclick="getRegistrationCrewList(1)">조회</button>-->
-	                   		<input type="date" id="outDate"/>&nbsp&nbsp
-							<input type="date" id="inDate"/>
+	                   		<input type="date" id="outDate" value="${outDate}"/>&nbsp&nbsp
+							<input type="date" id="inDate" value="${inDate}"/>
 						<div class="lb-title-no-sp" style="line-height: 44px;">기간&nbsp&nbsp</div>
 					
 					    <!-- 호선번호 조회(스케줄키) -->
 					    <!-- style="border: 1px solid red" -->
 					    <div class="col-auto">
 							<select id="ship">
-                                <option value="ALL" data-i18n="listOp.shipAll"></option>
+                                <option value="">선택하세요</option>
                                 <c:forEach var="ship" items="${listShip}">
-                                    <option value="${ship.val}">${ship.description}</option>
+                                    <option value="${ship.val}" <c:if test="${not empty schedulerInfoUid and schedulerInfoUid eq ship.val}">selected</c:if>>${ship.description}</option>
                                 </c:forEach>
                             </select>
 						</div>
@@ -175,8 +175,8 @@
                    		
 					</div>
                    	<div class="sp-16"></div>
-                    <div class="tb-wrap table_fixed_head">
-                        <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap " style="width:3000px; height:200px; overflow-y: auto; white-space: nowrap;"> 
+                    <div class="tb-wrap table_fixed_head" style="overflow-x: auto;">
+                        <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap " style="width:3000px; height:200px; white-space: nowrap;"> 
                             <thead>
                                 <tr id="tbHeader"></tr>
                             </thead>
@@ -220,6 +220,7 @@
 	  	<c:forEach var="item" items="${list}">
 	  		_crewList.push({
 	  			uid:"${item.uid}",
+	  			schedulerInfoUid: "${item.schedulerInfoUid}",
 	 			kind: "${item.kind}",
 	 			trialKey: "${item.trialKey}",
 				pjt: "${item.project}",

@@ -50,6 +50,9 @@ public interface CrewDaoI {
 	// 승선자 신청 목록.
 	List<RegistrationCrewBean> getRegistrationCrewList(RegistrationCrewBean bean) throws Exception;
 	
+	// schedulerInfoUid로 승선자 신청 목록 조회.
+	List<RegistrationCrewBean> getRegistrationCrewListBySchedulerInfoUid(int schedulerInfoUid) throws Exception;
+	
 	// 승선자별 승하선 정보.
 	List<ScheCrewInOutBean> getCrewInOutList(ParamBean bean) throws Exception;
 	
