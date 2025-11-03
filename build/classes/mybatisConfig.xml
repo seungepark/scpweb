@@ -62,5 +62,15 @@
 	    <typeAlias alias="scenarioBean" type="com.ssshi.ddms.dto.ScenarioBean" />
 	    <typeAlias alias="scenarioDetailBean" type="com.ssshi.ddms.dto.ScenarioDetailBean" />
 	    <typeAlias alias="workStdBean" type="com.ssshi.ddms.dto.WorkStdBean" />
+	    <!-- Bean 추가 -->
+	    <typeAlias alias="RegistrationCrewBean" type="com.ssshi.ddms.dto.RegistrationCrewBean" />
+	    <typeAlias alias="RegistrationCrewListBean" type="com.ssshi.ddms.dto.RegistrationCrewListBean" />
+	    <typeAlias alias="RegistrationCrewDetailBean" type="com.ssshi.ddms.dto.RegistrationCrewDetailBean" />
+	    <typeAlias alias="AnchorageMealRequestBean" type="com.ssshi.ddms.dto.AnchorageMealRequestBean" />
+	    <typeAlias alias="AnchorageMealQtyBean" type="com.ssshi.ddms.dto.AnchorageMealQtyBean" />
+	    <typeAlias alias="AnchorageMealListBean" type="com.ssshi.ddms.dto.AnchorageMealListBean" />
+	    <typeAlias alias="MobileRoomInfoBean" type="com.ssshi.ddms.dto.MobileRoomInfoBean" />
+	    <typeAlias alias="MobileRoomUserlistBean" type="com.ssshi.ddms.dto.MobileRoomUserlistBean" />
+	    
     </typeAliases>
 </configuration>
