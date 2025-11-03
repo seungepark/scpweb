@@ -1,0 +1,13 @@
+# Bin folder
+bin/
+build/
+
+# Class files
+*.class
+**/*.class
+
+# Compiled files
+*.jar
+*.war
+*.ear
+

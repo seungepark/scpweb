@@ -2,22 +2,22 @@
 <diagram version="1" name="Crew.erd">
 	<entities>
 		<data-source id="mysql8-19946fbad9d-51ff22a7d1854d29">
-			<entity id="1" name="revschecrew" fq-name="scp_db.revschecrew" order="0" font="Segoe UI:9:0" x="1064" y="402">
+			<entity id="1" name="revschecrew" fq-name="revschecrew" order="0" font="Segoe UI:9:0" x="1064" y="402">
 				<path name="scp_db"/>
 			</entity>
-			<entity id="2" name="revschecrewinout" fq-name="scp_db.revschecrewinout" order="1" font="Segoe UI:9:0" x="1063" y="90">
+			<entity id="2" name="revschecrewinout" fq-name="revschecrewinout" order="1" font="Segoe UI:9:0" x="1063" y="90">
 				<path name="scp_db"/>
 			</entity>
-			<entity id="3" name="schecrew" fq-name="scp_db.schecrew" order="2" font="Segoe UI:9:0" x="40" y="366">
+			<entity id="3" name="schecrew" fq-name="schecrew" order="2" font="Segoe UI:9:0" x="40" y="366">
 				<path name="scp_db"/>
 			</entity>
-			<entity id="4" name="schecrewinout" fq-name="scp_db.schecrewinout" order="3" font="Segoe UI:9:0" x="562" y="100">
+			<entity id="4" name="schecrewinout" fq-name="schecrewinout" order="3" font="Segoe UI:9:0" x="562" y="100">
 				<path name="scp_db"/>
 			</entity>
-			<entity id="5" name="schedulercrewdetail" fq-name="scp_db.schedulercrewdetail" order="4" font="Segoe UI:9:0" x="40" y="170">
+			<entity id="5" name="schedulercrewdetail" fq-name="schedulercrewdetail" order="4" font="Segoe UI:9:0" x="40" y="170">
 				<path name="scp_db"/>
 			</entity>
-			<entity id="6" name="schedulercrewinfo" fq-name="scp_db.schedulercrewinfo" order="5" font="Segoe UI:9:0" x="563" y="426">
+			<entity id="6" name="schedulercrewinfo" fq-name="schedulercrewinfo" order="5" font="Segoe UI:9:0" x="563" y="426">
 				<path name="scp_db"/>
 			</entity>
 		</data-source>
