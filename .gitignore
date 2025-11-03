@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Bin folder
 bin/
 build/
@@ -11,3 +12,7 @@ build/
 *.war
 *.ear
 
+=======
+bin/
+*.class
+>>>>>>> branch 'main' of https://github.com/seungepark/scpweb.git
