@@ -46,22 +46,22 @@
 					<div class="d-flex">
 					<div class="d-flex flex-row-reverse">				
 						<!-- 승선일/하선일 기간 조회 -->
-						<button class="bt-obj bt-primary" onclick="getAnchList()">
+						<button class="bt-obj bt-primary" onclick="searchAndReload()">
 									<img src="${pageContext.request.contextPath}/img/i_btn_search.svg" class="bt-icon" height="16px">
 									<span data-i18n="listOp.btnSearch"></span>
 						</button>
 						<!--<button class="bt-obj bt-primary mr-5" onclick="getRegistrationCrewList(1)">조회</button>-->
-	                   		<input type="date" id="outDate"/>&nbsp&nbsp
-							<input type="date" id="inDate"/>
+	                   		<input type="date" id="outDate" value="${outDate}"/>&nbsp&nbsp
+							<input type="date" id="inDate" value="${inDate}"/>
 						<div class="lb-title-no-sp" style="line-height: 44px;">기간&nbsp&nbsp</div>
 					
 					    <!-- 호선번호 조회(스케줄키) -->
 					    <!-- style="border: 1px solid red" -->
 					    <div class="col-auto">
 							<select id="ship">
-                                <option value="ALL" data-i18n="listOp.shipAll"></option>
+                                <option value="">선택하세요</option>
                                 <c:forEach var="ship" items="${listShip}">
-                                    <option value="${ship.val}">${ship.description}</option>
+                                    <option value="${ship.val}" <c:if test="${not empty schedulerInfoUid and schedulerInfoUid eq ship.val}">selected</c:if>>${ship.description}</option>
                                 </c:forEach>
                             </select>
 						</div>
@@ -79,23 +79,19 @@
 						<a href="javascript:void(0);" class="bt-obj bt-secondary mr-2" onclick="alertPop('개발중입니다');">
 							<i class="fas fa-mobile-alt"></i> QR발송
 						</a>
-						<c:choose>
-							<c:when test="${bean.isOff eq 'Y' or empty P_REG_CREW_W}">
-								<button class="bt-obj bt-primary" disabled><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
-							</c:when>
-							<c:otherwise>
-								<button class="bt-obj bt-primary" onclick="save()"><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
-							</c:otherwise>
-						</c:choose>
 						
-                   		<button class="bt-obj bt-primary" onclick="popDeleteCrewModal()"><i class="fa-solid fa-minus"></i></button>
-                   		<button class="bt-obj bt-primary" onclick="addCrew()"><i class="fa-solid fa-plus"></i></button>
-                   		
                    		<!-- 엑셀 업로드/다운로드 -->
                    		<button class="bt-obj bt-secondary" onclick="downCrewExcel()" data-i18n="btnDownload"></button>
                    		<div class="bt-obj bt-secondary file-btn">
                    			<span data-i18n="btnUpload"></span>
 							<input class="cursor-pointer" type="file" id="fileInput" onchange="excelUpload(event)" accept=".xlsx">
+                   		</div>
+                   		
+                   		<!-- 방배정 업로드/다운로드 -->
+                   		<button class="bt-obj bt-secondary" onclick="roomDownExcel()">방배정 다운로드</button>
+                   		<div class="bt-obj bt-secondary file-btn">
+                   			<span>방배정 업로드</span>
+							<input class="cursor-pointer" type="file" id="roomAssignmentFileInput" onchange="roomUpload(event)" accept=".xlsx">
                    		</div> 
                    		
                    		<!-- 승선일/하선일 반영 -->
@@ -158,8 +154,8 @@
            				
            				<div style="padding-right: 145px;"></div>
            				
-						<!-- SELECT -->
-					    <div class="col-auto">
+						<!-- 2025-11-02 pse SCP전송 버튼 클릭 기능 주석처리 
+					    <div class="col-auto" style="display-none;">
 							<select id="ship_scp" class="">
                                 <option value="ALL">전체</option>
                                 <c:forEach var="ship" items="${listShip}">
@@ -167,7 +163,22 @@
                                 </c:forEach>
                             </select>
 						</div>
-						<button class="bt-obj bt-primary" onclick="scpSave()">전송</button>
+						<button class="bt-obj bt-primary"  onclick="scpSave()">전송</button> 
+						-->
+						
+						<c:choose>
+							<c:when test="${bean.isOff eq 'Y' or empty P_REG_CREW_W}">
+								<button class="bt-obj bt-primary" disabled><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
+							</c:when>
+							<c:otherwise>
+								<button class="bt-obj bt-primary" onclick="save()"><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
+							</c:otherwise>
+						</c:choose>
+						
+                   		<button class="bt-obj bt-primary" onclick="popDeleteCrewModal()"><i class="fa-solid fa-minus"></i></button>
+                   		<button class="bt-obj bt-primary" onclick="addCrew()"><i class="fa-solid fa-plus"></i></button>
+                   		
+                   		
 						<button class="bt-obj bt-primary" onclick="orderSave()">발주</button>
 						
 						<!-- <button class="bt-obj bt-primary" onclick="setInOutDate()" target="_blank">다운로드</button> -->
@@ -175,8 +186,8 @@
                    		
 					</div>
                    	<div class="sp-16"></div>
-                    <div class="tb-wrap table_fixed_head">
-                        <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap " style="width:3000px; height:200px; overflow-y: auto; white-space: nowrap;"> 
+                    <div class="tb-wrap table_fixed_head" style="overflow-x: auto;">
+                        <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap " style="width:3000px; height:200px; white-space: nowrap;"> 
                             <thead>
                                 <tr id="tbHeader"></tr>
                             </thead>
@@ -220,6 +231,7 @@
 	  	<c:forEach var="item" items="${list}">
 	  		_crewList.push({
 	  			uid:"${item.uid}",
+	  			schedulerInfoUid: "${item.schedulerInfoUid}",
 	 			kind: "${item.kind}",
 	 			trialKey: "${item.trialKey}",
 				pjt: "${item.project}",

@@ -2,6 +2,7 @@ package com.ssshi.ddms.crew.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.ssshi.ddms.constant.Const;
+import com.ssshi.ddms.constant.DBConst;
 import com.ssshi.ddms.crew.service.CrewServiceI;
 import com.ssshi.ddms.dto.ParamBean;
 import com.ssshi.ddms.dto.RegistrationCrewBean;
@@ -34,7 +36,7 @@ import com.ssshi.ddms.dto.AnchorageMealListBean;
 /********************************************************************************
  * 프로그램 개요 : Crew
  * 
- * 최초 작성자 : 
+ * 최초 작성자 : picnic
  * 최초 작성일 : 
  * 
  * 최종 수정자 : 
@@ -42,10 +44,6 @@ import com.ssshi.ddms.dto.AnchorageMealListBean;
  * 
  * 메모 : 없음
  * 
- * Copyright 2025 by SiriusB. Confidential and proprietary information
- * This document contains information, which is the property of SiriusB, 
- * and is furnished for the sole purpose of the operation and the maintenance.  
- * Copyright © 2025 SiriusB.  All rights reserved.
  *
  ********************************************************************************/
 
@@ -57,8 +55,36 @@ public class CrewController {
 	
 	//Main(시운전 승선자 신청)
 	@RequestMapping(value="/crew/registrationCrew.html")
-	public String registrationCrew(HttpServletRequest request, ModelMap model, RegistrationCrewBean bean) throws Exception {
+	public String registrationCrew(HttpServletRequest request, ModelMap model, RegistrationCrewBean bean,
+			@RequestParam(value="schedulerInfoUid", required=false) Integer schedulerInfoUid,
+			@RequestParam(value="inDate", required=false) String inDate,
+			@RequestParam(value="outDate", required=false) String outDate) throws Exception {
+		// schedulerInfoUid 파라미터가 있으면 bean에 설정
+		
+		
+		// 기간 파라미터가 있으면 bean에 설정
+		if(inDate != null && !inDate.isEmpty()) {
+			bean.setInDate(inDate);
+		}
+		if(outDate != null && !outDate.isEmpty()) {
+			bean.setOutDate(outDate);
+		}
+		if(schedulerInfoUid != null && schedulerInfoUid>0) {
+			bean.setSchedulerInfoUid(schedulerInfoUid);
+		}		
+		
 		model.addAllAttributes(service.registrationCrew(request, bean));
+		
+		// 파라미터를 model에 추가하여 JSP에서 사용
+		if(schedulerInfoUid != null) {
+			model.addAttribute("schedulerInfoUid", schedulerInfoUid);
+		}
+		if(inDate != null && !inDate.isEmpty()) {
+			model.addAttribute("inDate", inDate);
+		}
+		if(outDate != null && !outDate.isEmpty()) {
+			model.addAttribute("outDate", outDate);
+		}
 		
 		return "crew/registrationCrew";
 	}
@@ -144,6 +170,18 @@ public class CrewController {
 		@RequestMapping(value="/crew/downAnchExcel.html")
 		public void downAnchExcel(HttpServletRequest request, HttpServletResponse response) throws Exception {
 			service.downAnchExcel(response);
+		}
+		
+		//방배정 양식 다운로드
+		@RequestMapping(value="/crew/downRoomAssignmentExcel.html")
+		public void downRoomAssignmentExcel(HttpServletRequest request, HttpServletResponse response,
+				@RequestParam(value="schedulerInfoUid", required=false, defaultValue="0") int schedulerInfoUid) throws Exception {
+			if(schedulerInfoUid <= 0) {
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				response.getWriter().write("스케줄번호를 선택해주세요.");
+				return;
+			}
+			service.downRoomAssignmentExcel(response, schedulerInfoUid);
 		}
 	
 	//앵카링 식사 신청 파일 업로드
@@ -269,5 +307,63 @@ public class CrewController {
 		model.addAllAttributes(service.anchorageMealRequest(request, bean));
 		
 		return "crew/resultMeal";
+	}
+	
+	//방배정 업로드 (DRM 파일)
+	@RequestMapping(value="/crew/roomAssignmentDRM.html", method=RequestMethod.POST)
+	public String roomAssignmentDRM(HttpServletRequest request, ModelMap model, 
+			@RequestParam("file") MultipartFile file,
+			@RequestParam(value="schedulerInfoUid", required=false, defaultValue="0") int schedulerInfoUid,
+			@RequestParam(value="trialKey", required=false, defaultValue="") String trialKey,
+			@RequestParam(value="projNo", required=false, defaultValue="") String projNo) throws Exception {
+		
+		// 파일이 없으면 오류 반환
+		if(file == null || file.isEmpty()) {
+			model.addAttribute(Const.RESULT, DBConst.FAIL);
+			model.addAttribute("msg", "파일이 없습니다.");
+			return "share/result";
+		}
+		
+		// 스케줄 정보가 없으면 ship select에서 가져오기
+		if((schedulerInfoUid == 0 || trialKey.isEmpty()) && request.getParameter("ship") != null) {
+			String shipVal = request.getParameter("ship");
+			if(!shipVal.isEmpty() && !shipVal.equals("ALL")) {
+				try {
+					schedulerInfoUid = Integer.parseInt(shipVal);
+					// trialKey와 projNo는 DB에서 조회 필요하지만, 일단 기본값 사용
+					if(trialKey.isEmpty()) {
+						// 나중에 DB에서 조회하도록 수정 필요
+					}
+				} catch(Exception e) {
+					// 파싱 실패 시 무시
+				}
+			}
+		}
+		
+		Map<String, Object> resultMap = service.roomAssignmentUpload(request, null, file, schedulerInfoUid, trialKey, projNo);
+		model.addAllAttributes(resultMap);
+		
+		return "share/result";
+	}
+	
+	//방배정 업로드 (일반 파일)
+	@RequestMapping(value="/crew/roomAssignmentUpload.html", method=RequestMethod.POST)
+	public String roomAssignmentUpload(HttpServletRequest request, ModelMap model,
+			@RequestParam("file") MultipartFile file,
+			@RequestParam(value="schedulerInfoUid", required=false, defaultValue="0") int schedulerInfoUid,
+			@RequestParam(value="trialKey", required=false, defaultValue="") String trialKey,
+			@RequestParam(value="projNo", required=false, defaultValue="") String projNo) throws Exception {
+		
+		// 파일이 없으면 오류 반환
+		if(file == null || file.isEmpty()) {
+			model.addAttribute(Const.RESULT, DBConst.FAIL);
+			model.addAttribute("msg", "파일이 없습니다.");
+			return "share/result";
+		}
+		
+		Map<String, Object> resultMap = service.roomAssignmentUpload(request, null, file, schedulerInfoUid, trialKey, projNo);
+		model.addAllAttributes(resultMap);
+		
+		return "share/result";
 	}
 }

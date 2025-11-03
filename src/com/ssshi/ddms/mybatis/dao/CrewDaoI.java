@@ -50,6 +50,9 @@ public interface CrewDaoI {
 	// 승선자 신청 목록.
 	List<RegistrationCrewBean> getRegistrationCrewList(RegistrationCrewBean bean) throws Exception;
 	
+	// schedulerInfoUid로 승선자 신청 목록 조회.
+	List<RegistrationCrewBean> getRegistrationCrewListBySchedulerInfoUid(int schedulerInfoUid) throws Exception;
+	
 	// 승선자별 승하선 정보.
 	List<ScheCrewInOutBean> getCrewInOutList(ParamBean bean) throws Exception;
 	
@@ -104,4 +107,22 @@ public interface CrewDaoI {
 	
 	// 앵카링 발주
 	int updateAnchOrder(Map<String, Object> map) throws Exception;
+	
+	// 방정보 저장
+	int insertMobileRoomInfo(com.ssshi.ddms.dto.MobileRoomInfoBean bean) throws Exception;
+	
+	// SCHEDULERINFOUID로 방정보 삭제
+	int deleteMobileRoomInfoBySchedulerInfoUid(int schedulerInfoUid) throws Exception;
+	
+	// 방배정명단 저장
+	int insertMobileRoomUserlist(com.ssshi.ddms.dto.MobileRoomUserlistBean bean) throws Exception;
+	
+	// SCHEDULERINFOUID로 방배정명단 삭제
+	int deleteMobileRoomUserlistBySchedulerInfoUid(int schedulerInfoUid) throws Exception;
+	
+	// SCHEDULERINFOUID로 방정보 목록 조회
+	List<com.ssshi.ddms.dto.MobileRoomInfoBean> getMobileRoomInfoList(int schedulerInfoUid) throws Exception;
+	
+	// SCHEDULERINFOUID로 방배정명단 목록 조회
+	List<com.ssshi.ddms.dto.MobileRoomUserlistBean> getMobileRoomUserlist(int schedulerInfoUid) throws Exception;
 }

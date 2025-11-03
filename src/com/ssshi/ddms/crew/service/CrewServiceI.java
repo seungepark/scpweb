@@ -5,6 +5,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.ssshi.ddms.dto.ParamBean;
 
 import com.ssshi.ddms.dto.RegistrationCrewBean;
@@ -41,4 +43,10 @@ public interface CrewServiceI {
 	Map<String, Object> anchOrderUpdate(HttpServletRequest request, ParamBean bean) throws Exception;
 	
 	void downAnchExcel(HttpServletResponse response) throws Exception;
+	
+	//방배정 업로드
+	Map<String, Object> roomAssignmentUpload(HttpServletRequest request, HttpServletResponse response, MultipartFile file, int schedulerInfoUid, String trialKey, String projNo) throws Exception;
+	
+	//방배정 다운로드
+	void downRoomAssignmentExcel(HttpServletResponse response, int schedulerInfoUid) throws Exception;
 }

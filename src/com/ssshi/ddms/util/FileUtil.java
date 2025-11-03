@@ -31,8 +31,8 @@ import com.itextpdf.text.Image;
 
 public class FileUtil {
 	
-//	public static final String FILE_DIR_ROOT = "D:\\FILEINFO_SCP";
-	public static final String FILE_DIR_ROOT = "C:\\FILEINFO_SCP";
+	public static final String FILE_DIR_ROOT = "D:\\FILEINFO_SCP";
+//	public static final String FILE_DIR_ROOT = "C:\\FILEINFO_SCP";
 	public static final String FILE_DIR_BACKUP_ROOT = "E://FILEINFO_SCP";
 	public static final String FILE_DIR_FOR_BBS = "\\BBS";
 	public static final String FILE_DIR_FOR_NOTE = "\\NOTE";

@@ -8,12 +8,20 @@ let _isSetPage = false;
 
 $(function(){
     initI18n();
+    
+    // URL 파라미터에서 schedulerInfoUid 확인
+    let urlParams = new URLSearchParams(window.location.search);
+    let schedulerInfoUid = urlParams.get('schedulerInfoUid');
+    
     init();
 
     initServerCheck();
     autocompleteOff();
 	
 	setSearchOption();
+	
+	// schedulerInfoUid가 있으면 이미 서버에서 데이터를 받아온 상태이므로 initData()에서 자동으로 표시됨
+	// schedulerInfoUid가 없으면 화면만 표시
 });
 
 function initI18n() {
@@ -71,6 +79,96 @@ function setCheckBox(input) {
 }
 
 //검색 옵션
+// 고정 열 위치 계산 및 설정
+// 고정 열 위치 계산 및 설정
+// 고정 열 위치 계산 및 설정
+function setFixedColumnPositions() {
+	// 테이블이 존재하는지 확인
+	if ($('#tbList').length === 0 || $('#tbList thead tr th').length === 0) {
+		return;
+	}
+	
+	// 직급까지의 열들 (1~10번째, 3번째는 숨김)
+	let fixedColumns = [1, 2, 4, 5, 6, 7, 8, 9, 10];
+	let leftPosition = 0;
+	
+	// 모든 sticky 스타일 초기화
+	$('#tbList th').css({
+		'position': '',
+		'left': '',
+		'z-index': ''
+	});
+	$('#tbList td').css({
+		'position': '',
+		'left': '',
+		'z-index': ''
+	});
+	
+	$('#tbList thead tr th').each(function(index) {
+		let colIndex = index + 1;
+		let isFixed = fixedColumns.indexOf(colIndex) !== -1;
+		let isVisible = $(this).css('display') !== 'none';
+		
+		if (isFixed && isVisible) {
+			let width = this.offsetWidth;
+			
+			if (!width || width === 0) {
+				// 너비를 가져올 수 없으면 재시도
+				setTimeout(setFixedColumnPositions, 100);
+				return false;
+			}
+			
+			// 헤더 고정
+			let $th = $('#tbList th:nth-child(' + colIndex + ')');
+			$th.css({
+				'position': 'sticky',
+				'left': leftPosition + 'px',
+				'top': '0px',
+				'z-index': colIndex === 1 ? '100' : '99',
+				'background-color': 'var(--neutral-150)',
+				'box-shadow': '2px 0 3px rgba(0,0,0,0.1)'
+			});
+			
+			// 바디 고정
+			let $td = $('#tbList td:nth-child(' + colIndex + ')');
+			$td.css({
+				'position': 'sticky',
+				'left': leftPosition + 'px',
+				'z-index': colIndex === 1 ? '11' : '10',
+				'background-color': '#FFFFFF',
+				'box-shadow': '2px 0 3px rgba(0,0,0,0.1)'
+			});
+			
+			leftPosition += width;
+		} else if (isVisible) {
+			// 고정되지 않는 열 - 헤더만 상단 고정
+			let $th = $('#tbList th:nth-child(' + colIndex + ')');
+			$th.css({
+				'position': 'sticky',
+				'top': '0px',
+				'z-index': '5',
+				'background-color': 'var(--neutral-150)'
+			});
+		}
+	});
+	
+	// 고정 위치 설정 후 필수값 필드 파란색 테두리 유지
+	applyRequiredFieldBorder();
+	
+	// hover 효과
+	$('#tbList tbody > tr').off('mouseenter mouseleave').on('mouseenter', function() {
+		$(this).find('td:nth-child(1), td:nth-child(2), td:nth-child(4), td:nth-child(5), td:nth-child(6), td:nth-child(7), td:nth-child(8), td:nth-child(9), td:nth-child(10)').css({
+			'background-color': 'var(--secondary-50)'
+		});
+	}).on('mouseleave', function() {
+		if (!$(this).hasClass('active')) {
+			$(this).find('td:nth-child(1), td:nth-child(2), td:nth-child(4), td:nth-child(5), td:nth-child(6), td:nth-child(7), td:nth-child(8), td:nth-child(9), td:nth-child(10)').css({
+				'background-color': '#FFFFFF'
+			});
+		}
+	});
+}
+
 function setSearchOption() {
 	let page = getSearchCookie('SK_PAGE');	
   	let ship = getSearchCookie('SK_SHIP');
@@ -78,12 +176,74 @@ function setSearchOption() {
 	let sortNm = getSearchCookie('SK_SORTNM');
 	let sortOd = getSearchCookie('SK_SORTOD');
   	
-  	if(ship != '') {
-  		$('#ship').val(ship).prop('selected', true);
-  	}
+	// URL 파라미터에서 검색조건 가져오기
+	let urlParams = new URLSearchParams(window.location.search);
+	let paramInDate = urlParams.get('inDate');
+	let paramOutDate = urlParams.get('outDate');
+	let paramSchedulerInfoUid = urlParams.get('schedulerInfoUid');
+	let paramFilterKind = urlParams.get('filterKind');
+	let paramFilterWorkType1 = urlParams.get('filterWorkType1');
+	let paramFilterWorkType2 = urlParams.get('filterWorkType2');
+	let paramFilterMainSub = urlParams.get('filterMainSub');
+	let paramFilterFoodStyle = urlParams.get('filterFoodStyle');
+	let paramFilterWord = urlParams.get('filterWord');
 	
-	today = new Date();
-	today = today.toISOString().slice(0, 10);
+	// URL 파라미터로 스케줄번호 설정
+	if(paramSchedulerInfoUid) {
+		$('#ship').val(paramSchedulerInfoUid).prop('selected', true);
+	} else if(ship != '' && ship !== 'ALL') {
+  		$('#ship').val(ship).prop('selected', true);
+	} else {
+		// 파라미터나 쿠키에 값이 없으면 "선택하세요"로 유지
+		$('#ship').val('').prop('selected', true);
+	}
+	
+	// URL 파라미터로 기간 설정
+	if(paramInDate) {
+		$('#inDate').val(paramInDate);
+	}
+	if(paramOutDate) {
+		$('#outDate').val(paramOutDate);
+	}
+	
+	// 오늘 날짜 설정 (시작일) - 파라미터가 없을 때만
+	/*let today = new Date();
+	let todayStr = today.toISOString().slice(0, 10);
+	
+	// 오늘 + 7일 설정 (종료일) - 파라미터가 없을 때만
+	let endDate = new Date();
+	endDate.setDate(endDate.getDate() + 7);
+	let endDateStr = endDate.toISOString().slice(0, 10);
+	
+	// 검색조건 날짜 초기값 설정 (첫 로딩시, 파라미터가 없을 때만)
+	if(!$('#inDate').val() || $('#inDate').val() === '') {
+		$('#inDate').val(todayStr);
+	}
+	if(!$('#outDate').val() || $('#outDate').val() === '') {
+		$('#outDate').val(endDateStr);
+	}*/
+	
+	// 필터 조건들 설정
+	if(paramFilterKind) {
+		$('#filterKind').val(paramFilterKind);
+	}
+	if(paramFilterWorkType1) {
+		$('#filterWorkType1').val(paramFilterWorkType1);
+		if(paramFilterWorkType2) {
+			setTimeout(function() {
+				$('#filterWorkType2').val(paramFilterWorkType2);
+			}, 100);
+		}
+	}
+	if(paramFilterMainSub) {
+		$('#filterMainSub').val(paramFilterMainSub);
+	}
+	if(paramFilterFoodStyle) {
+		$('#filterFoodStyle').val(paramFilterFoodStyle);
+	}
+	if(paramFilterWord) {
+		$('#filterWord').val(paramFilterWord);
+	}
 
 	if(page != '') {
 		_isSetPage = true;
@@ -97,43 +257,60 @@ function setSearchOption() {
 }
 
 // 승선자 목록 해더 세팅.
+// 승선자 목록 헤더 세팅.
 function initTableHeader() {
 	_crewCnt = 0;
 
-	let text = '<th class="th-w-40"><div class="tb-th-col"><span class="tb-th-content"><input type="checkbox" id="tbRowAllChk"></span></div></th>' +
-			'<th class="th-w-20"><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.no') + '</span></div></th>' +				
-			'<th style="display: none"><div class="tb-th-col"><span class="tb-th-content">' + "UID" + '</span></div></th>' +
-			'<th><div class="tb-th-col"><span class="tb-th-content">스케줄UID</span></div></th>' +
-			'<th><div class="tb-th-col"><span class="tb-th-content">스케줄KEY</span></div></th>' +
-				//'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.pjt') + '</span></div></th>' +				
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.kind') + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.company') + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.department') + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.name') + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.rank') + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.idNo') + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.workType1') + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.workType2') + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.work') + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.mainSub') + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.foodStyle') + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.personNo') + '</span></div></th>' + 
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.gender') + '</span></div></th>' + 
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.phone') + '</span></div></th>' + 
-				'<th class="th-w-200"><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.in') + '</span></div></th>' + 
-				'<th class="th-w-200"><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.out') + '</span></div></th>' + 
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.terminal') + '</span></div></th>' + 
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.laptop') + '</span></div></th>' + 
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.modelNm') + '</span></div></th>' + 
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.serialNo') + '</span></div></th>' + 
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.foreigner') + '</span></div></th>' + 
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.passportNo') + '</span></div></th>' + 
-				'<th><div class="tb-th-col-last"><span class="tb-th-content">' + $.i18n.t('list.orderStatus') + '</span></div></th>'; 
-				//'<th><div class="tb-th-col-last"><span class="tb-th-content">' + $.i18n.t('list.deleteYn') + '</span></div></th>';
+	let text = '<th class="th-w-40">' + 
+					'<input type="checkbox" id="tbRowAllChk">' + 
+				'</th>' +
+				'<th class="th-w-20">' + $.i18n.t('list.no') + '</th>' +				
+				'<th style="display: none">' + "UID" + '</th>' +
+				'<th>스케줄UID</th>' +
+				'<th>스케줄KEY</th>' +
+				'<th>호선Y</th>' +
+				'<th class="th-w-150">' + $.i18n.t('list.kind') + '</th>' +
+				'<th class="th-w-150">' + $.i18n.t('list.company') + '</th>' +
+				'<th class="th-w-150">' + $.i18n.t('list.department') + '</th>' +
+				'<th>' + $.i18n.t('list.name') + '</th>' +
+				'<th>' + $.i18n.t('list.rank') + '</th>' +
+				'<th>' + $.i18n.t('list.idNo') + '</th>' +
+				'<th class="th-w-150">' + $.i18n.t('list.workType1') + '</th>' +
+				'<th class="th-w-150">' + $.i18n.t('list.workType2') + '</th>' +
+				'<th class="th-w-150">' + $.i18n.t('list.work') + '</th>' +
+				'<th>' + $.i18n.t('list.mainSub') + '</th>' +
+				'<th>' + $.i18n.t('list.foodStyle') + '</th>' +
+				'<th>' + $.i18n.t('list.personNo') + '</th>' + 
+				'<th>' + $.i18n.t('list.gender') + '</th>' + 
+				'<th class="th-w-150">' + $.i18n.t('list.phone') + '</th>' + 
+				'<th class="th-w-200">' + $.i18n.t('list.in') + '</th>' + 
+				'<th class="th-w-200">' + $.i18n.t('list.out') + '</th>' + 
+				'<th>' + $.i18n.t('list.terminal') + '</th>' + 
+				'<th>' + $.i18n.t('list.laptop') + '</th>' + 
+				'<th>' + $.i18n.t('list.modelNm') + '</th>' + 
+				'<th>' + $.i18n.t('list.serialNo') + '</th>' + 
+				'<th>' + $.i18n.t('list.foreigner') + '</th>' + 
+				'<th>' + $.i18n.t('list.passportNo') + '</th>' + 
+				'<th>' + $.i18n.t('list.orderStatus') + '</th>'; 
 				
 	$('#tbHeader').empty();
 	$('#tbHeader').append(text);
 	setListEmpty();
+	
+	// 고정 열 위치 계산 및 설정 (헤더가 DOM에 추가되고 렌더링된 후 실행)
+	// requestAnimationFrame을 사용하여 브라우저 렌더링 후 실행
+	requestAnimationFrame(function() {
+		setFixedColumnPositions();
+		setTimeout(function() {
+			setFixedColumnPositions();
+		}, 50);
+		setTimeout(function() {
+			setFixedColumnPositions();
+		}, 150);
+		setTimeout(function() {
+			setFixedColumnPositions();
+		}, 300);
+	});
 	
 	$('#tbRowAllChk').click(function() {
 		if($('#tbRowAllChk').is(':checked')) {
@@ -152,6 +329,21 @@ function initTableHeader() {
 	});
 }
 
+// 필수값 필드에 파란색 테두리 추가
+function applyRequiredFieldBorder() {
+	// 필수값 필드: company, name, personNo, phone (직급 제외)
+	$('input[name="company"]:not([disabled]), input[name="name"]:not([disabled]), input[name="personNo"]:not([disabled]), input[name="phone"]:not([disabled])').each(function() {
+		// !important를 사용하여 강제로 적용 (setProperty 사용)
+		this.style.setProperty('border', '1px solid #007bff', 'important');
+		this.style.setProperty('border-radius', '4px', 'important');
+		// jQuery로도 설정 (호환성)
+		$(this).css({
+			'border': '1px solid #007bff',
+			'border-radius': '4px'
+		});
+	});
+}
+
 // 기존 데이터 세팅.
 function initData() {
 	$('#tbRowList').empty();
@@ -160,6 +352,7 @@ function initData() {
 		//alert("_crewList[z].orderStatus : "+_crewList[z].orderStatus);
 		_crewCnt++;
 		let uid = _crewList[z].uid;
+		let schedulerInfoUid = _crewList[z].schedulerInfoUid || '';
 		let rowId = _tbRowId++;
 		let kind = _crewList[z].kind;
 		let trialKey = _crewList[z].trialKey;
@@ -205,11 +398,12 @@ function initData() {
 		if(orderStatus == 'Y'){
 			text += '<tr id="tbRow_' + rowId + '">' + 
 									'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()" disabled></td>' +
-									'<td class="text-center th-w-20"><div name="no">' + _crewCnt + '</div></td>' +
+									'<td class="text-center th-w-20"><div name="no">' + _crewCnt +'('+ uid + ') </div></td>' +
 									'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '" disabled>' + '</td>' +
+									'<td class="text-center">' + '<input name="scheduleUid" type="text" disabled value="' + schedulerInfoUid + '">' + '</td>' +
 									'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
 									'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 												
-									'<td class="text-center">' + 
+									'<td class="text-center th-w-150">' + 
 										'<select name="kind" disabled>';
 										
 									text += '<option value="SHI-A"' + (kind == 'SHI-A' ? ' selected' : '') + '>SHI-기술지원직</option>' + 
@@ -219,17 +413,18 @@ function initData() {
 											
 								text += '</select>' +
 									'</td>' + 
-									'<td class="text-center">' + '<input name="company" type="text" disabled value="' + company + '">' + '</td>' + 
-									'<td class="text-center">' + '<input name="department" type="text" disabled value="' + department + '">' + '</td>' + 
-									'<td class="text-center">' + '<input name="name" type="text" disabled value="' + name + '">' + '</td>' + 
-									'<td class="text-center">' + '<input name="rank" type="text" disabled value="' + rank + '">' + '</td>' + 
+									'<td class="text-center th-w-150">' + '<input name="company" type="text" disabled value="' + company + '">' + '</td>' + 
+									'<td class="text-center th-w-150">' + '<input name="department" type="text" disabled value="' + department + '">' + '</td>' + 
+									'<td class="text-center th-w-150">' + '<input name="name" type="text" disabled value="' + name + '">' + '</td>' + 
+									'<td class="text-center th-w-100">' + '<input name="rank" type="text" disabled value="' + rank + '">' + '</td>' + 
 									
-									'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
-									    '<span class="mask">*****</span>' + '<input name="idNo" type="text" disabled value="' + idNo + '">' +
-									  '</div>' + 
-									'</td>' + 
+									// '<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' + 
+									//     '<span class="mask">*****</span>' + '<input name="idNo" type="text" disabled value="' + idNo + '">' + 
+									//   '</div>' + 
+									// '</td>' + 
+									'<td class="text-center">' + '<input name="idNo" type="text" disabled value="' + idNo + '">' + '</td>' + 
 									
-									'<td class="text-center">' + 
+									'<td class="text-center th-w-150">' +
 										'<select name="workType1" disabled onchange="setWorkType2(' + rowId + ', this.value)">';
 										
 									text += '<option value="A"' + (workType1 == 'A' ? ' selected' : '') + '>시운전</option>' + 
@@ -240,7 +435,7 @@ function initData() {
 											
 								text += '</select>' +
 									'</td>' + 
-									'<td class="text-center">' + 
+									'<td class="text-center th-w-150">' + 
 										'<select id="workType2_' + rowId + '" disabled name="workType2">';
 										
 								if(workType1 == 'A') {
@@ -284,7 +479,7 @@ function initData() {
 										
 								text += '</select>' +
 									'</td>' + 
-									'<td class="text-center">' + '<input name="work" type="text" disabled value="' + work + '">' + '</td>' + 
+									'<td class="text-center th-w-150">' + '<input name="work" type="text" disabled value="' + work + '">' + '</td>' + 
 									'<td class="text-center">' + 
 										'<select name="mainSub" disabled>';
 										
@@ -313,10 +508,11 @@ function initData() {
 									'</td>' + 
 				
 									
-									'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
-									    '<span class="mask">*****</span>' + '<input name="personNo" type="text" disabled value="' + personNo + '" >' +
-									  '</div>' + 
-									'</td>' + 
+									// '<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' + 
+									//     '<span class="mask">*****</span>' + '<input name="personNo" type="text" disabled value="' + personNo + '" >' + 
+									//   '</div>' + 
+									// '</td>' + 
+									'<td class="text-center">' + '<input name="personNo" type="text" disabled value="' + personNo + '">' + '</td>' + 
 
 									'<td class="text-center">' + 
 											'<select name="gender" disabled>';
@@ -327,10 +523,11 @@ function initData() {
 									text += '</select>' +
 									'</td>' + 
 									
-									'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
-									    '<span class="mask">*****</span>' + '<input name="phone" type="text" disabled value="' + phone + '" >' +
-									  '</div>' + 
-									'</td>';
+									// '<td class="text-center position-relative th-w-150">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' + 
+									//     '<span class="mask">*****</span>' + '<input name="phone" type="text" disabled value="' + phone + '" style="width: 100%;">' + 
+									//   '</div>' + 
+									// '</td>'; 
+									'<td class="text-center th-w-150">' + '<input name="phone" type="text" disabled value="' + phone + '" style="width: 100%;">' + '</td>'; 
 									
 								text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="date" disabled value="' + inDate + '" >' + '</td>' + 
 										'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="date" disabled value="' + outDate + '" >' + '</td>';
@@ -349,11 +546,12 @@ function initData() {
 		else{
 			text += '<tr id="tbRow_' + rowId + '">' + 
 							'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
-							'<td class="text-center th-w-20"><div name="no">' + _crewCnt + '</div></td>' +
+							'<td class="text-center th-w-20"><div name="no">' + _crewCnt  +'('+ uid + ') </div></td>' +
 							'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
+							'<td class="text-center">' + '<input name="scheduleUid" type="text" disabled value="' + schedulerInfoUid + '">' + '</td>' +
 							'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
 							'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 												
-							'<td class="text-center">' + 
+							'<td class="text-center th-w-150">' + 
 								'<select name="kind">';
 								
 							text += '<option value="SHI-A"' + (kind == 'SHI-A' ? ' selected' : '') + '>SHI-기술지원직</option>' + 
@@ -363,17 +561,18 @@ function initData() {
 									
 						text += '</select>' +
 							'</td>' + 
-							'<td class="text-center">' + '<input name="company" type="text" value="' + company + '">' + '</td>' + 
-							'<td class="text-center">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 
-							'<td class="text-center">' + '<input name="name" type="text" value="' + name + '">' + '</td>' + 
-							'<td class="text-center">' + '<input name="rank" type="text" value="' + rank + '">' + '</td>' + 
+							'<td class="text-center th-w-150">' + '<input name="company" type="text" value="' + company + '">' + '</td>' + 
+							'<td class="text-center th-w-150">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 
+							'<td class="text-center  th-w-150">' + '<input name="name" type="text" value="' + name + '">' + '</td>' + 
+							'<td class="text-center th-w-100">' + '<input name="rank" type="text" value="' + rank + '">' + '</td>' + 
 							
-							'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
-							    '<span class="mask">*****</span>' + '<input name="idNo" type="text" value="' + idNo + '">' +
-							  '</div>' + 
-							'</td>' + 
+							// '<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' + 
+							//     '<span class="mask">*****</span>' + '<input name="idNo" type="text" value="' + idNo + '">' + 
+							//   '</div>' + 
+							// '</td>' +
+							'<td class="text-center">' + '<input name="idNo" type="text" value="' + idNo + '">' + '</td>' +
 							
-							'<td class="text-center">' + 
+							'<td class="text-center th-w-150">' + 
 								'<select name="workType1" onchange="setWorkType2(' + rowId + ', this.value)">';
 								
 							text += '<option value="A"' + (workType1 == 'A' ? ' selected' : '') + '>시운전</option>' + 
@@ -384,7 +583,7 @@ function initData() {
 									
 						text += '</select>' +
 							'</td>' + 
-							'<td class="text-center">' + 
+							'<td class="text-center th-w-150">' + 
 								'<select id="workType2_' + rowId + '" name="workType2">';
 								
 						if(workType1 == 'A') {
@@ -428,7 +627,7 @@ function initData() {
 								
 						text += '</select>' +
 							'</td>' + 
-							'<td class="text-center">' + '<input name="work" type="text" value="' + work + '">' + '</td>' + 
+							'<td class="text-center th-w-150">' + '<input name="work" type="text" value="' + work + '">' + '</td>' + 
 							'<td class="text-center">' + 
 								'<select name="mainSub">';
 								
@@ -457,10 +656,11 @@ function initData() {
 							'</td>' + 
 		
 							
-							'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
-							    '<span class="mask">*****</span>' + '<input name="personNo" type="text" value="' + personNo + '" >' +
-							  '</div>' + 
-							'</td>' + 
+							// '<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' + 
+							//     '<span class="mask">*****</span>' + '<input name="personNo" type="text" value="' + personNo + '" >' + 
+							//   '</div>' + 
+							// '</td>' +
+							'<td class="text-center">' + '<input name="personNo" type="text" value="' + personNo + '">' + '</td>' +
 	
 							'<td class="text-center">' + 
 									'<select name="gender">';
@@ -471,10 +671,11 @@ function initData() {
 							text += '</select>' +
 							'</td>' + 
 							
-							'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
-							    '<span class="mask">*****</span>' + '<input name="phone" type="text" value="' + phone + '" >' +
-							  '</div>' + 
-							'</td>';
+							// '<td class="text-center position-relative th-w-150">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' + 
+							//     '<span class="mask">*****</span>' + '<input name="phone" type="text" value="' + phone + '" style="width: 100%;">' + 
+							//   '</div>' + 
+							// '</td>';
+							'<td class="text-center th-w-150">' + '<input name="phone" type="text" value="' + phone + '" style="width: 100%;">' + '</td>';
 							
 						text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="date" value="' + inDate + '" >' + '</td>' + 
 								'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="date" value="' + outDate + '" >' + '</td>';
@@ -495,6 +696,11 @@ function initData() {
 	//paging(_crewList.length, 1);
 	setListEmpty();
 	
+	// 필수값 필드에 파란색 테두리 적용
+	setTimeout(function() {
+		applyRequiredFieldBorder();
+	}, 100);
+	
 }
 
 // 목록 없음 확인.
@@ -503,6 +709,7 @@ function setListEmpty() {
 		$('#tbRowList').empty();
 		$("#tbRowList").append('<tr><td class="text-center" colspan="16">' + $.i18n.t('share:noList') + '</td></tr>');
 	}
+ 
 }
 
 //전체리스트 엑셀 다운로드
@@ -669,7 +876,7 @@ function orderSave() {
 						$('#loading').css("display","block");
 					},
 					complete: function() {
-						$('#loading').css('display',"none");
+						// success나 error에서 이미 로딩을 숨김
 					}
 		        });
 		    }
@@ -721,11 +928,11 @@ function addCrew() {
 					'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
 					'<td class="text-center th-w-20"><div name="no">' + _crewCnt + '</div></td>' +
 					'<td class="text-center" style="display: none">' + '<input name="uid" type="text" disabled value="' + selectedShipUid + '">' + '</td>' + 
-					'<td class="text-center">' + '<input name="scheduleUid" type="text" disabled value="' + selectedShipUid + '">' + '</td>' +
+					//'<td class="text-center">' + '<input name="scheduleUid" type="text" disabled value="' + selectedShipUid + '">' + '</td>' +
 					'<td class="text-center">' + '<input name="trialKey" type="text" disabled value="' + selectedShipTrialKey + '">' + '</td>' + 
-					'<td class="text-center">' + '<input name="pjt" type="text" disabled>' + '</td>' + 
+					'<td class="text-center" style="display: none">' + '<input name="pjt" type="text" disabled>' + '</td>' + 
 					
-					'<td class="text-center">' + 
+					'<td class="text-center th-w-150">' + 
 						'<select name="kind">' +
 							'<option value="SHI-A">SHI-기술지원직</option>' + 
 							'<option value="SHI-B">SHI-생산직</option>' + 
@@ -734,12 +941,12 @@ function addCrew() {
 						'</select>' +
 					'</td>' + 
 					
-					'<td class="text-center">' + '<input name="company" type="text">' + '</td>' + 
-					'<td class="text-center">' + '<input name="department" type="text">' + '</td>' + 
-					'<td class="text-center">' + '<input name="name" type="text">' + '</td>' + 
-					'<td class="text-center">' + '<input name="rank" type="text">' + '</td>' + 
-					'<td class="text-center">' + '<input name="idNo" type="text">' + '</td>' + 
-					'<td class="text-center">' + 
+					'<td class="text-center th-w-150">' + '<input name="company" type="text">' + '</td>' + 
+					'<td class="text-center th-w-150">' + '<input name="department" type="text">' + '</td>' + 
+					'<td class="text-center  th-w-150">' + '<input name="name" type="text">' + '</td>' + 
+					'<td class="text-center th-w-100">' + '<input name="rank" type="text">' + '</td>' + 
+					'<td class="text-center">' + '<input name="idNo" type="text">' + 					'</td>' + 
+					'<td class="text-center th-w-150">' + 
 						'<select name="workType1" onchange="setWorkType2(' + rowId + ', this.value)">' +
 							'<option value="A">시운전</option>' + 
 							'<option value="B">생산</option>' + 
@@ -748,10 +955,10 @@ function addCrew() {
 							'<option value="E">외부</option>' + 
 						'</select>' +
 					'</td>' + 
-					'<td class="text-center">' + 
+					'<td class="text-center th-w-150">' + 
 						'<select id="workType2_' + rowId + '" name="workType2"></select>' +
 					'</td>' + 
-					'<td class="text-center">' + '<input name="work" type="text">' + '</td>' + 
+					'<td class="text-center th-w-150">' + '<input name="work" type="text">' + '</td>' + 
 					'<td class="text-center">' + 
 						'<select name="mainSub">' +
 							'<option value="N">-</option>' + 
@@ -781,7 +988,7 @@ function addCrew() {
 							'<option value="F">여</option>' + 
 						'</select>' +
 					'</td>' + 
-					'<td class="text-center">' + '<input name="phone" type="text">' + '</td>' + 
+					'<td class="text-center th-w-150">' + '<input name="phone" type="text" style="width: 100%;">' + '</td>' + 
 					'<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="date">' + '</td>' + 
 					'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="date">' + '</td>' +
 					'<td class="text-center">' + '<input name="terminal" type="checkbox" value="N" onclick="setCheckBox(this)">' + '</td>' +
@@ -797,6 +1004,18 @@ function addCrew() {
 
 	$('#tbRowList').append(text);
 	setWorkType2(rowId, 'A');
+	
+	// 고정 열 위치 재계산 (여러 번 시도하여 확실히 적용)
+	setTimeout(function() {
+		setFixedColumnPositions();
+		// 고정 위치 설정 후 파란색 테두리 적용
+		applyRequiredFieldBorder();
+	}, 100);
+	setTimeout(function() {
+		setFixedColumnPositions();
+		// 고정 위치 설정 후 파란색 테두리 적용
+		applyRequiredFieldBorder();
+	}, 300);
 }
 
 // 역할2 세팅.
@@ -936,6 +1155,74 @@ function downCrewExcel() {
 	window.location.href = contextPath + '/crew/downCrewExcel.html';
 }
 
+// 방배정 다운로드.
+function roomDownExcel() {
+	// 스케줄번호 필수 선택 체크
+	let ship = $('#ship').val();
+	if(ship == "" || ship == "ALL" || ship == "선택하세요") {
+		alertPop('스케줄번호를 선택해주세요.');
+		return;
+	}
+	
+	// 로딩 이미지 표시
+	$('#loading').css('display','block');
+	
+	// 다운로드 진행
+	try {
+		let schedulerInfoUid = ship && ship != '' && ship != 'ALL' && ship != '선택하세요' ? ship : 0;
+		
+		if(schedulerInfoUid <= 0) {
+			$('#loading').css('display','none');
+			alertPop('스케줄번호를 선택해주세요.');
+			return;
+		}
+		
+		// 다운로드 URL 생성
+		let downloadUrl = contextPath + '/crew/downRoomAssignmentExcel.html?schedulerInfoUid=' + encodeURIComponent(schedulerInfoUid);
+		
+		// iframe을 사용하여 다운로드 (progress 표시를 위해)
+		let iframe = document.createElement('iframe');
+		iframe.style.display = 'none';
+		iframe.style.width = '0px';
+		iframe.style.height = '0px';
+		
+		// iframe 로드 완료 후 처리
+		iframe.onload = function() {
+			// 다운로드 완료 후 약간의 지연 후 로딩 숨김
+			setTimeout(function() {
+				$('#loading').css('display','none');
+				if(iframe.parentNode) {
+					document.body.removeChild(iframe);
+				}
+			}, 1000);
+		};
+		
+		iframe.onerror = function() {
+			$('#loading').css('display','none');
+			alertPop('다운로드 중 오류가 발생했습니다.');
+			if(iframe.parentNode) {
+				document.body.removeChild(iframe);
+			}
+		};
+		
+		document.body.appendChild(iframe);
+		iframe.src = downloadUrl;
+		
+		// 타임아웃 처리 (10초 후 강제 종료)
+		setTimeout(function() {
+			if(iframe.parentNode) {
+				$('#loading').css('display','none');
+				document.body.removeChild(iframe);
+			}
+		}, 10000);
+		
+	} catch(e) {
+		$('#loading').css('display','none');
+		alertPop('다운로드 중 오류가 발생했습니다.');
+		console.error('Error download:', e);
+	}
+}
+
 // 양식 파일 열기.
 function openFileInput() {
 	document.getElementById('fileInput').click();
@@ -989,7 +1276,7 @@ function excelUpload(event) {
 						$('#loading').css("display","block");
 					},
 					complete: function() {
-						$('#loading').css('display',"none");
+						// success나 error에서 이미 로딩을 숨김
 					}
 				});
 				
@@ -1012,6 +1299,147 @@ function excelUpload(event) {
 	};
 	
 	reader.readAsBinaryString(input.files[0]);
+}
+
+// 방배정 업로드.
+function roomUpload(event) {
+	if(_status == 'ONGO' || _status == 'ARRIVE') {
+		alertPop($.i18n.t('error.upload'));
+		return;
+	}
+	
+	// 스케줄번호 필수 선택 체크
+	if($('#ship').val() == "" || $('#ship').val() == "ALL") {
+		alertPop('스케줄번호를 선택해주세요.');
+		return;
+	}
+	
+	// 로딩 이미지 표시
+	$('#loading').css('display','block');
+	
+	let input = event.target;
+	let reader = new FileReader();
+	
+	reader.onload = function() {
+		try {
+			
+			let fileData = reader.result;
+			let json = null;
+			
+			// DRM 걸린 파일 인지 확인
+			if(fileData.indexOf('Fasoo DRM') > -1){
+				const formData = new FormData();
+				formData.append('file', input.files[0]);
+				
+				// 스케줄 정보 가져오기
+				let ship = $('#ship').val();
+				let schedulerInfoUid = ship && ship != '' && ship != 'ALL' ? ship : 0;
+				let trialKey = $('#ship option:selected').text();
+				let projNo = '';
+				
+				formData.append('schedulerInfoUid', schedulerInfoUid);
+				formData.append('trialKey', trialKey);
+				formData.append('projNo', projNo);
+								
+				$.ajax({
+					type: 'POST',
+					url: contextPath + '/crew/roomAssignmentDRM.html',
+					data: formData,
+					contentType: false,
+					processData: false,
+					dataType: "json",
+					success: function(response) {
+						$('#loading').css('display','none');
+						if(response.result == true || response.result == 'SUCCESS') {
+							let msg = response.msg || '방배정 데이터가 업로드되었습니다.';
+							alertPop(msg);
+						} else {
+							alertPop(response.msg || '방배정 업로드 중 오류가 발생했습니다.');
+						}
+					},
+					error: function(error) {
+						$('#loading').css('display','none');
+						console.error('Error DRM file:', error);
+						alertPop('방배정 업로드 중 오류가 발생했습니다.');
+					},
+					beforeSend: function() {
+						// 로딩 이미지는 이미 표시되어 있으므로 유지 (필요시만)
+					},
+					complete: function() {
+						// success나 error에서 이미 로딩을 숨김
+					}
+				});
+			} else{
+				// 일반 파일인 경우 FormData로 전송
+				const formData = new FormData();
+				formData.append('file', input.files[0]);
+				
+				// 스케줄 정보 가져오기
+				let ship = $('#ship').val();
+				let schedulerInfoUid = ship && ship != '' && ship != 'ALL' ? ship : 0;
+				let trialKey = $('#ship option:selected').text();
+				let projNo = '';
+				
+				// 프로젝트 번호는 나중에 DB에서 조회하거나 trialKey에서 추출 가능
+				
+				formData.append('schedulerInfoUid', schedulerInfoUid);
+				formData.append('trialKey', trialKey);
+				formData.append('projNo', projNo);
+				
+				$.ajax({
+					type: 'POST',
+					url: contextPath + '/crew/roomAssignmentUpload.html',
+					data: formData,
+					contentType: false,
+					processData: false,
+					dataType: "json",
+					success: function(response) {
+						$('#loading').css('display','none');
+						if(response.result == true || response.result == 'SUCCESS') {
+							let msg = response.msg || '방배정 데이터가 업로드되었습니다.';
+							alertPop(msg);
+						} else {
+							alertPop(response.msg || '방배정 업로드 중 오류가 발생했습니다.');
+						}
+					},
+					error: function(error) {
+						$('#loading').css('display','none');
+						console.error('Error upload file:', error);
+						alertPop('방배정 업로드 중 오류가 발생했습니다.');
+					},
+					beforeSend: function() {
+						// 로딩 이미지는 이미 표시되어 있으므로 유지 (필요시만)
+					},
+					complete: function() {
+						// success나 error에서 이미 로딩을 숨김
+					}
+				});
+			}
+			
+		}catch(e) {
+			$('#loading').css('display','none');
+			alertPop($.i18n.t('share:tryAgain'));
+			input.value = '';
+		}
+	};
+	
+	reader.onerror = function() {
+		$('#loading').css('display','none');
+		alertPop('파일 읽기 중 오류가 발생했습니다.');
+		input.value = '';
+	};
+	
+	reader.readAsBinaryString(input.files[0]);
+}
+
+// 방배정 데이터 처리
+function roomProcessData(json) {
+	// 방배정 데이터 처리 로직 구현 필요
+	// 예: 서버로 전송하거나 테이블에 반영
+	console.log('Room assignment data:', json);
+	alertPop('방배정 데이터가 업로드되었습니다.');
+	// 필요시 테이블 리로드 또는 데이터 갱신
+	// getRegistrationCrewList(1);
 }
 
 // 데이터 리스트 생성 및 데이터 세팅 호출
@@ -1169,8 +1597,8 @@ function setExcelData(trialKeyList, pjtList,kindList, companyList, departmentLis
 						'<td class="text-center"><div name="no">' + _crewCnt + '</div></td>' +
 						'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
 						'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
-						'<td class="text-center">' + '<input name="pjt" type="text" value="' + project + '" disabled>' + '</td>' + 
-						'<td class="text-center">' + 
+						'<td class="text-center" style="display: none">' + '<input name="pjt" type="text" value="' + project+ '" disabled>' + '</td>' + 
+						'<td class="text-center th-w-150">' + 
 							'<select name="kind">';
 							
 						text += '<option value="SHI-A"' + (kind == 'SHI-A' ? ' selected' : '') + '>SHI-기술지원직</option>' + 
@@ -1181,12 +1609,12 @@ function setExcelData(trialKeyList, pjtList,kindList, companyList, departmentLis
 					text += '</select>' +
 						'</td>' + 
 						
-						'<td class="text-center">' + '<input name="company" type="text" value="' + company + '">' + '</td>' + 
-						'<td class="text-center">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 
-						'<td class="text-center">' + '<input name="name" type="text" value="' + name + '">' + '</td>' + 
-						'<td class="text-center">' + '<input name="rank" type="text" value="' + rank + '">' + '</td>' + 
+						'<td class="text-center th-w-150">' + '<input name="company" type="text" value="' + company + '">' + '</td>' + 
+						'<td class="text-center th-w-150">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 
+						'<td class="text-center  th-w-150">' + '<input name="name" type="text" value="' + name + '">' + '</td>' + 
+						'<td class="text-center th-w-100">' + '<input name="rank" type="text" value="' + rank + '">' + '</td>' + 
 						'<td class="text-center">' + '<input name="idNo" type="text" value="' + idNo + '">' + '</td>' + 
-						'<td class="text-center">' + 
+						'<td class="text-center th-w-150">' + 
 							'<select name="workType1" onchange="setWorkType2(' + rowId + ', this.value)">';
 							
 						text += '<option value="A"' + (workType1 == '시운전' ? ' selected' : '') + '>시운전</option>' + 
@@ -1197,7 +1625,7 @@ function setExcelData(trialKeyList, pjtList,kindList, companyList, departmentLis
 								
 					text += '</select>' +
 						'</td>' + 
-						'<td class="text-center">' + 
+						'<td class="text-center th-w-150">' + 
 							'<select id="workType2_' + rowId + '" name="workType2">';
 							
 					if(workType1 == 'A') {
@@ -1241,7 +1669,7 @@ function setExcelData(trialKeyList, pjtList,kindList, companyList, departmentLis
 							};
 					text += '</select>' +
 						'</td>' + 
-						'<td class="text-center">' + '<input name="work" type="text" value="' + work + '">' + '</td>' + 
+						'<td class="text-center th-w-150">' + '<input name="work" type="text" value="' + work + '">' + '</td>' + 
 						'<td class="text-center">' + 
 							'<select name="mainSub">';
 							
@@ -1277,7 +1705,7 @@ function setExcelData(trialKeyList, pjtList,kindList, companyList, departmentLis
 									
 						text += '</select>' +
 						'</td>' + 
-						'<td class="text-center">' + '<input name="phone" type="text" value="' + phone + '">' + '</td>';
+						'<td class="text-center th-w-150">' + '<input name="phone" type="text" value="' + phone + '" style="width: 100%;">' + '</td>';
 						
 					text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="text" value="' + inDate + '" >' + '</td>' + 
 							'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="text" value="' + outDate + '" >' + '</td>';
@@ -1296,6 +1724,19 @@ function setExcelData(trialKeyList, pjtList,kindList, companyList, departmentLis
 	}
 	
 	setListEmpty();
+	
+	// 필수값 필드에 파란색 테두리 적용
+	setTimeout(function() {
+		applyRequiredFieldBorder();
+	}, 100);
+	
+	// 고정 열 위치 재계산 (여러 번 시도하여 확실히 적용)
+	setTimeout(function() {
+		setFixedColumnPositions();
+	}, 100);
+	setTimeout(function() {
+		setFixedColumnPositions();
+	}, 300);
 }
 
 // 저장.
@@ -1438,13 +1879,6 @@ function save() {
 		
 		if(isEmpty(nameVl[i].value)) {
 			nameVl[i].focus();
-			alertPop($.i18n.t('errorRequired'));
-			isError = true;
-			break;
-		}
-		
-		if(isEmpty(rankVl[i].value)) {
-			rankVl[i].focus();
 			alertPop($.i18n.t('errorRequired'));
 			isError = true;
 			break;
@@ -1676,6 +2110,7 @@ function getRegistrationCrewList(page) {
 			for(var i = 0; i < json.list.length; i++) {					
 					let rowId = i+1;
 					let uid = json.list[i].uid;
+					let schedulerInfoUid = json.list[i].schedulerInfoUid || ship; // 서버에서 받은 값이 없으면 선택한 ship 값 사용
 					let kind = json.list[i].kind;
 					let trialKey = json.list[i].trialKey;
 					let pjt = json.list[i].pjt;
@@ -1726,16 +2161,16 @@ function getRegistrationCrewList(page) {
 					}
 					
 				if(orderStatus == 'Y'){
-					// 선택된 ship UID 가져오기 (스케줄UID 필터링용)
-					let selectedShipUid = ship && ship != 'ALL' ? ship : '';
+					// 실제 데이터의 스케줄 UID 사용
+					let actualScheduleUid = schedulerInfoUid || (ship && ship != 'ALL' ? ship : '');
 					
 					text += '<tr id="tbRow_' + rowId + '">' + 
 								'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
-								'<td class="text-center th-w-20"><div name="no">' + rowId + '</div></td>' +
+								'<td class="text-center th-w-20"><div name="no">' + rowId  +'('+ uid +')'+ + '</div></td>' + 
 								'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
-								'<td class="text-center">' + '<input name="scheduleUid" type="text" disabled value="' + selectedShipUid + '">' + '</td>' +
+								'<td class="text-center">' + '<input name="scheduleUid" type="text" disabled value="' + actualScheduleUid + '">' + '</td>' +
 								'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' +
-									'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 
+									'<td class="text-center" style="display: none">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 
 									'<td class="text-center">' + 
 										'<select name="kind" disabled>';
 										 
@@ -1746,14 +2181,15 @@ function getRegistrationCrewList(page) {
 											
 								text += '</select>' +
 									'</td>' + 
-									'<td class="text-center">' + '<input name="company" type="text" value="' + company + '" disabled>' + '</td>' + 
-									'<td class="text-center">' + '<input name="department" type="text" value="' + department + '" disabled>' + '</td>' + 
-									'<td class="text-center">' + '<input name="name" type="text" value="' + name + '" disabled>' + '</td>' + 
-									'<td class="text-center">' + '<input name="rank" type="text" value="' + rank + '" disabled>' + '</td>' + 
-									'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
-									    '<span class="mask">*****</span>' + '<input name="idNo" type="text" disabled value="' + idNo + '">' +
-									  '</div>' + 
-									'</td>' +  
+									'<td class="text-center  th-w-150">' + '<input name="company" type="text" value="' + company + '" disabled>' + '</td>' + 
+									'<td class="text-center  th-w-150">' + '<input name="department" type="text" value="' + department + '" disabled>' + '</td>' + 
+									'<td class="text-center  th-w-150">' + '<input name="name" type="text" value="' + name + '" disabled>' + '</td>' + 
+									'<td class="text-center th-w-100">' + '<input name="rank" type="text" value="' + rank + '" disabled>' + '</td>' + 
+									// '<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
+									//     '<span class="mask">*****</span>' + '<input name="idNo" type="text" disabled value="' + idNo + '">' +
+									//   '</div>' + 
+									// '</td>' +  
+									'<td class="text-center">' + '<input name="idNo" type="text" disabled value="' + idNo + '">' + '</td>' +  
 									'<td class="text-center">' + 
 										'<select name="workType1" disabled onchange="setWorkType2(' + rowId + ', this.value)">';
 										
@@ -1765,7 +2201,7 @@ function getRegistrationCrewList(page) {
 											
 								text += '</select>' +
 									'</td>' + 
-									'<td class="text-center">' + 
+									'<td class="text-center th-w-150">' + 
 										'<select id="workType2_' + rowId + '" disabled name="workType2">';
 										
 								if(workType1 == 'A') {
@@ -1837,10 +2273,11 @@ function getRegistrationCrewList(page) {
 											
 								text += '</select>' +
 									'</td>' + 
-									'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
-									    '<span class="mask">*****</span>' + '<input name="personNo" type="text" disabled value="' + personNo + '" >' +
-									  '</div>' + 
-									'</td>' +  
+									// '<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
+									//     '<span class="mask">*****</span>' + '<input name="personNo" type="text" disabled value="' + personNo + '" >' +
+									//   '</div>' + 
+									// '</td>' +  
+									'<td class="text-center">' + '<input name="personNo" type="text" disabled value="' + personNo + '">' + '</td>' +  
 									'<td class="text-center">' + 
 											'<select name="gender" disabled>';
 											
@@ -1849,10 +2286,11 @@ function getRegistrationCrewList(page) {
 												
 									text += '</select>' +
 									'</td>' + 
-									'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
-									    '<span class="mask">*****</span>' + '<input name="phone" type="text" disabled value="' + phone + '" >' +
-									  '</div>' + 
-									'</td>';
+									// '<td class="text-center position-relative th-w-150">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' + 
+									//     '<span class="mask">*****</span>' + '<input name="phone" type="text" disabled value="' + phone + '" style="width: 100%;">' + 
+									//   '</div>' + 
+									// '</td>';
+									'<td class="text-center th-w-150">' + '<input name="phone" type="text" disabled value="' + phone + '" style="width: 100%;">' + '</td>';
 									
 								text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="text" value="' + inDate + '"  disabled>' + '</td>' + 
 										'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="text" value="' + outDate + '"  disabled>' + '</td>';
@@ -1868,17 +2306,17 @@ function getRegistrationCrewList(page) {
 						text += '</tr>';
 					}
 					else{
-						// 선택된 ship UID 가져오기 (스케줄UID 필터링용)
-						let selectedShipUidForElse = ship && ship != 'ALL' ? ship : '';
+						// 실제 데이터의 스케줄 UID 사용
+						let actualScheduleUidForElse = schedulerInfoUid || (ship && ship != 'ALL' ? ship : '');
 						
 						text += '<tr id="tbRow_' + rowId + '">' + 
 										'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
-										'<td class="text-center th-w-20"><div name="no">' + rowId + '</div></td>' +
+										'<td class="text-center th-w-20"><div name="no">' + rowId  +'('+ uid +')'+  '</div></td>' + 
 										'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
-										'<td class="text-center">' + '<input name="scheduleUid" type="text" disabled value="' + selectedShipUidForElse + '">' + '</td>' +
+										'<td class="text-center">' + '<input name="scheduleUid" type="text" disabled value="' + actualScheduleUidForElse + '">' + '</td>' +
 										'<td class="text-center th-w-60">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
-										'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 
-										'<td class="text-center">' + 
+										'<td class="text-center" style="display: none">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' +
+										'<td class="text-center th-w-150">' + 
 											'<select name="kind">';
 											
 										text += '<option value="SHI-A"' + (kind == 'SHI-A' ? ' selected' : '') + '>SHI-기술지원직</option>' + 
@@ -1888,15 +2326,16 @@ function getRegistrationCrewList(page) {
 												
 									text += '</select>' +
 										'</td>' + 
-										'<td class="text-center">' + '<input name="company" type="text" value="' + company + '">' + '</td>' + 
-										'<td class="text-center">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 
-										'<td class="text-center">' + '<input name="name" type="text" value="' + name + '">' + '</td>' + 
-										'<td class="text-center">' + '<input name="rank" type="text" value="' + rank + '">' + '</td>' + 
-										'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
-										    '<span class="mask">*****</span>' + '<input name="idNo" type="text" disabled value="' + idNo + '">' +
-										  '</div>' + 
-										'</td>' + 
-										'<td class="text-center">' + 
+										'<td class="text-center th-w-150">' + '<input name="company" type="text" value="' + company + '">' + '</td>' + 
+										'<td class="text-center th-w-150">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 
+										'<td class="text-center th-w-150">' + '<input name="name" type="text" value="' + name + '">' + '</td>' + 
+										'<td class="text-center th-w-100">' + '<input name="rank" type="text" value="' + rank + '">' + '</td>' + 
+										// '<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
+										//     '<span class="mask">*****</span>' + '<input name="idNo" type="text" disabled value="' + idNo + '">' +
+										//   '</div>' + 
+										// '</td>' + 
+										'<td class="text-center">' + '<input name="idNo" type="text" disabled value="' + idNo + '">' + '</td>' + 
+										'<td class="text-center th-w-150">' + 
 											'<select name="workType1" onchange="setWorkType2(' + rowId + ', this.value)">';
 											
 										text += '<option value="A"' + (workType1 == 'A' ? ' selected' : '') + '>시운전</option>' + 
@@ -1907,7 +2346,7 @@ function getRegistrationCrewList(page) {
 												
 									text += '</select>' +
 										'</td>' + 
-										'<td class="text-center">' + 
+										'<td class="text-center th-w-150">' + 
 											'<select id="workType2_' + rowId + '" name="workType2">';
 											
 									if(workType1 == 'A') {
@@ -1952,7 +2391,7 @@ function getRegistrationCrewList(page) {
 											
 									text += '</select>' +
 										'</td>' + 
-										'<td class="text-center">' + '<input name="work" type="text" value="' + work + '">' + '</td>' + 
+										'<td class="text-center th-w-150">' + '<input name="work" type="text" value="' + work + '">' + '</td>' + 
 										'<td class="text-center">' + 
 											'<select name="mainSub">';
 											
@@ -1979,10 +2418,11 @@ function getRegistrationCrewList(page) {
 												
 									text += '</select>' +
 										'</td>' + 
-										'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
-										    '<span class="mask">*****</span>' + '<input name="personNo" type="text" disabled value="' + personNo + '" >' +
-										  '</div>' + 
-										'</td>' + 
+										// '<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
+										//     '<span class="mask">*****</span>' + '<input name="personNo" type="text" disabled value="' + personNo + '" >' +
+										//   '</div>' + 
+										// '</td>' + 
+										'<td class="text-center">' + '<input name="personNo" type="text" disabled value="' + personNo + '">' + '</td>' + 
 										'<td class="text-center">' + 
 												'<select name="gender">';
 												
@@ -1991,10 +2431,11 @@ function getRegistrationCrewList(page) {
 													
 										text += '</select>' +
 										'</td>' + 
-										'<td class="text-center position-relative">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' +
-										    '<span class="mask">*****</span>' + '<input name="phone" type="text" disabled value="' + phone + '" >' +
-										  '</div>' + 
-										'</td>';
+									// '<td class="text-center position-relative th-w-150">'+'<div class="secret-box" onmouseover="this.classList.add(\'show\')" onmouseout="this.classList.remove(\'show\')">' + 
+									//     '<span class="mask">*****</span>' + '<input name="phone" type="text" disabled value="' + phone + '" style="width: 100%;">' + 
+									//   '</div>' + 
+									// '</td>';
+									'<td class="text-center th-w-150">' + '<input name="phone" type="text" disabled value="' + phone + '" style="width: 100%;">' + '</td>';
 									text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="text" value="' + inDate + '" >' + '</td>' + 
 											'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="text" value="' + outDate + '" >' + '</td>';
 											
@@ -2163,6 +2604,68 @@ function setFilterWorkType2(workType1) {
 		workType2.append('<option value="E8">기타</option>');
 	}
 	searchList();
+}
+
+// 검색 버튼 클릭 시 검색조건으로 페이지 리로드
+function searchAndReload() {
+	let inDate = $('#inDate').val();
+	let outDate = $('#outDate').val();
+	let ship = $('#ship').val();
+	let filterKind = $('#filterKind').val();
+	let filterWorkType1 = $('#filterWorkType1').val();
+	let filterWorkType2 = $('#filterWorkType2').val();
+	let filterMainSub = $('#filterMainSub').val();
+	let filterFoodStyle = $('#filterFoodStyle').val();
+	let filterWord = $('#filterWord').val();
+	
+	// URL 파라미터 생성
+	let params = new URLSearchParams();
+	
+	// 기간
+	if(inDate && inDate !== '') {
+		params.append('inDate', inDate);
+	}
+	if(outDate && outDate !== '') {
+		params.append('outDate', outDate);
+	}
+	
+	// 스케줄번호 (선택되었을 때만 파라미터 전달)
+	if(ship && ship !== '' && ship !== 'ALL') {
+		params.append('schedulerInfoUid', ship);
+	}
+	
+	// 스케줄번호가 선택되지 않았으면 검색 불가 알림
+	if(!ship || ship === '' || ship === 'ALL') {
+		alertPop('스케줄번호를 선택해주세요.');
+		return;
+	}
+	
+	// 필터 조건들 (나중에 서버에서 처리할 수 있도록 전달)
+	if(filterKind && filterKind !== '' && filterKind !== 'ALL') {
+		params.append('filterKind', filterKind);
+	}
+	if(filterWorkType1 && filterWorkType1 !== '' && filterWorkType1 !== 'ALL') {
+		params.append('filterWorkType1', filterWorkType1);
+	}
+	if(filterWorkType2 && filterWorkType2 !== '' && filterWorkType2 !== 'ALL') {
+		params.append('filterWorkType2', filterWorkType2);
+	}
+	if(filterMainSub && filterMainSub !== '' && filterMainSub !== 'ALL') {
+		params.append('filterMainSub', filterMainSub);
+	}
+	if(filterFoodStyle && filterFoodStyle !== '' && filterFoodStyle !== 'ALL') {
+		params.append('filterFoodStyle', filterFoodStyle);
+	}
+	if(filterWord && filterWord !== '') {
+		params.append('filterWord', filterWord);
+	}
+	
+	// 페이지 리로드
+	let url = window.location.pathname;
+	if(params.toString()) {
+		url += '?' + params.toString();
+	}
+	window.location.href = url;
 }
 
 	
