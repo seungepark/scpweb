@@ -1738,7 +1738,7 @@ function getRegistrationCrewList(page) {
 									'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 
 									'<td class="text-center">' + 
 										'<select name="kind" disabled>';
-										
+										 
 									text += '<option value="SHI-A"' + (kind == 'SHI-A' ? ' selected' : '') + '>SHI-기술지원직</option>' + 
 											'<option value="SHI-B"' + (kind == 'SHI-B' ? ' selected' : '') + '>SHI-생산직</option>' + 
 											'<option value="SHI-C"' + (kind == 'SHI-C' ? ' selected' : '') + '>SHI-협력사</option>' + 

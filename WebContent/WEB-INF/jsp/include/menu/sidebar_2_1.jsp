@@ -171,7 +171,7 @@
        			</a>
 	   		</div>
 	   	</c:if>
-	   	<c:if test="${M_P_REG_CREW_R or M_P_REG_CREW_W or M_P_ANCH_MEAL_R or M_P_ANCH_MEAL_W or M_P_RESULT_MEAL_P or M_P_RESULT_MEAL_W}">
+	   	<c:if test="${M_P_REG_CREW_R or M_P_REG_CREW_W or M_P_ANCH_MEAL_R or M_P_ANCH_MEAL_W or M_P_RESULT_MEAL_R or M_P_RESULT_MEAL_W}">
 	   		<div class="main-item active" data-toggle="collapse" data-target="#main-2-collapse" aria-expanded="true">
 	       		<div class="main-item-icon-area">
 	           		<svg class="main-item-icon active" width="32" height="33" viewBox="0 0 32 33" fill="none" xmlns="http://www.w3.org/2000/svg">

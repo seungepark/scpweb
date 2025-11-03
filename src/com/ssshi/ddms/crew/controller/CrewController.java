@@ -265,8 +265,8 @@ public class CrewController {
 	
 	//Main(실적 확인)
 	@RequestMapping(value="/crew/resultMeal.html")
-	public String resultMeal(HttpServletRequest request, ModelMap model, RegistrationCrewBean bean) throws Exception {
-		model.addAllAttributes(service.registrationCrew(request, bean));
+	public String resultMeal(HttpServletRequest request, ModelMap model, AnchorageMealRequestBean bean) throws Exception {
+		model.addAllAttributes(service.anchorageMealRequest(request, bean));
 		
 		return "crew/resultMeal";
 	}
