@@ -1049,21 +1049,19 @@ public class CrewService implements CrewServiceI {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		List<AnchorageMealRequestBean> anchList = crewDao.getMealResultList(bean);
 		resultMap.put(Const.LIST_CNT, crewDao.getAnchorageMealListCnt());
-		System.out.println("오나용7890");
+		System.out.println("getInDate : "+bean.getInDate());
 
 		//계획
-		if(anchList != null) {					
-			System.out.println("오나용5555");
+		if(anchList != null) {				
 			for(int i = 0; i < anchList.size(); i++) {
 				anchList.get(i).setPlanList(crewDao.getMealResultPlanQtyList(anchList.get(i).getUid()));
-				System.out.println("getUid11 :"+ anchList.get(i).getUid());
-				System.out.println("setPlanList11:"+ anchList.get(i).getPlanList().size());
+				System.out.println("getUid1 :"+ anchList.get(i).getUid());
+				System.out.println("setPlanList:"+ anchList.get(i).getPlanList().size());
 			}
-			System.out.println("setPlanList22 :"+ anchList.size());
+			System.out.println("setPlanList :"+ anchList.size());
 		}
 		//실적
 		if(anchList != null) {
-			System.out.println("오나용555444");
 			for(int z = 0; z < anchList.size(); z++) {
 				AnchorageMealQtyBean anchResultQty = new AnchorageMealQtyBean();
 				anchResultQty.setProjNo(anchList.get(z).getProjNo());
@@ -1071,7 +1069,7 @@ public class CrewService implements CrewServiceI {
 				anchResultQty.setMealDate(anchList.get(z).getMealDate());
 				anchList.get(z).setResultList(crewDao.getMealResultQtyList(anchResultQty));
 			}
-			System.out.println("setResultList11"+ anchList.size());
+			System.out.println("setResultList"+ anchList.size());
 		}
 
 		//resultMap.put(Const.BEAN, dao.getScheduler(bean.getUid()));
@@ -1080,7 +1078,40 @@ public class CrewService implements CrewServiceI {
 		
 		/* 조회조건 : 호선리스트 */
 		resultMap.put(Const.LIST + "Ship", crewDao.getAnchShipList());
-		System.out.println("오나용7890");
+		return resultMap;
+	}
+	
+	@Override
+	public Map<String, Object> getMealResultList(HttpServletRequest request, AnchorageMealRequestBean bean) throws Exception {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		List<AnchorageMealRequestBean> anchList = crewDao.getMealResultList(bean);
+		resultMap.put(Const.LIST_CNT, crewDao.getAnchorageMealListCnt());
+
+		//계획
+		if(anchList != null) {				
+			for(int i = 0; i < anchList.size(); i++) {
+				anchList.get(i).setPlanList(crewDao.getMealResultPlanQtyList(anchList.get(i).getUid()));
+				System.out.println("getUid :"+ anchList.get(i).getUid());
+				System.out.println("setPlanList:"+ anchList.get(i).getPlanList().size());
+			}
+			System.out.println("setPlanList :"+ anchList.size());
+		}
+		//실적
+		if(anchList != null) {
+			for(int z = 0; z < anchList.size(); z++) {
+				AnchorageMealQtyBean anchResultQty = new AnchorageMealQtyBean();
+				anchResultQty.setProjNo(anchList.get(z).getProjNo());
+				anchResultQty.setDepartment(anchList.get(z).getDepartment());
+				anchResultQty.setMealDate(anchList.get(z).getMealDate());
+				anchList.get(z).setResultList(crewDao.getMealResultQtyList(anchResultQty));
+			}
+			System.out.println("setResultList"+ anchList.size());
+		}
+
+		resultMap.put(Const.LIST, anchList);
+		
+		/* 조회조건 : 호선리스트 */
+		resultMap.put(Const.LIST + "Ship", crewDao.getAnchShipList());
 		return resultMap;
 	}
 	

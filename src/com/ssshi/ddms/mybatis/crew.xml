@@ -216,9 +216,9 @@
 			from mobile_anchor_meal_info
 			where 1=1 
 			  <!-- and meal_date <![CDATA[ >= ]]> '2025-11-01'
-			  and meal_date <![CDATA[ <= ]]> '2025-11-13' -->
+			  and meal_date <![CDATA[ <= ]]> '2025-11-13'  -->
 			  and meal_date <![CDATA[ >= ]]> #{inDate}
-			  and meal_date <![CDATA[ <= ]]> #{outDate}
+			  and meal_date <![CDATA[ <= ]]> #{outDate} 
 		 <if test="ship != null and ship != 'ALL'" >
 			AND PROJ_NO <![CDATA[ = ]]> #{ship}			
 		 </if>
@@ -240,7 +240,7 @@
 	
 	<select id="getMealResultQtyList" parameterType="AnchorageMealQtyBean" resultType = "AnchorageMealQtyBean">
 		SELECT ANCHOR_MEAL_UID,  MEAL_TIME as resultMealTime, DEPT_NAME as department, proj_no as projNo,
-			   MEAL_GUBUN as resultMealGubun, MEAL_DATE as resultMealDate, COUNT(*) as resultMealPlanQty
+			   MEAL_GUBUN as resultMealGubun, MEAL_DATE as resultMealDate, COUNT(*) as resultMealQty
 		  FROM mobile_anchor_meal_userinfo
 		 where 1=1
 		   and meal_date <![CDATA[ = ]]> #{mealDate}

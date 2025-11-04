@@ -304,10 +304,16 @@ public class CrewController {
 	//Main(실적 확인)
 	@RequestMapping(value="/crew/resultMeal.html")
 	public String resultMeal(HttpServletRequest request, ModelMap model, AnchorageMealRequestBean bean) throws Exception {
-		System.out.println("어디까지");
 		model.addAllAttributes(service.resultMeal(request, bean));
-		System.out.println("여기까지");
+		
 		return "crew/resultMeal";
+	}
+	//앵카링 실적 리스트 조회
+	@RequestMapping(value="/crew/getMealResultList.html")
+	public String getMealResultList(HttpServletRequest request, ModelMap model, AnchorageMealRequestBean bean) throws Exception {
+		model.addAllAttributes(service.resultMeal(request, bean));
+		
+		return "crew/getMealResultList";
 	}
 	
 	//방배정 업로드 (DRM 파일)
