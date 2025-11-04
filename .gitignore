@@ -1,2 +1,18 @@
+# Bin folder
 bin/
+build/
+
+# Class files
 *.class
+**/*.class
+
+# Compiled archives (but keep WebContent/WEB-INF/lib/*.jar)
+*.war
+*.ear
+
+# Eclipse
+.settings/
+.project
+.classpath
+*.launch
+.metadata/
