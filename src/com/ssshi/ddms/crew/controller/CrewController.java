@@ -304,8 +304,9 @@ public class CrewController {
 	//Main(실적 확인)
 	@RequestMapping(value="/crew/resultMeal.html")
 	public String resultMeal(HttpServletRequest request, ModelMap model, AnchorageMealRequestBean bean) throws Exception {
-		model.addAllAttributes(service.anchorageMealRequest(request, bean));
-		
+		System.out.println("어디까지");
+		model.addAllAttributes(service.resultMeal(request, bean));
+		System.out.println("여기까지");
 		return "crew/resultMeal";
 	}
 	

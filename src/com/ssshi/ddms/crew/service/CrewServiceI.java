@@ -44,6 +44,9 @@ public interface CrewServiceI {
 	
 	void downAnchExcel(HttpServletResponse response) throws Exception;
 	
+	//실적 집계
+	Map<String, Object> resultMeal(HttpServletRequest request, AnchorageMealRequestBean bean) throws Exception;
+	
 	//방배정 업로드
 	Map<String, Object> roomAssignmentUpload(HttpServletRequest request, HttpServletResponse response, MultipartFile file, int schedulerInfoUid, String trialKey, String projNo) throws Exception;
 	

@@ -101,12 +101,24 @@ public interface CrewDaoI {
 	// 앵카링 식사수량 저장 (계획).
 	int insertMealQty(AnchorageMealQtyBean bean) throws Exception;
 	
-	
 	// 앵카링 신청 목록 개수.
 	int getAnchorageMealListCnt() throws Exception;
 	
 	// 앵카링 발주
 	int updateAnchOrder(Map<String, Object> map) throws Exception;
+	
+	//실적집계리스트
+	List<AnchorageMealRequestBean> getMealResultList(AnchorageMealRequestBean bean) throws Exception;
+	
+	// 앵카링 식사신청 수량 (계획).
+	List<AnchorageMealQtyBean> getMealResultPlanQtyList(int anchUid) throws Exception;
+	
+	// 앵카링 식사신청 수량 (실적).
+	List<AnchorageMealQtyBean> getMealResultQtyList(AnchorageMealQtyBean bean) throws Exception;
+	
+	// 실적 목록 개수.
+	int getMealResultListCnt() throws Exception;
+		
 	
 	// 방정보 저장
 	int insertMobileRoomInfo(com.ssshi.ddms.dto.MobileRoomInfoBean bean) throws Exception;

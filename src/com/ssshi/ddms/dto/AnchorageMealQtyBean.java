@@ -5,6 +5,8 @@ public class AnchorageMealQtyBean {
 	private int uid;
 	private String uuid;
 	private String projNo;
+	private String mealDate;
+	private String department;
 	private int scheCrewUid;
 	private int anchorMealUid;
 	private String planMealDate;
@@ -46,6 +48,18 @@ public class AnchorageMealQtyBean {
 	}
 	public void setProjNo(String projNo) {
 		this.projNo = projNo;
+	}
+	public String getMealDate() {
+		return mealDate;
+	}
+	public void setMealDate(String mealDate) {
+		this.mealDate = mealDate;
+	}
+	public String getDepartment() {
+		return department;
+	}
+	public void setDepartment(String department) {
+		this.department = department;
 	}
 	public int getScheCrewUid() {
 		return scheCrewUid;

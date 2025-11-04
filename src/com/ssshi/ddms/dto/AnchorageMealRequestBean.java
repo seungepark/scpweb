@@ -31,6 +31,10 @@ public class AnchorageMealRequestBean {
 	private String inputUid;
 	private String inputDate;
 	
+	private String inDate;
+	private String outDate;
+	
+	
 	private String foodStyle;
 	
 	private List<AnchorageMealQtyBean> planList;
@@ -85,6 +89,18 @@ public class AnchorageMealRequestBean {
 	}
 	public String getInputDate() {
 		return inputDate;
+	}
+	public void setInDate(String inDate) {
+		this.inDate = inDate;
+	}
+	public String getInDate() {
+		return inDate;
+	}
+	public void setOutDate(String outDate) {
+		this.outDate = outDate;
+	}
+	public String getOutDate() {
+		return outDate;
 	}
 	public void setInputDate(String inputDate) {
 		this.inputDate = inputDate;

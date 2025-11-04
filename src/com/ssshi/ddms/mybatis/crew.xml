@@ -207,6 +207,48 @@
 		WHERE UID = #{anchUid}
 	</update>
 	
+	<!-- 실적집계리스트 -->
+		<select id="getMealResultList" parameterType="AnchorageMealRequestBean" resultType="AnchorageMealRequestBean">
+		select UID, SCHEDULERINFOUID as schedulerInfoUid, PROJ_NO as projNo, 
+			TRIALKEY as trialKey, KIND as kind, DOMESTIC_YN as domesticYn, DEPT_NAME as department,
+			MEAL_DATE as mealDate, ORDER_STATUS as orderStatus, ORDER_DATE as orderDate,
+			ORDER_UID as orderUid, DEL_YN as deleteYn, COMMENT as comment, REG_DATE as inputDate, REG_USERNAME as inputUid
+			from mobile_anchor_meal_info
+			where 1=1 
+			  <!-- and meal_date <![CDATA[ >= ]]> '2025-11-01'
+			  and meal_date <![CDATA[ <= ]]> '2025-11-13' -->
+			  and meal_date <![CDATA[ >= ]]> #{inDate}
+			  and meal_date <![CDATA[ <= ]]> #{outDate}
+		 <if test="ship != null and ship != 'ALL'" >
+			AND PROJ_NO <![CDATA[ = ]]> #{ship}			
+		 </if>
+	</select>
+	
+	<select id="getMealResultListCnt" resultType="int">
+		SELECT FOUND_ROWS()
+	</select>
+	
+	<select id="getMealResultPlanQtyList" parameterType="int" resultType = "AnchorageMealQtyBean">
+		SELECT UID, ANCHOR_MEAL_UID, SCHEDULERINFOUID, TRIALKEY, MEAL_TIME as planMealTime,
+		MEAL_GUBUN as planMealGubun, MEAL_DATE as planMealDate, MEAL_PLAN_QTY as planMealQty
+		FROM mobile_anchor_meal_plancnt
+		WHERE 1=1
+		  and ANCHOR_MEAL_UID = #{anchorMealUid}
+		 <!--  and meal_date <![CDATA[ = ]]> #{mealDate}
+		  and TRIALKEY <![CDATA[ = ]]> #{projNo}  -->
+	</select>
+	
+	<select id="getMealResultQtyList" parameterType="AnchorageMealQtyBean" resultType = "AnchorageMealQtyBean">
+		SELECT ANCHOR_MEAL_UID,  MEAL_TIME as resultMealTime, DEPT_NAME as department, proj_no as projNo,
+			   MEAL_GUBUN as resultMealGubun, MEAL_DATE as resultMealDate, COUNT(*) as resultMealPlanQty
+		  FROM mobile_anchor_meal_userinfo
+		 where 1=1
+		   and meal_date <![CDATA[ = ]]> #{mealDate}
+		   and PROJ_NO <![CDATA[ = ]]> #{projNo} 
+		   AND DEPT_NAME <![CDATA[ = ]]> #{department}
+		 group by ANCHOR_MEAL_UID, MEAL_TIME, MEAL_GUBUN, MEAL_DATE
+	</select>
+	
 	<!-- 방정보 저장 -->
 	<insert id="insertMobileRoomInfo" parameterType="MobileRoomInfoBean">
 		INSERT INTO mobile_room_info (

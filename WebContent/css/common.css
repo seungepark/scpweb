@@ -4099,3 +4099,14 @@ td > select {
 .tree-check {
 	width: 24px;
 }
+
+.small-th {
+  width: 60px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+  color: var(--neutral-700) !important; 		/* #4A4A6A */
+  background: var(--neutral-150) !important; 	/* #EAEAEF */
+  text-align: center !important;      			/* 가운데 정렬 */
+  padding: 4px 0;
+}

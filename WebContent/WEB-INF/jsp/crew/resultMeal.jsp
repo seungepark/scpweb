@@ -95,7 +95,7 @@
                    		<div class="bt-obj bt-secondary file-btn">
                    			<span data-i18n="btnUpload"></span>
 							<input class="cursor-pointer" type="file" id="fileInput" onchange="excelUpload(event)" accept=".xlsx">
-                   		</div>  --%>s
+                   		</div>  --%>
                    		
                    		<!-- <div style="padding-right: 44px;"></div> 	 -->
                    	</div> 
@@ -147,7 +147,7 @@
 					</div>
                    	<div class="sp-16"></div>
                     <div class="tb-wrap table_fixed_head" style = "height:800px;">
-                        <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap " style="width:3000px; overflow-x : auto; overflow-y: auto; white-space: nowrap;"> 
+                        <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap " style="width:7000px; overflow-x : auto; overflow-y: auto; white-space: nowrap;"> 
                             <thead>
                                 <tr id="tbHeader"></tr>
                             </thead>
@@ -215,7 +215,7 @@
 			 			<c:if test="${!status.last}">,</c:if>
 		 			</c:forEach>
 	 			]			
-	 		});
+	 		});                                                          
 	  	</c:forEach>
 	</script>
 	<!-- jQuery -->
