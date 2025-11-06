@@ -127,7 +127,6 @@ public class CrewController {
 	    return "share/resultCode";
 	}
 	
-	
 	//Main(앵카링 식사 신청)
 	@RequestMapping(value="/crew/anchorageMealRequest.html")
 	public String anchorageMealRequest(HttpServletRequest request, ModelMap model, AnchorageMealRequestBean bean,
@@ -326,8 +325,17 @@ public class CrewController {
 			return rtnDataFormat;
 		}
 	}
+
+	//Main(실적 확인_시운전)
+	@RequestMapping(value="/crew/crewResultMeal.html")
+	public String crewResultMeal(HttpServletRequest request, ModelMap model, AnchorageMealRequestBean bean) throws Exception {
+		System.out.print("여기");
+		model.addAllAttributes(service.resultMeal(request, bean));
+		
+		return "crew/crewResultMeal";
+	}
 	
-	//Main(실적 확인)
+	//Main(실적 확인_앵카링)
 	@RequestMapping(value="/crew/resultMeal.html")
 	public String resultMeal(HttpServletRequest request, ModelMap model, AnchorageMealRequestBean bean) throws Exception {
 		model.addAllAttributes(service.resultMeal(request, bean));

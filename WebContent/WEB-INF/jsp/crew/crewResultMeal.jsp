@@ -3,15 +3,15 @@
 <%@ include file="/WEB-INF/jsp/share/conf.jsp"%>
 
 <c:forEach var="at" items="${auth}">
-	<c:if test="${at eq 'P_ANCH_MEAL_W'}">
-		<c:set var="P_ANCH_MEAL_W" value="true" />
+	<c:if test="${at eq 'P_CREW_RESULT_MEAL_R'}">
+		<c:set var="P_CREW_RESULT_MEAL_R" value="true" />
 	</c:if>
-	<c:if test="${at eq 'P_ANCH_MEAL_W'}">
-		<c:set var="P_ANCH_MEAL_W" value="true" />
+	<c:if test="${at eq 'P_CREW_RESULT_MEAL_W'}">
+		<c:set var="P_CREW_RESULT_MEAL_W" value="true" />
 	</c:if>
 
 </c:forEach>
-<c:if test="${(empty P_ANCH_MEAL_R and empty P_ANCH_MEAL_W)}">
+<c:if test="${(empty P_CREW_RESULT_MEAL_R and empty P_CREW_RESULT_MEAL_W)}">
 	<c:redirect url="/index.html" />
 </c:if>
 <!DOCTYPE html>
@@ -39,14 +39,16 @@
 </head>
 <body>
 	<div class="body-wrap">
-        <%@ include file="/WEB-INF/jsp/include/menu/sidebar_2_4.jsp"%>
+        <%@ include file="/WEB-INF/jsp/include/menu/sidebar_2_2.jsp"%>
         <div id="contentWrap" class="collapsed-content-wrap">
-            <%@ include file="/WEB-INF/jsp/include/menu/header_2_2.jsp"%>
+            <%@ include file="/WEB-INF/jsp/include/menu/header_2_4.jsp"%>
             <div class="main-container">
 				<div class="tb-area">
 					<div class="d-flex">
 					<div class="d-flex flex-row-reverse">
 					
+						<button class="bt-obj bt-primary" onClick="anchListDownloadAll()"><img src="${pageContext.request.contextPath}/img/i_download.svg" height="16px">&nbsp&nbsp다운로드</button>
+						
 						<!-- 승선일/하선일 기간 조회 -->
 						<button class="bt-obj bt-primary" onclick="getAnchMealList()">
 									<img src="${pageContext.request.contextPath}/img/i_btn_search.svg" class="bt-icon" height="16px">
@@ -61,8 +63,7 @@
 					    <!-- style="border: 1px solid red" -->
 					    <div class="col-auto">
 							<select id="ship">
-                                <!-- <option value="ALL" data-i18n="listOp.shipAll"></option> -->
-                                <option value="">선택하세요</option>
+                                <option value="ALL" data-i18n="listOp.shipAll"></option>
                                 <c:forEach var="ship" items="${listShip}">
                                     <option value="${ship.val}">${ship.description}</option>
                                 </c:forEach>
@@ -77,7 +78,7 @@
 					<div class="d-flex flex-row-reverse">
 						
 						
-						<c:choose>
+						<%-- <c:choose>
 							<c:when test="${bean.isOff eq 'Y' or empty P_ANCH_MEAL_W}">
 								<button class="bt-obj bt-primary" disabled><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
 							</c:when>
@@ -94,7 +95,7 @@
                    		<div class="bt-obj bt-secondary file-btn">
                    			<span data-i18n="btnUpload"></span>
 							<input class="cursor-pointer" type="file" id="fileInput" onchange="excelUpload(event)" accept=".xlsx">
-                   		</div> 
+                   		</div>  --%>
                    		
                    		<!-- <div style="padding-right: 44px;"></div> 	 -->
                    	</div> 
@@ -102,7 +103,7 @@
 					
                    	<div class="sp-8"></div>
                    	<div class="d-flex">
-						<select id="filterKind" onchange="searchList()" class="mr-3">
+						<!-- <select id="filterKind" onchange="searchList()" class="mr-3">
 							<option value="ALL">[구분] All</option>
 							<option value="S">직영</option>
 							<option value="H">협력사</option>
@@ -127,29 +128,27 @@
 							<option value="V6">양식(Veg. pesco-veg.)</option>
 							<option value="V7">양식(Veg. pollo-veg.)</option>
 							<option value="V8">양식(Veg. flexitarian)</option>
-						</select>
-						<div class="input-wrap">
+						</select> -->
+					<%-- 	<div class="input-wrap">
                				<input id="filterWord" type="text" placeholder="검색어">
                				<button id="filterSearchBtn" onclick="searchList()"><img src="${pageContext.request.contextPath}/img/new/search.png"></button>
-           				</div>
+           				</div> --%>
            				
            			    <!-- <div style="padding-right: 40px;"></div>  -->
            				
 						<%-- <a href="${pageContext.request.contextPath}/mobile/mobileCrewinfo.html?uid=${bean.uid}" class="bt-obj bt-secondary mr-2" target="_blank">
 							<i class="fas fa-mobile-alt"></i> QR발송
-						</a> --%>
-						<a href="javascript:void(0);" class="bt-obj bt-secondary mr-2" onclick="alertPop('개발중입니다');">
-							<i class="fas fa-mobile-alt"></i> QR발송
 						</a>
-						<button class="bt-obj bt-primary" onclick="orderSave()">발주</button>
+						<button class="bt-obj bt-primary" onclick="orderSave()">발주</button> --%>
 						
 						<!-- <button class="bt-obj bt-primary" onclick="setInOutDate()" target="_blank">다운로드</button> -->
-						<button class="bt-obj bt-primary" onClick="anchListDownloadAll()"><img src="${pageContext.request.contextPath}/img/i_download.svg" height="16px">&nbsp&nbsp다운로드</button>
+						<%-- <button class="bt-obj bt-primary" onClick="anchListDownloadAll()"><img src="${pageContext.request.contextPath}/img/i_download.svg" height="16px">&nbsp&nbsp다운로드</button> --%>
                    		
 					</div>
                    	<div class="sp-16"></div>
-                     <div class="tb-wrap table_fixed_head" style="overflow-x: auto;">
+                    <div class="tb-wrap table_fixed_head" style="overflow-x: auto;">
                         <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap " style="width:3000px; height:200px; white-space: nowrap;"> <thead>
+                            <thead>
                                 <tr id="tbHeader"></tr>
                             </thead>
                             <tbody id="tbRowList" class ="dash-ship-list-area-scroll">
@@ -192,18 +191,8 @@
 			_anchList.push({
 	  			uid:"${item.uid}",
 	 			projNo: "${item.projNo}",
-	 			trialKey: "${item.trialKey}",
-				kind: "${item.kind}",				
-	 			domesticYn: "${item.domesticYn}",
 	 			department: "${item.department}",
 	 			mealDate: "${item.mealDate}",
-	 			orderStatus: "${item.orderStatus}",
-	 			orderDate: "${item.orderDate}",
-	 			orderUid: "${item.orderUid}",
-	 			deleteYn: "${item.deleteYn}",
-	 			comment: "${item.comment}",
-	 			inputUid: "${item.inputUid}",
-	 			inputDate: "${item.inputDate}",
 	 			planList: [
 	 				<c:forEach var="plan" items="${item.planList}" varStatus="status">
 	 					{
@@ -226,7 +215,7 @@
 			 			<c:if test="${!status.last}">,</c:if>
 		 			</c:forEach>
 	 			]			
-	 		});
+	 		});                                                          
 	  	</c:forEach>
 	</script>
 	<!-- jQuery -->
@@ -244,6 +233,6 @@
 	<script src="${pageContext.request.contextPath}/vendors/i18n/lang.js"></script>
 	<script src="${pageContext.request.contextPath}/js/custom.min.js"></script>
 	<script src="${pageContext.request.contextPath}/js/common.js"></script>
-	<script src="${pageContext.request.contextPath}/js/crew/anchorageMealRequest.js"></script>
+	<script src="${pageContext.request.contextPath}/js/crew/resultMeal.js"></script>
 </body>
 </html>
