@@ -8,6 +8,11 @@ let _isSetPage = false;
 
 $(function(){
     initI18n();
+	
+	// URL 파라미터에서 schedulerInfoUid 확인
+    let urlParams = new URLSearchParams(window.location.search);
+    let schedulerInfoUid = urlParams.get('schedulerInfoUid');
+	
     init();
 
     initServerCheck();
@@ -78,14 +83,53 @@ function setSearchOption() {
 	
 	let sortNm = getSearchCookie('SK_SORTNM');
 	let sortOd = getSearchCookie('SK_SORTOD');
-  	
+
+	// URL 파라미터에서 검색조건 가져오기
+	let urlParams = new URLSearchParams(window.location.search);
+	let paramInDate = urlParams.get('inDate');
+	let paramOutDate = urlParams.get('outDate');
+	let paramSchedulerInfoUid = urlParams.get('schedulerInfoUid');
+	let paramFilterKind = urlParams.get('filterKind');
+	let paramFilterDomesticYN = urlParams.get('filterDomesticYN');
+	let paramFilterFoodStyle = urlParams.get('filterFoodStyle');
+	let paramFilterWord = urlParams.get('filterWord');	
+
   	if(ship != '') {
   		$('#ship').val(ship).prop('selected', true);
   	}
 	
-	today = new Date();
-	today = today.toISOString().slice(0, 10);
-
+	// URL 파라미터로 스케줄번호 설정
+	if(paramSchedulerInfoUid) {
+		$('#ship').val(paramSchedulerInfoUid).prop('selected', true);
+	} else if(ship != '' && ship !== 'ALL') {
+  		$('#ship').val(ship).prop('selected', true);
+	} else {
+		// 파라미터나 쿠키에 값이 없으면 "선택하세요"로 유지
+		$('#ship').val('').prop('selected', true);
+	}
+	
+	// URL 파라미터로 기간 설정
+	if(paramInDate) {
+		$('#inDate').val(paramInDate);
+	}
+	if(paramOutDate) {
+		$('#outDate').val(paramOutDate);
+	}
+	
+	// 필터 조건들 설정
+	if(paramFilterKind) {
+		$('#filterKind').val(paramFilterKind);
+	}
+	if(paramFilterDomesticYN) {
+		$('#filterDomesticYN').val(paramFilterDomesticYN);
+	}
+	if(paramFilterFoodStyle) {
+		$('#filterFoodStyle').val(paramFilterFoodStyle);
+	}
+	if(paramFilterWord) {
+		$('#filterWord').val(paramFilterWord);
+	}
+	
 	if(page != '') {
 		_isSetPage = true;
 		anchPageNo = page;
@@ -105,22 +149,22 @@ function initTableHeader() {
 				'<th class="th-w-60"><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.no') + '</span></div></th>' +				
 				/*추후 숨길 항목*/
 				/*'<th style="display: none"><div class="tb-th-col"><span class="tb-th-content">' + "UID" + '</span></div></th>' +*/
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + "UID" + '</span></div></th>' +
+				'<th style="display: none"><div class="tb-th-col"><span class="tb-th-content">' + "UID" + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.projNo') + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.kind') + '</span></div></th>' +				
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.domesticYn') + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.department') + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.mealDate') + '</span></div></th>' +
+				'<th class="th-w-200"><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.mealDate') + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.foodStyle') + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + ' ' +'</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.breakfast') + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.lunch') + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.dinner') + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.lateNight') + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.orderStatus') + '</span></div></th>' +
+				'<th class="th-w-90"><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.orderStatus') + '</span></div></th>' +
 				'<th class="th-w-200"><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.orderDate') + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.orderUid') + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.deleteYn') + '</span></div></th>' + 
+				'<th class="th-w-60"><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.deleteYn') + '</span></div></th>' + 
 				'<th class="th-w-200"><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.comment') + '</span></div></th>' + 
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.inputUid') + '</span></div></th>' + 
 				'<th><div class="tb-th-col-last"><span class="tb-th-content">' + $.i18n.t('list.inputDate') + '</span></div></th>';				
@@ -226,7 +270,7 @@ function initData() {
 		text += '<tr id="tbRow_' + rowId + '">' + 
 					'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
 					'<td class="text-center th-w-60"><div name="no">' + _anchCnt + '</div></td>' +
-					'<td class="text-center">'+ '<input name="uid" type="text" value="' + uid + '" disabled>' + '</td>' +
+					'<td class="text-center" style="display: none" >'+ '<input name="uid" type="text" value="' + uid + '" disabled>' + '</td>' +
 					'<td class="text-center">' + '<input name="projNo" type="text" value="' + projNo + '" disabled>' + '</td>' + 
 					
 					'<td class="text-center">' + 
@@ -303,10 +347,10 @@ function initData() {
 								'</div>' + 
 							'</td>'+						
 														
-					'<td class="text-center">' + '<input name="orderStatus" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>'+
+					'<td class="text-center th-w-90">' + '<input name="orderStatus" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>'+
 					'<td class="text-center">' + '<input name="orderDate" type="text" disabled value="' + orderDate + '">' + '</td>' + 												
 					'<td class="text-center">' + '<input name="orderUid" type="text" disabled value="' + orderUid + '">' + '</td>' + 												
-					'<td class="text-center">' + '<input name="deleteYn" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (deleteYn === 'Y' ? 'checked' : '') + '>' + '</td>'+
+					'<td class="text-center th-w-60">' + '<input name="deleteYn" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (deleteYn === 'Y' ? 'checked' : '') + '>' + '</td>'+
 					'<td class="text-center">' + '<input name="comment" type="text" value="' + comment + '">' + '</td>' + 												
 					'<td class="text-center">' + '<input name="inputUid" type="text" disabled value="' + inputUid + '">' + '</td>' + 												
 					'<td class="text-center">' + '<input name="inputDate" type="text" disabled value="' + inputDate + '">' + '</td>' ;
@@ -355,13 +399,19 @@ function getAnchorageMealList(page) {
     var inDate = $('#inDate').val();
     var outDate = $('#outDate').val();
 	
+	// 스케줄번호 필수 선택 체크
+	if(ship == "" || ship == "ALL" || ship == "선택하세요") {
+		alertPop('스케줄번호를 선택해주세요.');
+		return;
+	}
+
 	//in/out Date 하나만 입력시 메시지	
 	if((outDate != '' && inDate =='')){
-		alertPop($.i18n.t('종료일을 입력해주세요.'));
+		alertPop($.i18n.t('시작일을 입력해주세요.'));
 		return;
 	}
 	if((inDate != '' && outDate =='')){
-		alertPop($.i18n.t('시작일을 입력해주세요.'));
+		alertPop($.i18n.t('종료일을 입력해주세요.'));
 		return;
 	}	
 		
@@ -477,7 +527,7 @@ function getAnchorageMealList(page) {
 					text += '<tr id="tbRow_' + rowId + '">' + 
 								'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
 								'<td class="text-center th-w-60"><div name="no">' + rowId + '</div></td>' +
-								'<td class="text-center">'+ '<input name="uid" type="text" value="' + uid + '" disabled>' + '</td>' +
+								'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '" disabled>' + '</td>' +
 								'<td class="text-center">' + '<input name="projNo" type="text" value="' + projNo + '" disabled>' + '</td>' + 
 								
 								'<td class="text-center">' + 
@@ -554,10 +604,10 @@ function getAnchorageMealList(page) {
 											'</div>' + 
 										'</td>'+						
 																	
-								'<td class="text-center">' + '<input name="orderStatus" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>'+
+								'<td class="text-center th-w-90">' + '<input name="orderStatus" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>'+
 								'<td class="text-center">' + '<input name="orderDate" type="text" disabled value="' + orderDate + '">' + '</td>' + 												
 								'<td class="text-center">' + '<input name="orderUid" type="text" disabled value="' + orderUid + '">' + '</td>' + 												
-								'<td class="text-center">' + '<input name="deleteYn" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (deleteYn === 'Y' ? 'checked' : '') + '>' + '</td>'+
+								'<td class="text-center th-w-60">' + '<input name="deleteYn" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (deleteYn === 'Y' ? 'checked' : '') + '>' + '</td>'+
 								'<td class="text-center">' + '<input name="comment" type="text" value="' + comment + '">' + '</td>' + 												
 								'<td class="text-center">' + '<input name="inputUid" type="text" disabled value="' + inputUid + '">' + '</td>' + 												
 								'<td class="text-center">' + '<input name="inputDate" type="text" disabled value="' + inputDate + '">' + '</td>' ;
@@ -837,7 +887,7 @@ function addAnch() {
 					'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
 					'<td class="text-center th-w-60"><div name="no">' + _anchCnt + '</div></td>' +
 					/*'<td class="text-center" style="display: none">' + '<input name="uid" type="text" disabled>' + '</td>' + */
-					'<td class="text-center">' + '<input name="uid" type="text" disabled>' + '</td>' + 
+					'<td class="text-center" style="display: none">' + '<input name="uid" type="text" disabled>' + '</td>' + 
 										
 					'<td class="text-center">' + '<input name="projNo" type="text" disabled>' + '</td>' + 
 					
@@ -914,10 +964,10 @@ function addAnch() {
 													'</div>' + 
 												'</td>'+
 					
-					'<td class="text-center">' + '<input name="orderStatus" type="checkbox" value="N" onclick="setCheckBox(this)">' + '</td>' +
+					'<td class="text-center th-w-90">' + '<input name="orderStatus" type="checkbox" value="N" onclick="setCheckBox(this)">' + '</td>' +
 					'<td class="text-center">' + '<input name="orderDate" type="text" disabled>' + '</td>' +
 					'<td class="text-center">' + '<input name="orderUid" type="text" disabled>' + '</td>'+
-					'<td class="text-center">' + '<input name="deleteYn" type="checkbox" value="N" onclick="setCheckBox(this)">' + '</td>' +
+					'<td class="text-center th-w-60">' + '<input name="deleteYn" type="checkbox" value="N" onclick="setCheckBox(this)">' + '</td>' +
 					'<td class="text-center">' + '<input name="comment" type="text">' + '</td>' +
 					'<td class="text-center">' + '<input name="inputUid" type="text" disabled>' + '</td>' +
 					'<td class="text-center">' + '<input name="inputDate" type="text" disabled>' + '</td>';
@@ -1209,7 +1259,7 @@ function setExcelData(projNoList, kindList, domesticYnList, departmentList, meal
 		text += '<tr id="tbRow_' + rowId + '">' + 
 							'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
 							'<td class="text-center th-w-60"><div name="no">' + _anchCnt + '</div></td>' +
-							'<td class="text-center">'+ '<input name="uid" type="text" value="' + uid + '" disabled>' + '</td>' +
+							'<td class="text-center"  style="display: none">'+ '<input name="uid" type="text" value="' + uid + '" disabled>' + '</td>' +
 							'<td class="text-center">' + '<input name="projNo" type="text" value="' + projNo + '" disabled>' + '</td>' + 
 							
 							'<td class="text-center">' + 
@@ -1286,10 +1336,10 @@ function setExcelData(projNoList, kindList, domesticYnList, departmentList, meal
 										'</div>' + 
 									'</td>'+						
 																
-							'<td class="text-center">' + '<input name="orderStatus" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>'+
+							'<td class="text-center th-w-90">' + '<input name="orderStatus" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>'+
 							'<td class="text-center">' + '<input name="orderDate" type="text" disabled value="' + orderDate + '">' + '</td>' + 												
 							'<td class="text-center">' + '<input name="orderUid" type="text" disabled value="' + orderUid + '">' + '</td>' + 												
-							'<td class="text-center">' + '<input name="deleteYn" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (deleteYn === 'Y' ? 'checked' : '') + '>' + '</td>'+
+							'<td class="text-center th-w-60">' + '<input name="deleteYn" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (deleteYn === 'Y' ? 'checked' : '') + '>' + '</td>'+
 							'<td class="text-center">' + '<input name="comment" type="text" value="' + comment + '">' + '</td>' + 												
 							'<td class="text-center">' + '<input name="inputUid" type="text" disabled value="' + inputUid + '">' + '</td>' + 												
 							'<td class="text-center">' + '<input name="inputDate" type="text" disabled value="' + inputDate + '">' + '</td>' ;
@@ -1408,7 +1458,7 @@ function save() {
 	for(let i = 0; i < kindVl.length; i++){
 		//alert(projNoVl[i].value);
 		if(isEmpty(projNoVl[i].value)) {
-			if($('#ship').val() == "ALL") {
+			if($('#ship').val() == "ALL" || $('#ship').val() == "") {
 					alertPop($.i18n.t('errorShip'));
 					isError = true;
 			}
@@ -1424,6 +1474,7 @@ function save() {
 		uidVl[i].value = uidVl[i] && uidVl[i].value !== "" ? uidVl[i].value : -1;
 		
 		if(isEmpty(projNoVl[i].value)) {
+			//projNoVl[i].value = $("#ship option:selected").text();
 			projNoVl[i].value = $("#ship option:selected").text();
 		}
 		
@@ -1572,10 +1623,8 @@ function save() {
 			$('#loading').css('display',"none");
 		}
 	});
-	
+	//getAnchMealList();
 }
-
-
 
 // 필터 검색.(추가컬럼 수정필요)
 function searchList() {

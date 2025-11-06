@@ -130,9 +130,35 @@ public class CrewController {
 	
 	//Main(앵카링 식사 신청)
 	@RequestMapping(value="/crew/anchorageMealRequest.html")
-	public String anchorageMealRequest(HttpServletRequest request, ModelMap model, AnchorageMealRequestBean bean) throws Exception {
-		model.addAllAttributes(service.anchorageMealRequest(request, bean));
+	public String anchorageMealRequest(HttpServletRequest request, ModelMap model, AnchorageMealRequestBean bean,
+		@RequestParam(value="schedulerInfoUid", required=false) Integer schedulerInfoUid,	
+		@RequestParam(value="inDate", required=false) String inDate,
+		@RequestParam(value="outDate", required=false) String outDate) throws Exception {
+	// schedulerInfoUid 파라미터가 있으면 bean에 설정	
 		
+	// 기간 파라미터가 있으면 bean에 설정
+	if(inDate != null && !inDate.isEmpty()) {
+		bean.setInDate(inDate);
+	}
+	if(outDate != null && !outDate.isEmpty()) {
+		bean.setOutDate(outDate);
+	}
+	if(schedulerInfoUid != null && schedulerInfoUid>0) {
+		bean.setSchedulerInfoUid(schedulerInfoUid);
+	}		
+	
+	model.addAllAttributes(service.anchorageMealRequest(request, bean));
+	
+	// 파라미터를 model에 추가하여 JSP에서 사용
+	if(schedulerInfoUid != null) {
+		model.addAttribute("schedulerInfoUid", schedulerInfoUid);
+	}
+	if(inDate != null && !inDate.isEmpty()) {
+		model.addAttribute("inDate", inDate);
+	}
+	if(outDate != null && !outDate.isEmpty()) {
+		model.addAttribute("outDate", outDate);
+	}
 		return "crew/anchorageMealRequest";
 	}
 	

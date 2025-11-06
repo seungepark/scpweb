@@ -250,42 +250,42 @@ function initData() {
 		//실적(양식)
 		let resultMap_W = {};
 		
-		let total_K = 0;
-		let total_W = 0;
+		let totalPlan_K = { 조식: 0, 중식: 0, 석식: 0, 야식: 0 };
+		let totalPlan_W = { 조식: 0, 중식: 0, 석식: 0, 야식: 0 };
+		let totalResult_K = { 조식: 0, 중식: 0, 석식: 0, 야식: 0 };
+		let totalResult_W = { 조식: 0, 중식: 0, 석식: 0, 야식: 0 };
 
 	    planList.forEach(function(p) {
-			if(p.planMealGubun === 'K' || p.planMealGubun === '한식'){
-				//alert("한식 : " + p.planMealGubun);
-				let dateKey = p.planMealDate ? p.planMealDate.substring(0, 10) : null;
-			    if (!dateKey) return;
-			    if (!planMap_K[dateKey]) planMap_K[dateKey] = {};
-			    planMap_K[dateKey][p.planMealTime] = p.planMealQty || '';
-				total_K = total_K + p.planMealQty;
-			}
-			else{
-				//alert("양식 : " + p.planMealGubun);
-				let dateKey = p.planMealDate ? p.planMealDate.substring(0, 10) : null;
-			    if (!dateKey) return;
-			    if (!planMap_W[dateKey]) planMap_W[dateKey] = {};
-			    planMap_W[dateKey][p.planMealTime] = p.planMealQty || '';
-				total_W = total_W + p.planMealQty;
+			let dateKey = p.planMealDate ? p.planMealDate.substring(0, 10) : null;
+		    if (!dateKey) return;
+			let qty = Number(p.planMealQty) || 0;
+			let meal = p.planMealTime;
+			
+			if (p.planMealGubun === 'K' || p.planMealGubun === '한식') {
+				if (!planMap_K[dateKey]) planMap_K[dateKey] = {};
+				planMap_K[dateKey][meal] = qty;
+				totalPlan_K[meal] += qty;
+			} else {
+				if (!planMap_W[dateKey]) planMap_W[dateKey] = {};
+				planMap_W[dateKey][meal] = qty;
+				totalPlan_W[meal] += qty;
 			}
 	    });
 		
 	    resultList.forEach(function(r) {
-			if(r.resultMealGubun === 'K' || r.resultMealGubun === '한식'){
-				//alert("한식(r) : " +r.planMealGubun);
-				let dateKey = r.resultMealDate ? r.resultMealDate.substring(0, 10) : null;
-		        if (!dateKey) return;
-		        if (!resultMap_K[dateKey]) resultMap_K[dateKey] = {};
-		        resultMap_K[dateKey][r.resultMealTime] = r.resultMealQty || '';	
-			}
-			else{
-				//alert("양식(r) : " + r.resultMealDate);
-				let dateKey = r.resultMealDate ? r.resultMealDate.substring(0, 10) : null;
-		        if (!dateKey) return;
-		        if (!resultMap_W[dateKey]) resultMap_W[dateKey] = {};
-		        resultMap_W[dateKey][r.resultMealTime] = r.resultMealQty || '';	
+			let dateKey = r.resultMealDate ? r.resultMealDate.substring(0, 10) : null;
+			if (!dateKey) return;
+			let qty = Number(r.resultMealQty) || 0;
+			let meal = r.resultMealTime;
+
+			if (r.resultMealGubun === 'K' || r.resultMealGubun === '한식') {
+				if (!resultMap_K[dateKey]) resultMap_K[dateKey] = {};
+				resultMap_K[dateKey][meal] = qty;
+				totalResult_K[meal] += qty;
+			} else {
+				if (!resultMap_W[dateKey]) resultMap_W[dateKey] = {};
+				resultMap_W[dateKey][meal] = qty;
+				totalResult_W[meal] += qty;
 			}
 	    });
 
@@ -308,7 +308,7 @@ function initData() {
 						'<div class="align-items-center border-bottom px-1 inout_performance_h">' + "한식" + '</div>' + 
 						'<div class="align-items-center inout_performance_h">' + "양식" + '</div>' + 
 					'</td>';			
-			
+					
 			// 날짜 루프
 		    let cur = new Date(startDate);
 		    while (cur <= endDate) {
@@ -445,7 +445,7 @@ function getMealResultList(page) {
 							<span class="tb-th-content fw-bold">${dateStr}</span>
 						</div>
 						<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">
-							<table class="text-center borderless" style="width: 300px;>
+							<table class="text-center borderless" style="width: 300px;">
 								<tr>
 									<th class="small-th tb-th-content th-w-90">${$.i18n.t('list.breakfast')}</th>
 									<th class="small-th tb-th-content th-w-90">${$.i18n.t('list.lunch')}</th>
@@ -518,7 +518,7 @@ function getMealResultList(page) {
 						}
 					});
 					
-				dataText += '<tr id="tbRow_' + rowId + '">' + 
+				dataText += '<tr id="tbRow_' + rowId + '" style="width: 50%;" >' + 
 							'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
 							'<td class="text-center th-w-60"><div class="text-center" name="no">' + _anchCnt + '</div></td>' +
 							'<td class="text-center th-w-90">' + '<div  name="projNo">' + projNo + '</div></td>' + 
@@ -549,7 +549,7 @@ function getMealResultList(page) {
 			        let planQty_W = planMap_W[dateKey] && planMap_W[dateKey][meal] ? planMap_W[dateKey][meal] : '';
 				    let resultQty_K = resultMap_K[dateKey] && resultMap_K[dateKey][meal] ? resultMap_K[dateKey][meal] : '';
 				    let resultQty_W = resultMap_W[dateKey] && resultMap_W[dateKey][meal] ? resultMap_W[dateKey][meal] : '';
-					dataText += '<td  class="text-center  align-middle crew-inout-label p-0">' + 
+					dataText += '<td class="text-center  align-middle crew-inout-label p-0">'  + 
 			        	    '<div class="text-center"><input style="width: 60px;" disabled name="planK_' + dateKey + '_' + meal + '" class="text-center" type="text" value="' + planQty_K + '"></div>' +
 				            '<div class="text-center"><input style="width: 60px;" disabled name="planW_' + dateKey + '_' + meal + '" class="text-center" type="text" value="' + planQty_W + '"></div>' +
 							'<div class="text-center"><input style="width: 60px;" disabled name="resultK_' + dateKey + '_' + meal + '" class="text-center" type="text" value="' + resultQty_K + '"></div>' +
@@ -558,7 +558,7 @@ function getMealResultList(page) {
 			      }
 			      cur.setDate(cur.getDate() + 1);
 			    }		
-						
+			/*dataText += '<td><div style="width: 2500px; border:1px solid red; "></div></td>'		*/	
 			dataText += '</tr>';	
 			//alert(dataText);
 			}

@@ -144,6 +144,17 @@
 		 </if>
 	</select>
 	
+	<select id="getAnchorageMealListBySchedulerInfoUid" parameterType="int" resultType="AnchorageMealRequestBean">
+		select UID, SCHEDULERINFOUID as schedulerInfoUid, PROJ_NO as projNo, 
+			TRIALKEY as trialKey, KIND as kind, DOMESTIC_YN as domesticYn, DEPT_NAME as department,
+			MEAL_DATE as mealDate, ORDER_STATUS as orderStatus, ORDER_DATE as orderDate,
+			ORDER_UID as orderUid, DEL_YN as deleteYn, COMMENT as comment, REG_DATE as inputDate, REG_USERNAME as inputUid
+			from mobile_anchor_meal_info
+		 where 1=1 
+		   AND UID IS NOT NULL
+		   AND SCHEDULERINFOUID = #{schedulerInfoUid}
+	</select>
+	
 	<select id="getAnchorageMealListCnt" resultType="int">
 		SELECT FOUND_ROWS()
 	</select>
@@ -216,8 +227,8 @@
 			from mobile_anchor_meal_info
 			where 1=1 
 			  <!-- and meal_date <![CDATA[ >= ]]> '2025-11-01'
-			  and meal_date <![CDATA[ <= ]]> '2025-11-13'  -->
-			  and meal_date <![CDATA[ >= ]]> #{inDate}
+			  and meal_date <![CDATA[ <= ]]> '2025-11-13'  --> 
+			   and meal_date <![CDATA[ >= ]]> #{inDate}
 			  and meal_date <![CDATA[ <= ]]> #{outDate} 
 		 <if test="ship != null and ship != 'ALL'" >
 			AND PROJ_NO <![CDATA[ = ]]> #{ship}			

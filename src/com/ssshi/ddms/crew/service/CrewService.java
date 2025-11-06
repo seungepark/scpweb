@@ -613,26 +613,33 @@ public class CrewService implements CrewServiceI {
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///	Map<String, Object> resultMap = new HashMap<String, Object>();
+	
 	
 	@Override
 	public Map<String, Object> anchorageMealRequest(HttpServletRequest request, AnchorageMealRequestBean bean) throws Exception {
-		System.out.println("오나용1234=0-=");
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		List<AnchorageMealRequestBean> anchList = crewDao.getAnchorageMealList(bean);
-		System.out.println("오나용1234=0-=");
+		List<AnchorageMealRequestBean> anchList = null;
+		
+		// schedulerInfoUid가 있으면 해당 스케줄의 승선자 리스트 조회
+		if(bean.getSchedulerInfoUid() > 0) {
+			anchList = crewDao.getAnchorageMealListBySchedulerInfoUid(bean.getSchedulerInfoUid());
+		} else {
+			//crewList = crewDao.getRegistrationCrewList(bean);
+		}
+		
+		//anchList = crewDao.getAnchorageMealList(bean);
 		//계획
 		if(anchList != null) {
-			System.out.println("오나용1234==");
 			for(int i = 0; i < anchList.size(); i++) {
 				anchList.get(i).setPlanList(crewDao.getAnchorageMealPlanQtyList(anchList.get(i).getUid()));
 				System.out.println("getUid :"+ anchList.get(i).getUid());
 				System.out.println("setPlanList :"+ anchList.get(i).getPlanList().size());
 			}
-			System.out.println("setPlanList2 :"+ anchList.size());
+			System.out.println("setPlanList :"+ anchList.size());
 		}
 		//실적
 		if(anchList != null) {
-			System.out.println("오나용123dfgdfg4");
 			for(int z = 0; z < anchList.size(); z++) {
 				anchList.get(z).setResultList(crewDao.getAnchorageMealResultQtyList(anchList.get(z).getUid()));
 			}

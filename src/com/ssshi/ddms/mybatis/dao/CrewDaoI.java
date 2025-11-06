@@ -80,6 +80,9 @@ public interface CrewDaoI {
 	// 앵카링 식사 신청 목록
 	List<AnchorageMealRequestBean> getAnchorageMealList(AnchorageMealRequestBean bean) throws Exception;
 	
+	// schedulerInfoUid로 승선자 신청 목록 조회.
+	List<AnchorageMealRequestBean> getAnchorageMealListBySchedulerInfoUid(int schedulerInfoUid) throws Exception;
+	
 	// 앵카링 식사신청 수량 (계획).
 	List<AnchorageMealQtyBean> getAnchorageMealPlanQtyList(int anchorMealUid) throws Exception;
 	

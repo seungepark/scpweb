@@ -61,7 +61,8 @@
 					    <!-- style="border: 1px solid red" -->
 					    <div class="col-auto">
 							<select id="ship">
-                                <option value="ALL" data-i18n="listOp.shipAll"></option>
+                                <!-- <option value="ALL" data-i18n="listOp.shipAll"></option> -->
+                                <option value="">선택하세요</option>
                                 <c:forEach var="ship" items="${listShip}">
                                     <option value="${ship.val}">${ship.description}</option>
                                 </c:forEach>
@@ -134,7 +135,10 @@
            				
            			    <!-- <div style="padding-right: 40px;"></div>  -->
            				
-						<a href="${pageContext.request.contextPath}/mobile/mobileCrewinfo.html?uid=${bean.uid}" class="bt-obj bt-secondary mr-2" target="_blank">
+						<%-- <a href="${pageContext.request.contextPath}/mobile/mobileCrewinfo.html?uid=${bean.uid}" class="bt-obj bt-secondary mr-2" target="_blank">
+							<i class="fas fa-mobile-alt"></i> QR발송
+						</a> --%>
+						<a href="javascript:void(0);" class="bt-obj bt-secondary mr-2" onclick="alertPop('개발중입니다');">
 							<i class="fas fa-mobile-alt"></i> QR발송
 						</a>
 						<button class="bt-obj bt-primary" onclick="orderSave()">발주</button>
@@ -144,9 +148,8 @@
                    		
 					</div>
                    	<div class="sp-16"></div>
-                    <div class="tb-wrap table_fixed_head" style = "height:800px;">
-                        <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap " style="width:3000px; overflow-x : auto; overflow-y: auto; white-space: nowrap;"> 
-                            <thead>
+                     <div class="tb-wrap table_fixed_head" style="overflow-x: auto;">
+                        <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap " style="width:3000px; height:200px; white-space: nowrap;"> <thead>
                                 <tr id="tbHeader"></tr>
                             </thead>
                             <tbody id="tbRowList" class ="dash-ship-list-area-scroll">

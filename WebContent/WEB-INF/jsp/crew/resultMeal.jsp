@@ -147,7 +147,7 @@
 					</div>
                    	<div class="sp-16"></div>
                     <div class="tb-wrap table_fixed_head" style="overflow-x: auto;">
-                        <table id="tbList" class="tb-style  tb-layout-fixed ws-nowrap" style=" height:200px; white-space: nowrap;"> 
+                        <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap " style="width:3000px; height:200px; white-space: nowrap;"> <thead>
                             <thead>
                                 <tr id="tbHeader"></tr>
                             </thead>
