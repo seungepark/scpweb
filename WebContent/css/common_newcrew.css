@@ -1,3 +1,11 @@
+.crew-registration-table th:nth-child(4),
+.crew-registration-table td:nth-child(4),
+.crew-registration-table th:nth-child(5),
+.crew-registration-table td:nth-child(5),
+.crew-registration-table th:nth-child(6),
+.crew-registration-table td:nth-child(6) {
+	display: none;
+}
 /*
 @import url(font.css);
 body {

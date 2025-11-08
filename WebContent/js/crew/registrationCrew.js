@@ -285,6 +285,7 @@ function initTableHeader() {
 				'<th class="th-w-150">' + $.i18n.t('list.phone') + '</th>' + 
 				'<th class="th-w-200">' + $.i18n.t('list.in') + '</th>' + 
 				'<th class="th-w-200">' + $.i18n.t('list.out') + '</th>' + 
+				'<th class="th-w-150">방번호</th>' +
 				'<th>' + $.i18n.t('list.terminal') + '</th>' + 
 				'<th>' + $.i18n.t('list.laptop') + '</th>' + 
 				'<th>' + $.i18n.t('list.modelNm') + '</th>' + 
@@ -370,6 +371,7 @@ function initData() {
 		let personNo = _crewList[z].personNo;
 		let gender = _crewList[z].gender;
 		let phone = _crewList[z].phone;
+		let roomNo = _crewList[z].roomNo;
 		let inOutList = _crewList[z].inOutList;
 		let inDate = "";
 		let outDate = "";
@@ -399,10 +401,10 @@ function initData() {
 			text += '<tr id="tbRow_' + rowId + '">' + 
 									'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()" disabled></td>' +
 									'<td class="text-center th-w-20"><div name="no">' + _crewCnt +'('+ uid + ') </div></td>' +
-									'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '" disabled>' + '</td>' +
-									'<td class="text-center">' + '<input name="scheduleUid" type="text" disabled value="' + schedulerInfoUid + '">' + '</td>' +
-									'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
-									'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 												
+									'<td class="text-center" style="display: none"><input name="uid" type="hidden" value="' + uid + '"></td>' +
+									'<td class="text-center">' + '<div>' + schedulerInfoUid + '</div><input name="scheduleUid" type="hidden" value="' + schedulerInfoUid + '">' + '</td>' +
+									'<td class="text-center">' + '<div>' + trialKey + '</div><input name="trialKey" type="hidden" value="' + trialKey + '">' + '</td>' + 
+									'<td class="text-center">' + '<div>' + pjt + '</div><input name="pjt" type="hidden" value="' + pjt + '">' + '</td>' + 												
 									'<td class="text-center th-w-150">' + 
 										'<select name="kind" disabled>';
 										
@@ -530,7 +532,8 @@ function initData() {
 									'<td class="text-center th-w-150">' + '<input name="phone" type="text" disabled value="' + phone + '" style="width: 100%;">' + '</td>'; 
 									
 								text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="date" disabled value="' + inDate + '" >' + '</td>' + 
-										'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="date" disabled value="' + outDate + '" >' + '</td>';
+										'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="date" disabled value="' + outDate + '" >' + '</td>' +
+										'<td class="text-center th-w-150">' + '<input name="roomNo" type="text" disabled value="' + (roomNo || '') + '">' + '</td>';
 						
 								text += '<td class="text-center">' + '<input name="terminal" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (terminal === 'Y' ? 'checked' : '') + '>' + '</td>' +
 										'<td class="text-center">' + '<input name="laptop" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (laptop === 'Y' ? 'checked' : '') + '>' + '</td>' +
@@ -547,10 +550,10 @@ function initData() {
 			text += '<tr id="tbRow_' + rowId + '">' + 
 							'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
 							'<td class="text-center th-w-20"><div name="no">' + _crewCnt  +'('+ uid + ') </div></td>' +
-							'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
-							'<td class="text-center">' + '<input name="scheduleUid" type="text" disabled value="' + schedulerInfoUid + '">' + '</td>' +
-							'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
-							'<td class="text-center">' + '<input name="pjt" type="text" value="' + pjt + '" disabled>' + '</td>' + 												
+							'<td class="text-center" style="display: none"><input name="uid" type="hidden" value="' + uid + '"></td>' +
+							'<td class="text-center">' + '<div>' + schedulerInfoUid + '</div><input name="scheduleUid" type="hidden" value="' + schedulerInfoUid + '">' + '</td>' +
+							'<td class="text-center">' + '<div>' + trialKey + '</div><input name="trialKey" type="hidden" value="' + trialKey + '">' + '</td>' + 
+							'<td class="text-center">' + '<div>' + pjt + '</div><input name="pjt" type="hidden" value="' + pjt + '">' + '</td>' + 												
 							'<td class="text-center th-w-150">' + 
 								'<select name="kind">';
 								
@@ -678,7 +681,8 @@ function initData() {
 							'<td class="text-center th-w-150">' + '<input name="phone" type="text" value="' + phone + '" style="width: 100%;">' + '</td>';
 							
 						text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="date" value="' + inDate + '" >' + '</td>' + 
-								'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="date" value="' + outDate + '" >' + '</td>';
+								'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="date" value="' + outDate + '" >' + '</td>' +
+								'<td class="text-center th-w-150">' + '<input name="roomNo" type="text" disabled value="' + (roomNo || '') + '">' + '</td>';
 				
 						text += '<td class="text-center">' + '<input name="terminal" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (terminal === 'Y' ? 'checked' : '') + '>' + '</td>' +
 								'<td class="text-center">' + '<input name="laptop" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (laptop === 'Y' ? 'checked' : '') + '>' + '</td>' +
@@ -927,10 +931,10 @@ function addCrew() {
 	let text = '<tr id="tbRow_' + rowId + '">' + 
 					'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
 					'<td class="text-center th-w-20"><div name="no">' + _crewCnt + '</div></td>' +
-					'<td class="text-center" style="display: none">' + '<input name="uid" type="text" disabled value="' + selectedShipUid + '">' + '</td>' + 
-					//'<td class="text-center">' + '<input name="scheduleUid" type="text" disabled value="' + selectedShipUid + '">' + '</td>' +
-					'<td class="text-center">' + '<input name="trialKey" type="text" disabled value="' + selectedShipTrialKey + '">' + '</td>' + 
-					'<td class="text-center" style="display: none">' + '<input name="pjt" type="text" disabled>' + '</td>' + 
+					'<td class="text-center" style="display: none">' + '<input name="uid" type="hidden" value="-1">' + '</td>' + 
+					'<td class="text-center">' + '<div>' + selectedShipUid + '</div><input name="scheduleUid" type="hidden" value="' + selectedShipUid + '"></td>' +
+					'<td class="text-center">' + '<div>' + selectedShipTrialKey + '</div><input name="trialKey" type="hidden" value="' + selectedShipTrialKey + '"></td>' + 
+					'<td class="text-center">' + '<div></div><input name="pjt" type="hidden" value="">' + '</td>' + 
 					
 					'<td class="text-center th-w-150">' + 
 						'<select name="kind">' +
@@ -991,6 +995,7 @@ function addCrew() {
 					'<td class="text-center th-w-150">' + '<input name="phone" type="text" style="width: 100%;">' + '</td>' + 
 					'<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="date">' + '</td>' + 
 					'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="date">' + '</td>' +
+					'<td class="text-center th-w-150">' + '<input name="roomNo" type="text" disabled value="">' + '</td>' +
 					'<td class="text-center">' + '<input name="terminal" type="checkbox" value="N" onclick="setCheckBox(this)">' + '</td>' +
 					'<td class="text-center">' + '<input name="laptop" type="checkbox" value="N" onclick="setCheckBox(this)">' + '</td>' +
 					'<td class="text-center">' + '<input name="modelNm" class="text-center" type="text">' + '</td>' +
@@ -1318,70 +1323,20 @@ function roomUpload(event) {
 	$('#loading').css('display','block');
 	
 	let input = event.target;
-	let reader = new FileReader();
 	
-	reader.onload = function() {
-		try {
-			
-			let fileData = reader.result;
-			let json = null;
-			
-			// DRM 걸린 파일 인지 확인
-			if(fileData.indexOf('Fasoo DRM') > -1){
-				const formData = new FormData();
-				formData.append('file', input.files[0]);
-				
-				// 스케줄 정보 가져오기
+	const file = input.files && input.files[0] ? input.files[0] : null;
+	if(!file) {
+						$('#loading').css('display','none');
+		return;
+	}
+
 				let ship = $('#ship').val();
 				let schedulerInfoUid = ship && ship != '' && ship != 'ALL' ? ship : 0;
 				let trialKey = $('#ship option:selected').text();
-				let projNo = '';
+	let projNo = trialKey ? trialKey.substring(0, Math.min(6, trialKey.length)) : '';
 				
-				formData.append('schedulerInfoUid', schedulerInfoUid);
-				formData.append('trialKey', trialKey);
-				formData.append('projNo', projNo);
-								
-				$.ajax({
-					type: 'POST',
-					url: contextPath + '/crew/roomAssignmentDRM.html',
-					data: formData,
-					contentType: false,
-					processData: false,
-					dataType: "json",
-					success: function(response) {
-						$('#loading').css('display','none');
-						if(response.result == true || response.result == 'SUCCESS') {
-							let msg = response.msg || '방배정 데이터가 업로드되었습니다.';
-							alertPop(msg);
-						} else {
-							alertPop(response.msg || '방배정 업로드 중 오류가 발생했습니다.');
-						}
-					},
-					error: function(error) {
-						$('#loading').css('display','none');
-						console.error('Error DRM file:', error);
-						alertPop('방배정 업로드 중 오류가 발생했습니다.');
-					},
-					beforeSend: function() {
-						// 로딩 이미지는 이미 표시되어 있으므로 유지 (필요시만)
-					},
-					complete: function() {
-						// success나 error에서 이미 로딩을 숨김
-					}
-				});
-			} else{
-				// 일반 파일인 경우 FormData로 전송
-				const formData = new FormData();
-				formData.append('file', input.files[0]);
-				
-				// 스케줄 정보 가져오기
-				let ship = $('#ship').val();
-				let schedulerInfoUid = ship && ship != '' && ship != 'ALL' ? ship : 0;
-				let trialKey = $('#ship option:selected').text();
-				let projNo = '';
-				
-				// 프로젝트 번호는 나중에 DB에서 조회하거나 trialKey에서 추출 가능
-				
+	const formData = new FormData();
+	formData.append('file', file);
 				formData.append('schedulerInfoUid', schedulerInfoUid);
 				formData.append('trialKey', trialKey);
 				formData.append('projNo', projNo);
@@ -1395,7 +1350,7 @@ function roomUpload(event) {
 					dataType: "json",
 					success: function(response) {
 						$('#loading').css('display','none');
-						if(response.result == true || response.result == 'SUCCESS') {
+			if(response.result === true || response.result === 'SUCCESS') {
 							let msg = response.msg || '방배정 데이터가 업로드되었습니다.';
 							alertPop(msg);
 						} else {
@@ -1407,29 +1362,10 @@ function roomUpload(event) {
 						console.error('Error upload file:', error);
 						alertPop('방배정 업로드 중 오류가 발생했습니다.');
 					},
-					beforeSend: function() {
-						// 로딩 이미지는 이미 표시되어 있으므로 유지 (필요시만)
-					},
 					complete: function() {
-						// success나 error에서 이미 로딩을 숨김
-					}
-				});
-			}
-			
-		}catch(e) {
-			$('#loading').css('display','none');
-			alertPop($.i18n.t('share:tryAgain'));
 			input.value = '';
 		}
-	};
-	
-	reader.onerror = function() {
-		$('#loading').css('display','none');
-		alertPop('파일 읽기 중 오류가 발생했습니다.');
-		input.value = '';
-	};
-	
-	reader.readAsBinaryString(input.files[0]);
+	});
 }
 
 // 방배정 데이터 처리
@@ -1708,7 +1644,8 @@ function setExcelData(trialKeyList, pjtList,kindList, companyList, departmentLis
 						'<td class="text-center th-w-150">' + '<input name="phone" type="text" value="' + phone + '" style="width: 100%;">' + '</td>';
 						
 					text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="text" value="' + inDate + '" >' + '</td>' + 
-							'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="text" value="' + outDate + '" >' + '</td>';
+							'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="text" value="' + outDate + '" >' + '</td>' +
+							'<td class="text-center th-w-150">' + '<input name="roomNo" type="text" disabled value="' + (roomNo || '') + '">' + '</td>';
 							
 					text += '<td class="text-center">' + '<input name="terminal" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (terminal === 'Y' ? 'checked' : '') + '>' + '</td>' +
 							'<td class="text-center">' + '<input name="laptop" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (laptop === 'Y' ? 'checked' : '') + '>' + '</td>' +
@@ -1772,10 +1709,13 @@ function save() {
 	let foreigner = [];
 	let passportNo = [];
 	let orderStatus = [];
+	let scheduleUid = [];
 	//let deleteYn = [];
 
 	//alert($('#ship').val());
 	//alert(document.getElementById('ship').value);
+	
+	let selectedShipText = $('#ship option:selected').text() || '';
 	
 	let uidVl = document.getElementsByName('uid');
 	//alert(uidVl.values);
@@ -1805,6 +1745,7 @@ function save() {
 	let foreignerVl = document.getElementsByName('foreigner');
 	let passportNoVl = document.getElementsByName('passportNo');
 	let orderStatusVl = document.getElementsByName('orderStatus');
+	let scheduleUidVl = document.getElementsByName('scheduleUid');
 	//let deleteYnVl = document.getElementsByName('deleteYn');
 	
 	let uidValue = "";
@@ -1865,6 +1806,12 @@ function save() {
 		
 		if(isEmpty(pjtVl[i].value)) {
 			pjtVl[i].value = $("#ship option:selected").text();
+		}
+		
+		if(scheduleUidVl && scheduleUidVl[i]) {
+			if(isEmpty(scheduleUidVl[i].value)) {
+				scheduleUidVl[i].value = $("#ship option:selected").val();
+			}
 		}
 		
 		//alert(trialKeyVl[i].value);
@@ -1961,6 +1908,7 @@ function save() {
 		foreigner.push(foreignerVl[i].value);
 		passportNo.push(passportNoVl[i].value);
 		orderStatus.push(orderStatusVl[i].value);
+		scheduleUid.push(scheduleUidVl && scheduleUidVl[i] ? scheduleUidVl[i].value : '');
 		//deleteYn.push(deleteYnVl[i].value);
 	}
 	//alert(terminal.length);
@@ -1999,7 +1947,9 @@ function save() {
 			serialNo: serialNo,
 			foreigner: foreigner,
 			passportNo: passportNo,
-			orderStatus: orderStatus
+			orderStatus: orderStatus,
+			scheduleUid: scheduleUid,
+			selectedShipText: selectedShipText
 			//,deleteYn : deleteYn
 		},
 		success: function(data) {
@@ -2009,6 +1959,8 @@ function save() {
 			
 				if(json.result) {
 					alertPop($.i18n.t('compSave'));
+					let currentPage = (typeof crewPageNo !== 'undefined' && crewPageNo) ? crewPageNo : 1;
+					getRegistrationCrewList(currentPage);
 				}else{
 					let code = json.code;
 					//alert(code);
@@ -2035,21 +1987,30 @@ function save() {
 			$('#loading').css('display',"none");
 		}
 	});
-	getRegistrationCrewList(1);
 }
 // 승하선일 입력.
 function setInOutDate() {
-	let date = $('#ioDate').val();
-	let inOut = $('#ioCheckIn').is(':checked') ? 'inDate' : 'outDate';
-	
-	if(isValidDate(date)) {
-		$('input[name=listChk]').each(function(idx, obj) {
-			if(obj.checked) {
-				$('input[name=' + inOut + ']').eq(idx).val(date);
-			}
-		});
-	}else {
+	const dateValue = $('#ioDate').val();
+	const targetField = $('#ioCheckIn').is(':checked') ? 'inDate' : 'outDate';
+
+	if(!isValidDate(dateValue)) {
 		alertPop($.i18n.t('list.errInOutDate'));
+		return;
+	}
+
+	let hasSelection = false;
+	$('input[name=listChk]:checked').each(function() {
+		const $row = $(this).closest('tr');
+		const $targetInput = $row.find('input[name="' + targetField + '"]');
+
+		if($targetInput.length > 0) {
+			$targetInput.val(dateValue);
+			hasSelection = true;
+		}
+	});
+
+	if(!hasSelection) {
+		alertPop('승선자를 선택하세요.');
 	}
 }
 
@@ -2077,7 +2038,8 @@ function getCrewList() {
 
 function getRegistrationCrewList(page) {
 	//alert(1);
-    var ship = $("#ship option:selected").val();
+    var shipUid = $("#ship option:selected").val();
+    var shipKey = $("#ship option:selected").text();
     var inDate = $('#inDate').val();
     var outDate = $('#outDate').val();
 	
@@ -2087,7 +2049,10 @@ function getRegistrationCrewList(page) {
 
 	//페이지 셋팅(현재페이지 저장X)
 	_isSetPage = false;
+	if(!page || page < 1) {
 	page = 1;
+	}
+	crewPageNo = page;
 
     jQuery.ajax({
         type: 'GET',
@@ -2095,7 +2060,8 @@ function getRegistrationCrewList(page) {
 		
         data: {
             page: page,
-            ship: ship,
+            ship: shipKey && shipKey !== '선택하세요' ? shipKey : '',
+            schedulerInfoUid: (shipUid && shipUid !== '' && shipUid !== 'ALL') ? shipUid : '',
             inDate: inDate,
             outDate: outDate,
             sort: listSort,
@@ -2127,6 +2093,7 @@ function getRegistrationCrewList(page) {
 					let personNo = json.list[i].personNo;
 					let gender = json.list[i].gender;
 					let phone = json.list[i].phone;
+					let roomNo = json.list[i].roomNo;
 					let inOutList = json.list[i].inOutList;
 					let inDate = "";
 					let outDate = "";
@@ -2293,7 +2260,8 @@ function getRegistrationCrewList(page) {
 									'<td class="text-center th-w-150">' + '<input name="phone" type="text" disabled value="' + phone + '" style="width: 100%;">' + '</td>';
 									
 								text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="text" value="' + inDate + '"  disabled>' + '</td>' + 
-										'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="text" value="' + outDate + '"  disabled>' + '</td>';
+										'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="text" value="' + outDate + '"  disabled>' + '</td>' +
+										'<td class="text-center th-w-150">' + '<input name="roomNo" type="text" disabled value="' + (roomNo || '') + '">' + '</td>';
 										
 								text += '<td class="text-center">' + '<input name="terminal" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (terminal === 'Y' ? 'checked' : '') + '>' + '</td>' +
 										'<td class="text-center">' + '<input name="laptop" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (laptop === 'Y' ? 'checked' : '') + '>' + '</td>' +
@@ -2437,7 +2405,8 @@ function getRegistrationCrewList(page) {
 									// '</td>';
 									'<td class="text-center th-w-150">' + '<input name="phone" type="text" disabled value="' + phone + '" style="width: 100%;">' + '</td>';
 									text += '<td class="text-center th-w-200">' + '<input name="inDate" class="text-center" type="text" value="' + inDate + '" >' + '</td>' + 
-											'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="text" value="' + outDate + '" >' + '</td>';
+											'<td class="text-center th-w-200">' + '<input name="outDate" class="text-center" type="text" value="' + outDate + '" >' + '</td>' +
+											'<td class="text-center th-w-150">' + '<input name="roomNo" type="text" disabled value="' + (roomNo || '') + '">' + '</td>';
 											
 									text += '<td class="text-center">' + '<input name="terminal" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (terminal === 'Y' ? 'checked' : '') + '>' + '</td>' +
 											'<td class="text-center">' + '<input name="laptop" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (laptop === 'Y' ? 'checked' : '') + '>' + '</td>' +
@@ -2460,6 +2429,17 @@ function getRegistrationCrewList(page) {
             }
 
 			$('[data-toggle="tooltip"]').tooltip();
+			
+			searchList();
+			setTimeout(function() {
+				setFixedColumnPositions();
+			}, 50);
+			setTimeout(function() {
+				setFixedColumnPositions();
+			}, 200);
+			setTimeout(function() {
+				applyRequiredFieldBorder();
+			}, 100);
         },
         error: function(req, status, err) {
             alertPop($.i18n.t('share:tryAgain'));

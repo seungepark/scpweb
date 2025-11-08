@@ -20,7 +20,7 @@ public class MobileRoomInfoBean {
 	private String roomNo;
 	private String roomName;
 	private String tel;
-	private java.math.BigDecimal sizeM2;
+	private String sizeM2;
 	private Integer bedCount;
 	private String bathroomYn;
 	private String status;
@@ -80,10 +80,10 @@ public class MobileRoomInfoBean {
 	public void setTel(String tel) {
 		this.tel = tel;
 	}
-	public java.math.BigDecimal getSizeM2() {
+	public String getSizeM2() {
 		return sizeM2;
 	}
-	public void setSizeM2(java.math.BigDecimal sizeM2) {
+	public void setSizeM2(String sizeM2) {
 		this.sizeM2 = sizeM2;
 	}
 	public Integer getBedCount() {

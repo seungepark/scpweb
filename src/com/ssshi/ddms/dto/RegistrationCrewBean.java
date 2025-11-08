@@ -26,6 +26,7 @@ public class RegistrationCrewBean {
 	private String personNo;
 	private String gender;
 	private String phone;
+	private String roomNo;
 	private String terminal;
 	private String laptop;
 	private String modelNm;
@@ -178,6 +179,12 @@ public class RegistrationCrewBean {
 	}
 	public void setPhone(String phone) {
 		this.phone = phone;
+	}
+	public String getRoomNo() {
+		return roomNo;
+	}
+	public void setRoomNo(String roomNo) {
+		this.roomNo = roomNo;
 	}
 	public String getTerminal() {
 		return terminal;

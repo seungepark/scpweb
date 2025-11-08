@@ -7,6 +7,7 @@ public class ScheCrewInOutBean {
 	private String inOutDate;
 	private String schedulerInOut;
 	private String performanceInOut;
+	private Integer schedulerInfoUid;
 	
 	private int userUid;
 	
@@ -50,6 +51,12 @@ public class ScheCrewInOutBean {
 	}
 	public void setPerformanceInOut(String performanceInOut) {
 		this.performanceInOut = performanceInOut;
+	}
+	public Integer getSchedulerInfoUid() {
+		return schedulerInfoUid;
+	}
+	public void setSchedulerInfoUid(Integer schedulerInfoUid) {
+		this.schedulerInfoUid = schedulerInfoUid;
 	}
 	public int getUserUid() {
 		return userUid;

@@ -381,8 +381,13 @@ public class CrewController {
 			}
 		}
 		
-		Map<String, Object> resultMap = service.roomAssignmentUpload(request, null, file, schedulerInfoUid, trialKey, projNo);
-		model.addAllAttributes(resultMap);
+		try {
+			Map<String, Object> resultMap = service.roomAssignmentUpload(request, null, file, schedulerInfoUid, trialKey, projNo);
+			model.addAllAttributes(resultMap);
+		} catch(Exception e) {
+			model.addAttribute(Const.RESULT, DBConst.FAIL);
+			model.addAttribute("msg", e.getMessage());
+		}
 		
 		return "share/result";
 	}
@@ -402,8 +407,13 @@ public class CrewController {
 			return "share/result";
 		}
 		
-		Map<String, Object> resultMap = service.roomAssignmentUpload(request, null, file, schedulerInfoUid, trialKey, projNo);
-		model.addAllAttributes(resultMap);
+		try {
+			Map<String, Object> resultMap = service.roomAssignmentUpload(request, null, file, schedulerInfoUid, trialKey, projNo);
+			model.addAllAttributes(resultMap);
+		} catch(Exception e) {
+			model.addAttribute(Const.RESULT, DBConst.FAIL);
+			model.addAttribute("msg", e.getMessage());
+		}
 		
 		return "share/result";
 	}

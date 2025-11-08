@@ -1,5 +1,8 @@
 package com.ssshi.ddms.crew.service;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,11 +27,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.ssshi.ddms.constant.Const;
 import com.ssshi.ddms.constant.DBConst;
 import com.ssshi.ddms.dto.ParamBean;
 import com.ssshi.ddms.dto.ScheCrewInOutBean;
+import com.ssshi.ddms.dto.ScheCrewBean;
+import com.ssshi.ddms.dto.SchedulerInfoBean;
 import com.ssshi.ddms.dto.UserInfoBean;
 import com.ssshi.ddms.dto.RegistrationCrewBean;
 import com.ssshi.ddms.dto.RegistrationCrewDetailBean;
@@ -83,13 +89,16 @@ public class CrewService implements CrewServiceI {
 			}
 		}
 		
+		crewList = filterCrewListByPeriod(crewList, bean.getInDate(), bean.getOutDate());
+		
 		// schedulerInfoUid가 있으면 해당 스케줄 정보 가져오기
-		if(bean.getSchedulerInfoUid() > 0) {
-			resultMap.put(Const.BEAN, dao.getScheduler(bean.getSchedulerInfoUid()));
-			resultMap.put("status", dao.getTrialStatus(bean.getSchedulerInfoUid()));
-		} else {
-			resultMap.put(Const.BEAN, dao.getScheduler(bean.getUid()));
-			resultMap.put("status", dao.getTrialStatus(bean.getUid()));
+		int schedulerInfoUid = bean.getSchedulerInfoUid() > 0 ? bean.getSchedulerInfoUid() : bean.getUid();
+		if(schedulerInfoUid > 0) {
+			resultMap.put(Const.BEAN, dao.getScheduler(schedulerInfoUid));
+			resultMap.put("status", dao.getTrialStatus(schedulerInfoUid));
+		}else {
+			resultMap.put(Const.BEAN, null);
+			resultMap.put("status", null);
 		}
 		
 		resultMap.put(Const.LIST, crewList);
@@ -111,9 +120,17 @@ public class CrewService implements CrewServiceI {
 			}
 		}
 
-		resultMap.put(Const.BEAN, dao.getScheduler(bean.getUid()));
+		crewList = filterCrewListByPeriod(crewList, bean.getInDate(), bean.getOutDate());
+		
+		int schedulerInfoUid = bean.getSchedulerInfoUid() > 0 ? bean.getSchedulerInfoUid() : bean.getUid();
+		if(schedulerInfoUid > 0) {
+			resultMap.put(Const.BEAN, dao.getScheduler(schedulerInfoUid));
+			resultMap.put("status", dao.getTrialStatus(schedulerInfoUid));
+		}else {
+			resultMap.put(Const.BEAN, null);
+			resultMap.put("status", null);
+		}
 		resultMap.put(Const.LIST, crewList);
-		resultMap.put("status", dao.getTrialStatus(bean.getUid()));
 		
 		/* 조회조건 : 호선리스트 */
 		resultMap.put(Const.LIST + "Ship", crewDao.getShipList());
@@ -125,6 +142,19 @@ public class CrewService implements CrewServiceI {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		System.out.println("registrationCrewSave1");
 		boolean isResult = DBConst.FAIL;
+		String selectedShipText = request.getParameter("selectedShipText");
+		String[] scheduleUidArr = bean.getScheduleUid();
+		String hullNumberFromSelection = "";
+		
+		if(selectedShipText != null) {
+			selectedShipText = selectedShipText.trim();
+			
+			if(selectedShipText.length() >= 6) {
+				hullNumberFromSelection = selectedShipText.substring(0, 6);
+			}else {
+				hullNumberFromSelection = selectedShipText;
+			}
+		}
 		int userUid = ((UserInfoBean)(request.getSession().getAttribute(Const.SS_USERINFO))).getUid();
 
 		System.out.println("오나용1234"+bean.getKind().length);
@@ -135,19 +165,54 @@ public class CrewService implements CrewServiceI {
 			System.out.println("오나용2222"+bean.getKind().length);
 			System.out.println("오나용11141/ "+bean.getUid()[i]+"/ "+bean.getDepartment()[i]);
 			
-			//리스트 삭제
-			if(bean.getUid()[i] != -1)
-			{
-				crewDao.deleteCrewList(bean.getUid()[i]);
-				crewDao.deleteCrewInoutList(bean.getUid()[i]);
-				crewDao.deleteCrewDetailList(bean.getUid()[i]);
+			String scheduleUidVal = (scheduleUidArr != null && scheduleUidArr.length > i) ? scheduleUidArr[i] : null;
+			int schedulerInfoUid = -1;
+			
+			if(scheduleUidVal != null && scheduleUidVal.trim().length() > 0) {
+				try {
+					schedulerInfoUid = Integer.parseInt(scheduleUidVal.trim());
+				}catch(NumberFormatException e) {
+					schedulerInfoUid = -1;
+				}
 			}
 			
-			//재저장
-			crew.setSchedulerInfoUid(-1);
+			if(schedulerInfoUid <= 0) {
+				String shipValue = request.getParameter("ship");
+				if(shipValue != null && shipValue.trim().length() > 0) {
+					try {
+						schedulerInfoUid = Integer.parseInt(shipValue.trim());
+					}catch(NumberFormatException e) {
+						schedulerInfoUid = -1;
+					}
+				}
+			}
+			
+			if(schedulerInfoUid <= 0 && bean.getSchedulerInfoUid() != null) {
+				schedulerInfoUid = bean.getSchedulerInfoUid();
+			}
+			
+			int currentUid = bean.getUid()[i];
+			boolean isUpdate = currentUid != -1;
+			if(isUpdate) {
+				crew.setUid(currentUid);
+			}
+			
+			crew.setSchedulerInfoUid(schedulerInfoUid);
 			crew.setKind(bean.getKind()[i]);
-			crew.setTrialKey(bean.getTrialKey()[i]);
-			crew.setProject(bean.getProject()[i]);
+			
+			String trialKey = bean.getTrialKey()[i];
+			String project = bean.getProject()[i];
+			
+			if((trialKey == null || trialKey.trim().isEmpty()) && !hullNumberFromSelection.isEmpty()) {
+				trialKey = hullNumberFromSelection;
+			}
+			
+			if((project == null || project.trim().isEmpty()) && !hullNumberFromSelection.isEmpty()) {
+				project = hullNumberFromSelection;
+			}
+			
+			crew.setTrialKey(trialKey);
+			crew.setProject(project);
 			crew.setCompany(bean.getCompany()[i]);
 			crew.setDepartment(bean.getDepartment()[i]);
 			crew.setName(bean.getName()[i]);
@@ -164,36 +229,53 @@ public class CrewService implements CrewServiceI {
 			crew.setIsPlan(DBConst.Y);
 			crew.setUserUid(userUid);
 			
+			boolean isSuccess = false;
+			if(isUpdate) {
+				if(crewDao.updateRegistrationCrew(crew) > DBConst.ZERO) {
+					crewDao.deleteCrewInoutList(currentUid);
+					crewDao.deleteCrewDetailList(currentUid);
+					isSuccess = true;
+				}
+			}else {
+				if(crewDao.insertRegistrationCrew(crew) > DBConst.ZERO) {
+					currentUid = crew.getUid();
+					isSuccess = true;
+				}
+			}
+			
 			//승선자 저장 완료시, 승/하선일 저장
 			//승선자 저장 완료시, 터미널 상세정보 저장
-			if(crewDao.insertRegistrationCrew(crew) > DBConst.ZERO) {
+			if(isSuccess) {
 				//승선일 
-				if(!bean.getInDate()[i].isEmpty()) {
+				if(!isEmpty(bean.getInDate()[i])) {
 					ScheCrewInOutBean inOut = new ScheCrewInOutBean();
 					inOut.setScheCrewUid(crew.getUid());
 					inOut.setInOutDate(bean.getInDate()[i]);
 					inOut.setSchedulerInOut(DBConst.SCHE_CREW_INOUT_IN);
 					inOut.setPerformanceInOut(DBConst.SCHE_CREW_INOUT_NONE);
 					inOut.setUserUid(userUid);
+					inOut.setSchedulerInfoUid(schedulerInfoUid > 0 ? schedulerInfoUid : null);
 					dao.insertCrewInOut(inOut);
 				}
 				//하선일
-				if(!bean.getOutDate()[i].isEmpty()) {
+				if(!isEmpty(bean.getOutDate()[i])) {
 					ScheCrewInOutBean inOut = new ScheCrewInOutBean();
 					inOut.setScheCrewUid(crew.getUid());
 					inOut.setInOutDate(bean.getOutDate()[i]);
 					inOut.setSchedulerInOut(DBConst.SCHE_CREW_INOUT_OUT);
 					inOut.setPerformanceInOut(DBConst.SCHE_CREW_INOUT_NONE);
 					inOut.setUserUid(userUid);
+					inOut.setSchedulerInfoUid(schedulerInfoUid > 0 ? schedulerInfoUid : null);
 					dao.insertCrewInOut(inOut);
 				}
 				
 				//터미널 상세정보
 				//터미널, 노트북, 모델명, 시리얼번호, 외국인여부, 여권번호, 발주
-			    if(!bean.getTerminal()[i].isEmpty()) { 
+			    if(!isEmpty(bean.getTerminal()[i])) { 
 				    RegistrationCrewDetailBean detailCrew = new RegistrationCrewDetailBean();
 				  
 				    detailCrew.setScheCrewUid(crew.getUid());
+				    detailCrew.setSchedulerInfoUid(schedulerInfoUid);
 				    detailCrew.setTerminal(bean.getTerminal()[i]);
 				    detailCrew.setLaptop(bean.getLaptop()[i]);
 				    detailCrew.setModelNm(bean.getModelNm()[i]);
@@ -1122,310 +1204,89 @@ public class CrewService implements CrewServiceI {
 		return resultMap;
 	}
 	
+	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public Map<String, Object> roomAssignmentUpload(HttpServletRequest request, HttpServletResponse response, 
 			MultipartFile file, int schedulerInfoUid, String trialKey, String projNo) throws Exception {
-		Map<String, Object> resultMap = new HashMap<String, Object>();
-		int userUid = ((UserInfoBean)(request.getSession().getAttribute(Const.SS_USERINFO))).getUid();
-		String username = ((UserInfoBean)(request.getSession().getAttribute(Const.SS_USERINFO))).getFirstName()+ ((UserInfoBean)(request.getSession().getAttribute(Const.SS_USERINFO))).getLastName();
 		
+		if(schedulerInfoUid <= 0) {
+			throw new IllegalArgumentException("스케줄번호를 선택해주세요.");
+		}
+
+		UserInfoBean userInfo = (UserInfoBean)(request.getSession().getAttribute(Const.SS_USERINFO));
+		int userUid = userInfo.getUid();
+		String username = safeConcat(userInfo.getFirstName(), userInfo.getLastName());
+
+		SchedulerInfoBean schedulerBean = dao.getScheduler(schedulerInfoUid);
+		if(schedulerBean == null) {
+			throw new IllegalArgumentException("선택한 스케줄 정보를 찾을 수 없습니다.");
+		}
+
+		String normalizedTrialKey = sanitize(trialKey);
+		if(isEmpty(normalizedTrialKey)) {
+			normalizedTrialKey = sanitize(schedulerBean.getTrialKey());
+		}
+		if(isEmpty(normalizedTrialKey)) {
+			throw new IllegalArgumentException("선택한 스케줄의 Trial Key 정보를 확인해주세요.");
+		}
+
+		String normalizedProjNo = sanitize(projNo);
+		if(isEmpty(normalizedProjNo)) {
+			normalizedProjNo = extractProjNo(normalizedTrialKey);
+		}
+		if(isEmpty(normalizedProjNo)) {
+			normalizedProjNo = sanitize(schedulerBean.getHullnum());
+		}
+		if(isEmpty(normalizedProjNo)) {
+			throw new IllegalArgumentException("선택한 스케줄의 호선 정보를 확인해주세요.");
+		}
+
+		Map<String, Integer> phoneUidMap = buildPhoneUidMap(schedulerInfoUid);
+		if(phoneUidMap.isEmpty()) {
+			throw new IllegalArgumentException("선택한 스케줄에 등록된 승선자 정보를 찾을 수 없습니다.");
+		}
+
+		File tempFile = null;
 		String path = null;
+		XSSFWorkbook workbook = null;
 		try {
-			// DRM 파일인 경우
-			if(file.getOriginalFilename().contains("DRM") || file.getInputStream().toString().contains("Fasoo")) {
+			if(isDrmFile(file)) {
 				path = DRMUtil.getDecodingExcel(file);
-				if(path.startsWith("ERROR")) {
-					resultMap.put(Const.RESULT, DBConst.FAIL);
-					resultMap.put("msg", "DRM 파일 해제 실패");
-					return resultMap;
+				if(path == null || path.startsWith("ERROR")) {
+					throw new IllegalArgumentException("DRM 파일 해제에 실패했습니다.");
 				}
 			} else {
-				// 일반 파일인 경우 임시 저장
-				java.io.File tempFile = java.io.File.createTempFile("room_assignment_", ".xlsx");
+				tempFile = File.createTempFile("room_assignment_", ".xlsx");
 				file.transferTo(tempFile);
 				path = tempFile.getAbsolutePath();
 			}
-			
-			// 엑셀 파일 읽기
-			XSSFWorkbook workbook = new XSSFWorkbook(new java.io.FileInputStream(path));
-			
-			// SCHEDULERINFOUID가 동일한 기존 데이터 삭제 (방정보, 방배정명단)
-			if(schedulerInfoUid > 0) {
-				crewDao.deleteMobileRoomInfoBySchedulerInfoUid(schedulerInfoUid);
-				crewDao.deleteMobileRoomUserlistBySchedulerInfoUid(schedulerInfoUid);
-			}
-			
-			// Step 1: 2번째 탭 읽기 (인덱스 1) - 방정보
-			Sheet sheetRoomInfo = workbook.getSheetAt(1);
-			if(sheetRoomInfo == null) {
-				resultMap.put(Const.RESULT, DBConst.FAIL);
-				resultMap.put("msg", "2번째 탭(방정보)을 찾을 수 없습니다.");
-				workbook.close();
+
+			workbook = new XSSFWorkbook(new FileInputStream(path));
+
+			crewDao.deleteMobileRoomInfoBySchedulerInfoUid(schedulerInfoUid);
+			crewDao.deleteMobileRoomUserlistBySchedulerInfoUid(schedulerInfoUid);
+
+			processRoomInfoSheet(workbook, normalizedProjNo, schedulerInfoUid, normalizedTrialKey, username);
+			processRoomUserListSheet(workbook, normalizedProjNo, schedulerInfoUid, normalizedTrialKey, username, phoneUidMap);
+
+			Map<String, Object> resultMap = new HashMap<String, Object>();
+			resultMap.put(Const.RESULT, DBConst.SUCCESS);
+			resultMap.put("msg", "방배정 데이터가 업로드되었습니다.");
 				return resultMap;
+		} finally {
+			if(workbook != null) {
+				try { workbook.close(); } catch(Exception ignore) {}
 			}
-			
-			int rowNum = 0;
-			int roomInfoSuccessCount = 0;
-			int roomInfoFailCount = 0;
-			StringBuilder errorMsg = new StringBuilder();
-			
-			// Step 1: 방정보 저장
-			for (Row row : sheetRoomInfo) {
-				if (rowNum == 0) {
-					// 헤더 행 건너뛰기
-					rowNum++;
-					continue;
-				}
-				
-				try {
-					// 셀 값 읽기 (엑셀 양식: 1줄은 헤더, 실제 데이터는 2줄부터)
-					// 컬럼 순서: 호선(PROJ_NO), 스케줄넘버(TRIALKEY), DECK, ROOM_NO, ROOM_NAME, TEL, 크기(SIZE_M2), 침대수(BED_COUNT), 화장실(BATHROOM_YN)
-					String projNoFromExcel = ExcelUtil.getCellValue(row.getCell(0)) != null ? ExcelUtil.getCellValue(row.getCell(0)).toString().trim() : "";
-					String trialKeyFromExcel = ExcelUtil.getCellValue(row.getCell(1)) != null ? ExcelUtil.getCellValue(row.getCell(1)).toString().trim() : "";
-					String deck = ExcelUtil.getCellValue(row.getCell(2)) != null ? ExcelUtil.getCellValue(row.getCell(2)).toString().trim() : "";
-					String roomNo = ExcelUtil.getCellValue(row.getCell(3)) != null ? ExcelUtil.getCellValue(row.getCell(3)).toString().trim() : "";
-					String roomName = ExcelUtil.getCellValue(row.getCell(4)) != null ? ExcelUtil.getCellValue(row.getCell(4)).toString().trim() : "";
-					String tel = ExcelUtil.getCellValue(row.getCell(5)) != null ? ExcelUtil.getCellValue(row.getCell(5)).toString().trim() : "";
-					String sizeM2Str = ExcelUtil.getCellValue(row.getCell(6)) != null ? ExcelUtil.getCellValue(row.getCell(6)).toString().trim() : "";
-					String bedCountStr = ExcelUtil.getCellValue(row.getCell(7)) != null ? ExcelUtil.getCellValue(row.getCell(7)).toString().trim() : "";
-					String bathroomYnRaw = ExcelUtil.getCellValue(row.getCell(8)) != null ? ExcelUtil.getCellValue(row.getCell(8)).toString().trim() : "";
-					
-					// BATHROOM_YN 값 매핑 (varchar(20): Y:있음, N:없음)
-					String bathroomYn = null;
-					if(!bathroomYnRaw.isEmpty()) {
-						// 값 매핑: "있음", "O", "o", "Y", "y" -> "Y", "없음", "X", "x", "N", "n" -> "N"
-						String mappedValue = bathroomYnRaw.toUpperCase();
-						if(mappedValue.contains("있음") || mappedValue.equals("O") || mappedValue.equals("Y")) {
-							bathroomYn = "Y";
-						} else if(mappedValue.contains("없음") || mappedValue.equals("X") || mappedValue.equals("N")) {
-							bathroomYn = "N";
-						} else if(mappedValue.length() <= 20) {
-							// 20자 이하면 그대로 사용
-							bathroomYn = mappedValue;
-						} else {
-							// 20자 초과면 첫 20자만 사용
-							bathroomYn = mappedValue.substring(0, 20);
-						}
-					}
-					
-					// 필수값 체크
-					if(deck.isEmpty() || roomNo.isEmpty()) {
-						roomInfoFailCount++;
-						errorMsg.append("[방정보] 행 ").append(rowNum + 1).append(": DECK 또는 ROOM_NO가 비어있습니다.\n");
-						rowNum++;
-						continue;
-					}
-					
-					// Bean 생성
-					com.ssshi.ddms.dto.MobileRoomInfoBean roomBean = new com.ssshi.ddms.dto.MobileRoomInfoBean();
-					// 엑셀에서 읽은 값이 있으면 우선 사용, 없으면 파라미터 값 사용
-					roomBean.setProjNo(projNoFromExcel.isEmpty() ? projNo : projNoFromExcel);
-					roomBean.setSchedulerInfoUid(schedulerInfoUid > 0 ? schedulerInfoUid : null);
-					roomBean.setTrialKey(trialKeyFromExcel.isEmpty() ? trialKey : trialKeyFromExcel);
-					roomBean.setDeck(deck);
-					roomBean.setRoomNo(roomNo);
-					roomBean.setRoomName(roomName.isEmpty() ? null : roomName);
-					roomBean.setTel(tel.isEmpty() ? null : tel);
-					
-					// SIZE_M2 파싱
-					if(!sizeM2Str.isEmpty()) {
-						try {
-							roomBean.setSizeM2(new java.math.BigDecimal(sizeM2Str));
-						} catch(Exception e) {
-							// 숫자 변환 실패 시 null
-							roomBean.setSizeM2(null);
-						}
-					}
-					
-					// BED_COUNT 파싱
-					if(!bedCountStr.isEmpty()) {
-						try {
-							roomBean.setBedCount(Integer.parseInt(bedCountStr));
-						} catch(Exception e) {
-							// 숫자 변환 실패 시 null
-							roomBean.setBedCount(null);
-						}
-					}
-					
-					roomBean.setBathroomYn(bathroomYn);
-					roomBean.setStatus("AVAILABLE"); // 기본값
-					roomBean.setDelYn("N");
-					roomBean.setRegUsername(username);
-					roomBean.setUpdateUsername(username);
-					
-					// DB 저장
-					crewDao.insertMobileRoomInfo(roomBean);
-					roomInfoSuccessCount++;
-					
-				} catch(Exception e) {
-					roomInfoFailCount++;
-					errorMsg.append("[방정보] 행 ").append(rowNum + 1).append(": ").append(e.getMessage()).append("\n");
-					e.printStackTrace();
-				}
-				
-				rowNum++;
-			}
-			
-			// Step 2: 1번째 탭 읽기 (인덱스 0) - 방배정명단
-			Sheet sheetUserlist = workbook.getSheetAt(0);
-			if(sheetUserlist == null) {
-				resultMap.put(Const.RESULT, DBConst.FAIL);
-				resultMap.put("msg", "1번째 탭(방배정명단)을 찾을 수 없습니다.");
-				workbook.close();
-				return resultMap;
-			}
-			
-			rowNum = 0;
-			int userlistSuccessCount = 0;
-			int userlistFailCount = 0;
-			
-			for (Row row : sheetUserlist) {
-				if (rowNum == 0) {
-					// 헤더 행 건너뛰기
-					rowNum++;
-					continue;
-				}
-				
-				try {
-					// 셀 값 읽기 (엑셀 양식: 1줄은 헤더, 실제 데이터는 2줄부터)
-					// 컬럼 순서: 호선(PROJ_NO), 스케줄넘버(TRIALKEY), 방번호(ROOM_NO), 부서(DEPARTMENT), 이름(NAME), 휴대폰번호(PHONE), USER_UID, 입실일(CHECK_IN_DATE), 퇴실일(CHECK_OUT_DATE)
-					String projNoFromExcel = ExcelUtil.getCellValue(row.getCell(0)) != null ? ExcelUtil.getCellValue(row.getCell(0)).toString().trim() : "";
-					String trialKeyFromExcel = ExcelUtil.getCellValue(row.getCell(1)) != null ? ExcelUtil.getCellValue(row.getCell(1)).toString().trim() : "";
-					String roomNo = ExcelUtil.getCellValue(row.getCell(2)) != null ? ExcelUtil.getCellValue(row.getCell(2)).toString().trim() : "";
-					String department = ExcelUtil.getCellValue(row.getCell(3)) != null ? ExcelUtil.getCellValue(row.getCell(3)).toString().trim() : "";
-					String name = ExcelUtil.getCellValue(row.getCell(4)) != null ? ExcelUtil.getCellValue(row.getCell(4)).toString().trim() : "";
-					String phone = ExcelUtil.getCellValue(row.getCell(5)) != null ? ExcelUtil.getCellValue(row.getCell(5)).toString().trim() : "";
-					Object userUidObj = ExcelUtil.getCellValue(row.getCell(6));
-					Object checkInDateObj = ExcelUtil.getCellValue(row.getCell(7));
-					Object checkOutDateObj = ExcelUtil.getCellValue(row.getCell(8));
-					
-					// 필수값 체크
-					if(roomNo.isEmpty() || name.isEmpty()) {
-						userlistFailCount++;
-						errorMsg.append("[방배정명단] 행 ").append(rowNum + 1).append(": ROOM_NO 또는 NAME이 비어있습니다.\n");
-						rowNum++;
-						continue;
-					}
-					
-					// Bean 생성
-					com.ssshi.ddms.dto.MobileRoomUserlistBean userlistBean = new com.ssshi.ddms.dto.MobileRoomUserlistBean();
-					// 엑셀에서 읽은 값이 있으면 우선 사용, 없으면 파라미터 값 사용
-					userlistBean.setProjNo(projNoFromExcel.isEmpty() ? projNo : projNoFromExcel);
-					userlistBean.setSchedulerInfoUid(schedulerInfoUid > 0 ? schedulerInfoUid : null);
-					userlistBean.setTrialKey(trialKeyFromExcel.isEmpty() ? trialKey : trialKeyFromExcel);
-					userlistBean.setRoomNo(roomNo);
-					userlistBean.setDepartment(department.isEmpty() ? null : department);
-					userlistBean.setName(name);
-					userlistBean.setPhone(phone.isEmpty() ? null : phone);
-					
-					// USER_UID 처리
-					userUid = -1;
-					if(userUidObj != null) {
-						try {
-							if(userUidObj instanceof Number) {
-								userUid = ((Number)userUidObj).intValue();
-							} else {
-								String userUidStr = userUidObj.toString().trim();
-								if(!userUidStr.isEmpty()) {
-									userUid = Integer.parseInt(userUidStr);
-								}
-							}
-						} catch(Exception e) {
-							// 숫자 변환 실패 시 null
-							userUid =  -1;
-						}
-					}
-					userlistBean.setUserUid(userUid);
-					
-					// 날짜 파싱 (YYYY-MM-DD 형식으로 변환)
-					String checkInDateStr = null;
-					if(checkInDateObj != null && !checkInDateObj.toString().trim().isEmpty()) {
-						if(checkInDateObj instanceof java.util.Date) {
-							// Date 객체인 경우
-							java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
-							checkInDateStr = sdf.format((java.util.Date)checkInDateObj);
-						} else {
-							// 문자열인 경우
-							String dateStr = checkInDateObj.toString().trim();
-							// CommonUtil을 사용하여 날짜 형식 변환
-							checkInDateStr = com.ssshi.ddms.util.CommonUtil.excelDateStringFormatDate(dateStr);
-							// yyyy-MM-dd 형식이 아니면 null로 설정
-							if(!checkInDateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
-								checkInDateStr = null;
-							}
-						}
-					}
-					userlistBean.setCheckInDate(checkInDateStr);
-					
-					String checkOutDateStr = null;
-					if(checkOutDateObj != null && !checkOutDateObj.toString().trim().isEmpty()) {
-						if(checkOutDateObj instanceof java.util.Date) {
-							java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
-							checkOutDateStr = sdf.format((java.util.Date)checkOutDateObj);
-						} else {
-							String dateStr = checkOutDateObj.toString().trim();
-							checkOutDateStr = com.ssshi.ddms.util.CommonUtil.excelDateStringFormatDate(dateStr);
-							if(!checkOutDateStr.matches("\\d{4}-\\d{2}-\\d{2}")) {
-								checkOutDateStr = null;
-							}
-						}
-					}
-					userlistBean.setCheckOutDate(checkOutDateStr);
-					
-					userlistBean.setStatus("CHECKED_IN"); // 기본값
-					userlistBean.setDelYn("N");
-					userlistBean.setRegUsername(username);
-					userlistBean.setUpdateUsername(username);
-					
-					// DB 저장
-					crewDao.insertMobileRoomUserlist(userlistBean);
-					userlistSuccessCount++;
-					
-				} catch(Exception e) {
-					userlistFailCount++;
-					errorMsg.append("[방배정명단] 행 ").append(rowNum + 1).append(": ").append(e.getMessage()).append("\n");
-					e.printStackTrace();
-				}
-				
-				rowNum++;
-			}
-			
-			workbook.close();
-			
-			// 임시 파일 삭제
-			if(path != null && !path.contains("DRM")) {
-				java.io.File tempFile = new java.io.File(path);
-				if(tempFile.exists()) {
+			if(tempFile != null && tempFile.exists()) {
 					tempFile.delete();
 				}
+			if(path != null) {
+				File decodedFile = new File(path);
+				if((tempFile == null || !path.equals(tempFile.getAbsolutePath())) && decodedFile.exists()) {
+					decodedFile.delete();
+				}
 			}
-			
-			resultMap.put(Const.RESULT, DBConst.SUCCESS);
-			resultMap.put("roomInfoSuccessCount", roomInfoSuccessCount);
-			resultMap.put("roomInfoFailCount", roomInfoFailCount);
-			resultMap.put("userlistSuccessCount", userlistSuccessCount);
-			resultMap.put("userlistFailCount", userlistFailCount);
-			resultMap.put("successCount", roomInfoSuccessCount + userlistSuccessCount); // 총 성공 건수
-			resultMap.put("failCount", roomInfoFailCount + userlistFailCount); // 총 실패 건수
-			
-			if(errorMsg.length() > 0) {
-				resultMap.put("msg", errorMsg.toString());
-			}
-			
-			// 완료 메시지 생성
-			String msg = "방정보 " + roomInfoSuccessCount + "건, 방배정인원 " + userlistSuccessCount + "건 업로드가 완료되었습니다.";
-			if(roomInfoFailCount > 0 || userlistFailCount > 0) {
-				msg += " (방정보 실패: " + roomInfoFailCount + "건, 방배정인원 실패: " + userlistFailCount + "건)";
-			}
-			resultMap.put("msg", msg);
-			
-		} catch(Exception e) {
-			e.printStackTrace();
-			resultMap.put(Const.RESULT, DBConst.FAIL);
-			resultMap.put("msg", "업로드 중 오류가 발생했습니다: " + e.getMessage());
 		}
-		
-		return resultMap;
 	}
 	
 	@Override
@@ -1660,12 +1521,7 @@ public class CrewService implements CrewServiceI {
 					
 					cell = row.createCell(cellIdx++);
 					cell.setCellStyle(bodyCenterStyle);
-					if(bean.getSizeM2() != null) {
-						cell.setCellType(Cell.CELL_TYPE_NUMERIC);
-						cell.setCellValue(bean.getSizeM2().doubleValue());
-					} else {
-						cell.setCellValue("");
-					}
+					cell.setCellValue(bean.getSizeM2() != null ? bean.getSizeM2() : "");
 					
 					cell = row.createCell(cellIdx++);
 					cell.setCellStyle(bodyCenterStyle);
@@ -1729,4 +1585,290 @@ public class CrewService implements CrewServiceI {
 			}
 		}
 	}
+
+	private void processRoomInfoSheet(XSSFWorkbook workbook, String projNo, int schedulerInfoUid, String trialKey, String username) throws Exception {
+		if(workbook.getNumberOfSheets() <= 1) {
+			throw new IllegalArgumentException("엑셀 2번째 탭(방정보)을 찾을 수 없습니다.");
+		}
+
+		Sheet sheet = workbook.getSheetAt(1);
+		if(sheet == null) {
+			throw new IllegalArgumentException("엑셀 2번째 탭(방정보)을 찾을 수 없습니다.");
+		}
+
+		for(int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+			Row row = sheet.getRow(rowIndex);
+			if(isRowEmpty(row, 9)) {
+				continue;
+			}
+
+			String deck = getCellTrim(row, 2);
+			String roomNo = getCellTrim(row, 3);
+
+			if(isEmpty(deck) || isEmpty(roomNo)) {
+				throw buildRowException(rowIndex, "DECK 또는 ROOM_NO가 비어 있습니다.");
+			}
+
+			String roomName = getCellTrim(row, 4);
+			String tel = getCellTrim(row, 5);
+			String sizeM2Str = getCellTrim(row, 6);
+			String bedCountStr = getCellTrim(row, 7);
+			String bathroomYnRaw = getCellTrim(row, 8);
+			String bathroomYn = mapBathroomYn(bathroomYnRaw);
+
+			com.ssshi.ddms.dto.MobileRoomInfoBean roomBean = new com.ssshi.ddms.dto.MobileRoomInfoBean();
+			roomBean.setProjNo(projNo);
+			roomBean.setSchedulerInfoUid(Integer.valueOf(schedulerInfoUid));
+			roomBean.setTrialKey(trialKey);
+			roomBean.setDeck(deck);
+			roomBean.setRoomNo(roomNo);
+			roomBean.setRoomName(isEmpty(roomName) ? null : roomName);
+			roomBean.setTel(isEmpty(tel) ? null : tel);
+
+			if(!isEmpty(sizeM2Str) && sizeM2Str.length() > 200) {
+				throw buildRowException(rowIndex, "면적(크기) 값이 너무 깁니다.(최대 200자)");
+			}
+			roomBean.setSizeM2(isEmpty(sizeM2Str) ? null : sizeM2Str);
+
+			if(!isEmpty(bedCountStr)) {
+				try {
+					roomBean.setBedCount(Integer.parseInt(bedCountStr));
+				} catch(NumberFormatException ex) {
+					throw buildRowException(rowIndex, "침대수 값이 올바르지 않습니다.");
+				}
+			}
+
+			roomBean.setBathroomYn(bathroomYn);
+			roomBean.setStatus("AVAILABLE");
+			roomBean.setDelYn("N");
+			roomBean.setRegUsername(username);
+			roomBean.setUpdateUsername(username);
+
+			crewDao.insertMobileRoomInfo(roomBean);
+		}
+	}
+
+	private void processRoomUserListSheet(XSSFWorkbook workbook, String projNo, int schedulerInfoUid, String trialKey,
+			String username, Map<String, Integer> phoneUidMap) throws Exception {
+
+		if(workbook.getNumberOfSheets() == 0) {
+			throw new IllegalArgumentException("엑셀 1번째 탭(방배정명단)을 찾을 수 없습니다.");
+		}
+
+		Sheet sheet = workbook.getSheetAt(0);
+		if(sheet == null) {
+			throw new IllegalArgumentException("엑셀 1번째 탭(방배정명단)을 찾을 수 없습니다.");
+		}
+
+		for(int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+			Row row = sheet.getRow(rowIndex);
+			if(isRowEmpty(row, 9)) {
+				continue;
+			}
+
+			String roomNo = getCellTrim(row, 2);
+			String name = getCellTrim(row, 4);
+
+			if(isEmpty(roomNo) || isEmpty(name)) {
+				throw buildRowException(rowIndex, "ROOM_NO 또는 NAME이 비어 있습니다.");
+			}
+
+			String department = getCellTrim(row, 3);
+			String phone = getCellTrim(row, 5);
+			if(isEmpty(phone)) {
+				throw buildRowException(rowIndex, "휴대폰 번호가 비어 있습니다.");
+			}
+
+			String normalizedPhone = normalizePhone(phone);
+			Integer matchedUid = phoneUidMap.get(normalizedPhone);
+			if(matchedUid == null) {
+				throw buildRowException(rowIndex, "휴대폰 번호와 일치하는 승선자를 찾을 수 없습니다.");
+			}
+
+			String checkInDate = convertExcelDate(ExcelUtil.getCellValue(row != null ? row.getCell(7) : null));
+			String checkOutDate = convertExcelDate(ExcelUtil.getCellValue(row != null ? row.getCell(8) : null));
+
+			com.ssshi.ddms.dto.MobileRoomUserlistBean userlistBean = new com.ssshi.ddms.dto.MobileRoomUserlistBean();
+			userlistBean.setProjNo(projNo);
+			userlistBean.setSchedulerInfoUid(Integer.valueOf(schedulerInfoUid));
+			userlistBean.setTrialKey(trialKey);
+			userlistBean.setRoomNo(roomNo);
+			userlistBean.setDepartment(isEmpty(department) ? null : department);
+			userlistBean.setName(name);
+			userlistBean.setPhone(phone);
+			userlistBean.setUserUid(matchedUid);
+			userlistBean.setCheckInDate(checkInDate);
+			userlistBean.setCheckOutDate(checkOutDate);
+			userlistBean.setStatus("CHECKED_IN");
+			userlistBean.setDelYn("N");
+			userlistBean.setRegUsername(username);
+			userlistBean.setUpdateUsername(username);
+
+			crewDao.insertMobileRoomUserlist(userlistBean);
+		}
+	}
+
+	private Map<String, Integer> buildPhoneUidMap(int schedulerInfoUid) throws Exception {
+		List<ScheCrewBean> crewList = dao.getCrewList(schedulerInfoUid);
+		Map<String, Integer> map = new HashMap<String, Integer>();
+		if(crewList != null) {
+			for(ScheCrewBean crew : crewList) {
+				String normalizedPhone = normalizePhone(crew.getPhone());
+				if(!isEmpty(normalizedPhone) && !map.containsKey(normalizedPhone)) {
+					map.put(normalizedPhone, crew.getUid());
+				}
+			}
+		}
+		return map;
+	}
+
+	private boolean isDrmFile(MultipartFile file) {
+		String fileName = file.getOriginalFilename();
+		String lowerName = fileName != null ? fileName.toLowerCase() : "";
+		if(lowerName.contains("drm")) {
+			return true;
+		}
+		String contentType = file.getContentType();
+		return contentType != null && contentType.toLowerCase().contains("drm");
+	}
+
+	private String extractProjNo(String value) {
+		if(isEmpty(value)) {
+			return "";
+		}
+		return value.substring(0, Math.min(6, value.length()));
+	}
+
+	private String sanitize(String value) {
+		return value == null ? "" : value.trim();
+	}
+
+	private boolean isEmpty(String value) {
+		return value == null || value.trim().isEmpty();
+	}
+
+	private String safeConcat(String first, String last) {
+		return sanitize(first) + sanitize(last);
+	}
+
+	private String getCellTrim(Row row, int index) {
+		if(row == null || index < 0) {
+			return "";
+		}
+		Object value = ExcelUtil.getCellValue(row.getCell(index));
+		return value == null ? "" : value.toString().trim();
+	}
+
+	private boolean isRowEmpty(Row row, int maxColumn) {
+		if(row == null) {
+			return true;
+		}
+		int lastColumn = Math.min(maxColumn, Math.max(row.getLastCellNum(), maxColumn));
+		for(int i = 0; i < lastColumn; i++) {
+			if(!isEmpty(getCellTrim(row, i))) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private String mapBathroomYn(String rawValue) {
+		if(isEmpty(rawValue)) {
+			return null;
+		}
+		String upper = rawValue.toUpperCase();
+		if(upper.contains("있음") || "O".equals(upper) || "Y".equals(upper)) {
+			return "Y";
+		}
+		if(upper.contains("없음") || "X".equals(upper) || "N".equals(upper)) {
+			return "N";
+		}
+		return upper.length() <= 20 ? upper : upper.substring(0, 20);
+	}
+
+	private String convertExcelDate(Object cellValue) {
+		if(cellValue == null) {
+			return null;
+		}
+		if(cellValue instanceof java.util.Date) {
+			java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+			return sdf.format((java.util.Date)cellValue);
+		}
+		String value = cellValue.toString().trim();
+		if(value.isEmpty()) {
+			return null;
+		}
+		String converted = com.ssshi.ddms.util.CommonUtil.excelDateStringFormatDate(value);
+		if(converted != null && converted.matches("\\d{4}-\\d{2}-\\d{2}")) {
+			return converted;
+		}
+		return null;
+	}
+
+	private String normalizePhone(String phone) {
+		if(isEmpty(phone)) {
+			return "";
+		}
+		String digits = phone.replaceAll("[^0-9]", "");
+		if(digits.startsWith("82") && digits.length() > 2) {
+			digits = "0" + digits.substring(2);
+		}
+		return digits;
+	}
+
+	private IllegalArgumentException buildRowException(int rowIndex, String message) {
+		return new IllegalArgumentException("엑셀 " + (rowIndex + 1) + "행 데이터를 다시 확인해 주세요. (" + message + ")");
+	}
+
+	private List<RegistrationCrewBean> filterCrewListByPeriod(List<RegistrationCrewBean> crewList, String from, String to) throws Exception {
+		if(crewList == null || crewList.isEmpty() || (isEmpty(from) && isEmpty(to))) {
+			return crewList;
+		}
+		
+		List<RegistrationCrewBean> filteredList = new ArrayList<RegistrationCrewBean>();
+		
+		for(int i = 0; i < crewList.size(); i++) {
+			RegistrationCrewBean crew = crewList.get(i);
+			String crewInDate = null;
+			String crewOutDate = null;
+			
+			if(crew.getInOutList() != null) {
+				for(int j = 0; j < crew.getInOutList().size(); j++) {
+					ScheCrewInOutBean inOut = crew.getInOutList().get(j);
+					
+					if(DBConst.SCHE_CREW_INOUT_IN.equals(inOut.getSchedulerInOut())) {
+						crewInDate = trimToDate(inOut.getInOutDate());
+					}else if(DBConst.SCHE_CREW_INOUT_OUT.equals(inOut.getSchedulerInOut())) {
+						crewOutDate = trimToDate(inOut.getInOutDate());
+					}
+				}
+			}
+			
+			if(isCrewWithinRange(crewInDate, crewOutDate, from, to)) {
+				filteredList.add(crew);
+			}
+		}
+		
+		return filteredList;
+	}
+	
+	private boolean isCrewWithinRange(String crewIn, String crewOut, String from, String to) {
+		String rangeStart = isEmpty(from) ? "0000-00-00" : from;
+		String rangeEnd = isEmpty(to) ? "9999-12-31" : to;
+		
+		String start = isEmpty(crewIn) ? "0000-00-00" : crewIn;
+		String end = isEmpty(crewOut) ? "9999-12-31" : crewOut;
+		
+		return start.compareTo(rangeEnd) <= 0 && end.compareTo(rangeStart) >= 0;
+	}
+	
+	private String trimToDate(String value) {
+		if(isEmpty(value)) {
+			return value;
+		}
+		
+		return value.length() >= 10 ? value.substring(0, 10) : value;
+	}
 }
+	
+

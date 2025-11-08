@@ -753,6 +753,7 @@ public class ScheService implements ScheServiceI {
 							inOut.setSchedulerInOut(DBConst.SCHE_CREW_INOUT_IN);
 							inOut.setPerformanceInOut(DBConst.SCHE_CREW_INOUT_NONE);
 							inOut.setUserUid(userUid);
+							inOut.setSchedulerInfoUid(bean.getSchedulerInfoUid());
 							dao.insertCrewInOut(inOut);
 						}
 						
@@ -763,6 +764,7 @@ public class ScheService implements ScheServiceI {
 							inOut.setSchedulerInOut(DBConst.SCHE_CREW_INOUT_OUT);
 							inOut.setPerformanceInOut(DBConst.SCHE_CREW_INOUT_NONE);
 							inOut.setUserUid(userUid);
+							inOut.setSchedulerInfoUid(bean.getSchedulerInfoUid());
 							dao.insertCrewInOut(inOut);
 						}
 					}
@@ -1559,6 +1561,7 @@ public class ScheService implements ScheServiceI {
 							inOut.setSchedulerInOut(DBConst.SCHE_CREW_INOUT_NONE);
 							inOut.setPerformanceInOut(DBConst.SCHE_CREW_INOUT_IN);
 							inOut.setUserUid(userUid);
+							inOut.setSchedulerInfoUid(bean.getSchedulerInfoUid());
 							dao.insertCrewInOut(inOut);
 						}
 						
@@ -1569,6 +1572,7 @@ public class ScheService implements ScheServiceI {
 							inOut.setSchedulerInOut(DBConst.SCHE_CREW_INOUT_NONE);
 							inOut.setPerformanceInOut(DBConst.SCHE_CREW_INOUT_OUT);
 							inOut.setUserUid(userUid);
+							inOut.setSchedulerInfoUid(bean.getSchedulerInfoUid());
 							dao.insertCrewInOut(inOut);
 						}
 					}
@@ -1601,6 +1605,7 @@ public class ScheService implements ScheServiceI {
 								inOut.setSchedulerInOut(DBConst.SCHE_CREW_INOUT_NONE);
 								inOut.setPerformanceInOut(DBConst.SCHE_CREW_INOUT_IN);
 								inOut.setUserUid(userUid);
+								inOut.setSchedulerInfoUid(bean.getSchedulerInfoUid());
 								dao.insertCrewInOut(inOut);
 							}
 							
@@ -1611,6 +1616,7 @@ public class ScheService implements ScheServiceI {
 								inOut.setSchedulerInOut(DBConst.SCHE_CREW_INOUT_NONE);
 								inOut.setPerformanceInOut(DBConst.SCHE_CREW_INOUT_OUT);
 								inOut.setUserUid(userUid);
+								inOut.setSchedulerInfoUid(bean.getSchedulerInfoUid());
 								dao.insertCrewInOut(inOut);
 							}
 						}

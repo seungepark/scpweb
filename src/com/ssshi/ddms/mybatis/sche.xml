@@ -154,8 +154,8 @@
 	</insert>
 
 	<insert id="insertCrewInOut" parameterType="scheCrewInOutBean">
-		INSERT INTO SCHECREWINOUT (SCHECREWUID, INOUTDATE, SCHEDULERINOUT, PERFORMANCEINOUT, INSERTDATE, INSERTBY, UPDATEDATE, UPDATEBY)
-		VALUES (#{scheCrewUid}, #{inOutDate}, #{schedulerInOut}, #{performanceInOut}, SYSDATE(), #{userUid}, SYSDATE(), #{userUid})
+		INSERT INTO SCHECREWINOUT (SCHEDULERINFOUID, SCHECREWUID, INOUTDATE, SCHEDULERINOUT, PERFORMANCEINOUT, INSERTDATE, INSERTBY, UPDATEDATE, UPDATEBY)
+		VALUES (#{schedulerInfoUid}, #{scheCrewUid}, #{inOutDate}, #{schedulerInOut}, #{performanceInOut}, SYSDATE(), #{userUid}, SYSDATE(), #{userUid})
 	</insert>
 	
 	<select id="getCommanderInfoList" parameterType="int" resultType="scheCrewBean">

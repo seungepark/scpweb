@@ -4,6 +4,7 @@ public class RegistrationCrewDetailBean {
 
 	private int uid;
 	private int scheCrewUid;
+	private int schedulerInfoUid;
 	
 	private int userUid;
 
@@ -28,6 +29,12 @@ public class RegistrationCrewDetailBean {
 	}
 	public void setScheCrewUid(int scheCrewUid) {
 		this.scheCrewUid = scheCrewUid;
+	}
+	public int getSchedulerInfoUid() {
+		return schedulerInfoUid;
+	}
+	public void setSchedulerInfoUid(int schedulerInfoUid) {
+		this.schedulerInfoUid = schedulerInfoUid;
 	}
 	
 	public String getTerminal() {

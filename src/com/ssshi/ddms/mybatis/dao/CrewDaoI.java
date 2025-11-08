@@ -62,6 +62,9 @@ public interface CrewDaoI {
 	// 승선자 저장.
 	int insertRegistrationCrew(RegistrationCrewBean bean) throws Exception;
 	
+	// 승선자 수정.
+	int updateRegistrationCrew(RegistrationCrewBean bean) throws Exception;
+	
 	// 승선자 상세정보 저장.
 	int insertCrewDetail(RegistrationCrewDetailBean bean) throws Exception;
 	

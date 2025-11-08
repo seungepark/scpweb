@@ -35,6 +35,7 @@ public class RegistrationCrewListBean {
 	private String[] orderStatus;
 	//private String[] deleteYn;
 	private int[] uidArr;
+	private String[] scheduleUid;
 	
 	public Integer getSchedulerInfoUid() {
 		return schedulerInfoUid;
@@ -217,6 +218,13 @@ public class RegistrationCrewListBean {
 	public void setOrderStatus(String[] orderStatus) {
 		this.orderStatus = orderStatus;
 	}	
+
+	public String[] getScheduleUid() {
+		return scheduleUid;
+	}
+	public void setScheduleUid(String[] scheduleUid) {
+		this.scheduleUid = scheduleUid;
+	}
 
 	/*
 	 * public String[] getDeleteYn() { return deleteYn; } public void

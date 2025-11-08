@@ -47,30 +47,86 @@
     </select>
 	
 	<select id="getRegistrationCrewList" parameterType="RegistrationCrewBean" resultType="RegistrationCrewBean">
-		SELECT S.UID, S.SCHEDULERINFOUID as schedulerInfoUid, S.TRIALKEY , S.PROJECT, S.KIND, S.COMPANY, S.DEPARTMENT, S.NAME, S.RANK, S.IDNO, S.WORKTYPE1,
-			   S.WORKTYPE2, S.WORK, S.MAINSUB, S.FOODSTYLE, S.PERSONNO, S.GENDER, S.PHONE, S.ISPLAN, SD.TERMINAL,
-			   SD.NOTEBOOK AS LAPTOP, SD.MODEL_NAME AS MODELNM, SD.SERIAL_NUMBER AS SERIALNO,  SD.FOREIGNER, SD.PASSPORT_NUMBER AS PASSPORTNO, SD.ORDER_STATUS AS ORDERSTATUS, S.ISNONE, S.DELETE_YN
+		SELECT S.UID,
+		       S.SCHEDULERINFOUID AS schedulerInfoUid,
+		       S.TRIALKEY,
+		       S.PROJECT,
+		       S.KIND,
+		       S.COMPANY,
+		       S.DEPARTMENT,
+		       S.NAME,
+		       S.RANK,
+		       S.IDNO,
+		       S.WORKTYPE1,
+		       S.WORKTYPE2,
+		       S.WORK,
+		       S.MAINSUB,
+		       S.FOODSTYLE,
+		       S.PERSONNO,
+		       S.GENDER,
+		       S.PHONE,
+		       MRU.ROOM_NO AS roomNo,
+		       S.ISPLAN,
+		       SD.TERMINAL,
+		       SD.NOTEBOOK AS LAPTOP,
+		       SD.MODEL_NAME AS MODELNM,
+		       SD.SERIAL_NUMBER AS SERIALNO,
+		       SD.FOREIGNER,
+		       SD.PASSPORT_NUMBER AS PASSPORTNO,
+		       SD.ORDER_STATUS AS ORDERSTATUS,
+		       S.ISNONE,
+		       S.DELETE_YN
 		  FROM SCHECREW S
-		  LEFT OUTER JOIN SCHECREWDETAILINFO SD ON S.UID = SD.SCHEDULERINFOUID
-		WHERE 1=1
-		  AND S.UID IS NOT NULL
-		  AND S.TRIALKEY IS NOT NULL
-		  <!-- AND S.DELETE_YN IS NOT NULL -->
-		  AND S.PROJECT IS NOT NULL
-		 <if test="ship != null and ship != 'ALL'" >
-			AND S.TRIALKEY <![CDATA[ = ]]> #{ship}
-		</if>	
+		  LEFT OUTER JOIN SCHECREWDETAILINFO SD ON SD.SCHECREWUID = S.UID
+		  LEFT OUTER JOIN SCHECREWINOUT SI ON SI.SCHECREWUID = S.UID
+		  LEFT OUTER JOIN mobile_room_userlist MRU
+		    ON MRU.SCHEDULERINFOUID = S.SCHEDULERINFOUID
+		   AND MRU.USER_UID = S.UID
+		 WHERE S.TRIALKEY IS NOT NULL
+		   AND S.PROJECT IS NOT NULL
+		 <if test="schedulerInfoUid != null and schedulerInfoUid > 0">
+		   AND S.SCHEDULERINFOUID = #{schedulerInfoUid}
+		</if>
+		order by S.UID DESC
 	</select>
 	
 	<select id="getRegistrationCrewListBySchedulerInfoUid" parameterType="int" resultType="RegistrationCrewBean">
-		SELECT S.UID, S.SCHEDULERINFOUID as schedulerInfoUid, S.TRIALKEY , S.PROJECT, S.KIND, S.COMPANY, S.DEPARTMENT, S.NAME, S.RANK, S.IDNO, S.WORKTYPE1,
-			   S.WORKTYPE2, S.WORK, S.MAINSUB, S.FOODSTYLE, S.PERSONNO, S.GENDER, S.PHONE, S.ISPLAN, SD.TERMINAL,
-			   SD.NOTEBOOK AS LAPTOP, SD.MODEL_NAME AS MODELNM, SD.SERIAL_NUMBER AS SERIALNO,  SD.FOREIGNER, SD.PASSPORT_NUMBER AS PASSPORTNO, SD.ORDER_STATUS AS ORDERSTATUS, S.ISNONE, S.DELETE_YN
+		SELECT S.UID,
+		       S.SCHEDULERINFOUID AS schedulerInfoUid,
+		       S.TRIALKEY,
+		       S.PROJECT,
+		       S.KIND,
+		       S.COMPANY,
+		       S.DEPARTMENT,
+		       S.NAME,
+		       S.RANK,
+		       S.IDNO,
+		       S.WORKTYPE1,
+		       S.WORKTYPE2,
+		       S.WORK,
+		       S.MAINSUB,
+		       S.FOODSTYLE,
+		       S.PERSONNO,
+		       S.GENDER,
+		       S.PHONE,
+		       MRU.ROOM_NO AS roomNo,
+		       S.ISPLAN,
+		       SD.TERMINAL,
+		       SD.NOTEBOOK AS LAPTOP,
+		       SD.MODEL_NAME AS MODELNM,
+		       SD.SERIAL_NUMBER AS SERIALNO,
+		       SD.FOREIGNER,
+		       SD.PASSPORT_NUMBER AS PASSPORTNO,
+		       SD.ORDER_STATUS AS ORDERSTATUS,
+		       S.ISNONE,
+		       S.DELETE_YN
 		  FROM SCHECREW S
-		  LEFT OUTER JOIN SCHECREWDETAILINFO SD ON S.UID = SD.SCHEDULERINFOUID
-		WHERE 1=1
-		  AND S.UID IS NOT NULL
-		  AND S.SCHEDULERINFOUID = #{schedulerInfoUid}
+		  LEFT OUTER JOIN SCHECREWDETAILINFO SD ON SD.SCHECREWUID = S.UID
+		  LEFT OUTER JOIN SCHECREWINOUT SI ON SI.SCHECREWUID = S.UID
+		  LEFT OUTER JOIN mobile_room_userlist MRU
+		    ON MRU.SCHEDULERINFOUID = S.SCHEDULERINFOUID
+		   AND MRU.USER_UID = S.UID
+		 WHERE S.SCHEDULERINFOUID = #{schedulerInfoUid}
 	</select>
 	
 	<select id="getCrewInOutList" parameterType="ParamBean" resultType="scheCrewInOutBean">
@@ -103,9 +159,9 @@
 	</insert>
 	
   	<insert id="insertCrewDetail" parameterType="RegistrationCrewDetailBean">
-		INSERT INTO SCHECREWDETAILINFO (SCHEDULERINFOUID, TERMINAL, NOTEBOOK, MODEL_NAME, SERIAL_NUMBER
+		INSERT INTO SCHECREWDETAILINFO (SCHECREWUID, SCHEDULERINFOUID, TERMINAL, NOTEBOOK, MODEL_NAME, SERIAL_NUMBER
 			,FOREIGNER, PASSPORT_NUMBER, ORDER_STATUS, ORDER_DATE, ORDER_UID ,REG_DATE)
-		VALUES (#{scheCrewUid}, #{terminal}, #{laptop}, #{modelNm}, #{serialNo}
+		VALUES (#{scheCrewUid}, #{schedulerInfoUid}, #{terminal}, #{laptop}, #{modelNm}, #{serialNo}
 			, #{foreigner}, #{passportNo}, #{orderStatus}, SYSDATE(), #{userUid}, SYSDATE())
 		<selectKey resultType="int" keyProperty="uid" order="AFTER">
 	        SELECT LAST_INSERT_ID()
@@ -119,7 +175,7 @@
 	
 	<delete id="deleteCrewDetailList" parameterType="int">
 		DELETE FROM SCHECREWDETAILINFO
-		WHERE SCHEDULERINFOUID = #{crewUid}
+		WHERE SCHECREWUID = #{crewUid}
 	</delete>
 	
 	<delete id="deleteCrewInoutList" parameterType="int">
@@ -278,6 +334,31 @@
 			SELECT LAST_INSERT_ID()
 		</selectKey>
 	</insert>
+	
+	<update id="updateRegistrationCrew" parameterType="RegistrationCrewBean">
+		UPDATE SCHECREW
+		   SET SCHEDULERINFOUID = #{schedulerInfoUid},
+		       TRIALKEY = #{trialKey},
+		       PROJECT = #{project},
+		       KIND = #{kind},
+		       COMPANY = #{company},
+		       DEPARTMENT = #{department},
+		       NAME = #{name},
+		       RANK = #{rank},
+		       IDNO = #{idNo},
+		       WORKTYPE1 = #{workType1},
+		       WORKTYPE2 = #{workType2},
+		       WORK = #{work},
+		       MAINSUB = #{mainSub},
+		       FOODSTYLE = #{foodStyle},
+		       PERSONNO = #{personNo},
+		       GENDER = #{gender},
+		       PHONE = #{phone},
+		       ISPLAN = #{isPlan},
+		       UPDATEDATE = SYSDATE(),
+		       UPDATEBY = #{userUid}
+		 WHERE UID = #{uid}
+	</update>
 	
 	<delete id="deleteMobileRoomInfoBySchedulerInfoUid" parameterType="int">
 		DELETE FROM mobile_room_info
