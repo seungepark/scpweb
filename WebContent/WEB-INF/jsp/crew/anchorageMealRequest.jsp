@@ -35,7 +35,7 @@
 	<link href="${pageContext.request.contextPath}/vendors/fontawesome/css/all.min.css" rel="stylesheet">
 	<link href="${pageContext.request.contextPath}/vendors/fontawesome/css/v4-shims.min.css" rel="stylesheet">
 	<link href="${pageContext.request.contextPath}/css/custom.min.css" rel="stylesheet">
-	<link href="${pageContext.request.contextPath}/css/common.css" rel="stylesheet">
+	<link href="${pageContext.request.contextPath}/css/common_newcrew.css" rel="stylesheet">
 </head>
 <body>
 	<div class="body-wrap">
@@ -60,11 +60,17 @@
 					    <!-- 호선번호 조회(스케줄키) -->
 					    <!-- style="border: 1px solid red" -->
 					    <div class="col-auto">
-							<select id="ship">
-                                <!-- <option value="ALL" data-i18n="listOp.shipAll"></option> -->
-                                <option value="">선택하세요</option>
+							<input type="text"
+								   id="shipInput"
+								   class="autocomplete-ship crew-filter-control"
+								   placeholder=""
+								   data-i18n="[placeholder]listOp.shipPlaceholder"
+								   autocomplete="off">
+							<input type="hidden" id="ship" value="">
+							<select id="shipSource" class="select-data-source" style="display:none;">
+                                <option value=""></option>
                                 <c:forEach var="ship" items="${listShip}">
-                                    <option value="${ship.val}">${ship.description}</option>
+                                    <option value="<c:out value='${ship.val}'/>"><c:out value="${ship.description}"/></option>
                                 </c:forEach>
                             </select>
 						</div>

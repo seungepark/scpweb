@@ -707,36 +707,32 @@ public class CrewService implements CrewServiceI {
 		// schedulerInfoUid가 있으면 해당 스케줄의 승선자 리스트 조회
 		if(bean.getSchedulerInfoUid() > 0) {
 			anchList = crewDao.getAnchorageMealListBySchedulerInfoUid(bean.getSchedulerInfoUid());
-		} else {
-			//crewList = crewDao.getRegistrationCrewList(bean);
-		}
-		
-		//anchList = crewDao.getAnchorageMealList(bean);
-		//계획
-		if(anchList != null) {
-			for(int i = 0; i < anchList.size(); i++) {
-				anchList.get(i).setPlanList(crewDao.getAnchorageMealPlanQtyList(anchList.get(i).getUid()));
-				System.out.println("getUid :"+ anchList.get(i).getUid());
-				System.out.println("setPlanList :"+ anchList.get(i).getPlanList().size());
+		 
+			//계획
+			if(anchList != null) {
+				for(int i = 0; i < anchList.size(); i++) {
+					anchList.get(i).setPlanList(crewDao.getAnchorageMealPlanQtyList(anchList.get(i).getUid()));
+					System.out.println("getUid :"+ anchList.get(i).getUid());
+					System.out.println("setPlanList :"+ anchList.get(i).getPlanList().size());
+				}
+				
+			// 실적
+				System.out.println("setPlanList :"+ anchList.size());
+		 
+				for(int z = 0; z < anchList.size(); z++) {
+					anchList.get(z).setResultList(crewDao.getAnchorageMealResultQtyList(anchList.get(z).getUid()));
+				}
+				System.out.println("setResultList"+ anchList.size());
+			 
+				anchList = ensureResultOnlyDepartmentsIncluded(anchList, bean);
+				
+				//resultMap.put(Const.BEAN, dao.getScheduler(bean.getUid()));
+				resultMap.put(Const.LIST, anchList);
+				List<String> departmentListForInitial = crewDao.getMealDepartmentList(bean);
+				resultMap.put("departmentList", departmentListForInitial);
 			}
-			System.out.println("setPlanList :"+ anchList.size());
+			//resultMap.put("status", dao.getTrialStatus(bean.getUid()));
 		}
-		//실적
-		if(anchList != null) {
-			for(int z = 0; z < anchList.size(); z++) {
-				anchList.get(z).setResultList(crewDao.getAnchorageMealResultQtyList(anchList.get(z).getUid()));
-			}
-			System.out.println("setResultList"+ anchList.size());
-		}
-		
-		anchList = ensureResultOnlyDepartmentsIncluded(anchList, bean);
-		
-		//resultMap.put(Const.BEAN, dao.getScheduler(bean.getUid()));
-		resultMap.put(Const.LIST, anchList);
-		List<String> departmentListForInitial = crewDao.getMealDepartmentList(bean);
-		resultMap.put("departmentList", departmentListForInitial);
-		//resultMap.put("status", dao.getTrialStatus(bean.getUid()));
-		
 		/* 조회조건 : 호선리스트 */
 		resultMap.put(Const.LIST + "Ship", crewDao.getAnchShipList());
 		return resultMap;

@@ -5,6 +5,8 @@ let listSort = "";
 let listOrder = "desc";
 let _isSetSort = false;
 let _isSetPage = false;
+let anchPageNo = '';
+const SHIP_AUTOCOMPLETE_MIN_LENGTH = 4;
 
 $(function(){
     initI18n();
@@ -17,7 +19,9 @@ $(function(){
 
     initServerCheck();
     autocompleteOff();
-	
+	buildShipAutoSourceBaseFromDOM();
+	initShipAutocomplete();
+	updateShipAutocompleteSource();
 	setSearchOption();
 });
 
@@ -51,20 +55,23 @@ function init() {
 		}
 	});
 	
-	$('#ship').keypress(function(e) {
+	$('#shipInput').keypress(function(e) {
 		if(e.keyCode === 13) {
+			e.preventDefault();
+			deriveShipValueFromInput();
 			getAnchMealList();
 		}
 	});
 }
 
 function saveSearchOption() {
-    setSearchCookie('SK_PAGE', crewPageNo);
+    setSearchCookie('SK_PAGE', anchPageNo);
 
     setSearchCookie('SK_SORTNM', listSort);
     setSearchCookie('SK_SORTOD', listOrder);
 
-    setSearchCookie('SK_SHIP', $("#ship option:selected").val());
+	const shipValue = deriveShipValueFromInput();
+    setSearchCookie('SK_SHIP', shipValue);
 }
 
 //체크박스 전환
@@ -94,18 +101,16 @@ function setSearchOption() {
 	let paramFilterFoodStyle = urlParams.get('filterFoodStyle');
 	let paramFilterWord = urlParams.get('filterWord');	
 
-  	if(ship != '') {
-  		$('#ship').val(ship).prop('selected', true);
-  	}
-	
-	// URL 파라미터로 스케줄번호 설정
-	if(paramSchedulerInfoUid) {
-		$('#ship').val(paramSchedulerInfoUid).prop('selected', true);
-	} else if(ship != '' && ship !== 'ALL') {
-  		$('#ship').val(ship).prop('selected', true);
+	if(paramSchedulerInfoUid && paramSchedulerInfoUid !== '') {
+		const label = getShipDescription(paramSchedulerInfoUid) || paramSchedulerInfoUid;
+		setShipValue(paramSchedulerInfoUid, label);
+	} else if(ship && ship !== '' && ship !== 'ALL') {
+		const label = getShipDescription(ship) || ship;
+		setShipValue(ship, label);
+	} else if(ship === 'ALL') {
+		setShipValue('', '');
 	} else {
-		// 파라미터나 쿠키에 값이 없으면 "선택하세요"로 유지
-		$('#ship').val('').prop('selected', true);
+		setShipValue('', '');
 	}
 	
 	// URL 파라미터로 기간 설정
@@ -139,6 +144,7 @@ function setSearchOption() {
 		_isSetSort = true;
 		initTbAlign(sortNm, sortOd);
 	}
+	updateShipAutocompleteSource();
 }
 
 // 앵카링 식사신청 목록 해더 세팅.
@@ -372,7 +378,8 @@ function setListEmpty() {
 
 // 식사신청 리스트 조회
 function getAnchMealList() {
-	let projNo = $('#ship').val();
+	const shipValue = deriveShipValueFromInput();
+	let projNo = shipValue;
 	let inDate = $('#inDate').val();
 	let outDate = $('#outDate').val();
 	
@@ -395,12 +402,13 @@ function getAnchMealList() {
 }
 
 function getAnchorageMealList(page) {
-    var ship = $("#ship option:selected").val();
+    deriveShipValueFromInput();
+    var ship = $('#ship').val();
     var inDate = $('#inDate').val();
     var outDate = $('#outDate').val();
 	
 	// 스케줄번호 필수 선택 체크
-	if(ship == "" || ship == "ALL" || ship == "선택하세요") {
+	if(!ship) {
 		alertPop('스케줄번호를 선택해주세요.');
 		return;
 	}
@@ -510,7 +518,7 @@ function getAnchorageMealList(page) {
 						alert(($('#inDate').val() <= mealDate && mealDate <= $('#outDate').val()));
 						
 						if(!($('#inDate').val() <= mealDate && mealDate <= $('#outDate').val())) {
-							alert(1);
+							//alert(1);
 							continue;
 						}
 					}
@@ -1082,9 +1090,10 @@ function excelUpload(event) {
 	//alert(1);
 	
 	//업로드시 호선 번호 필수 선택
-	if($('#ship').val() == "ALL") {
-			alertPop($.i18n.t('errorShip'));
-			isError = true;
+	const shipValueForUpload = deriveShipValueFromInput();
+	if(!shipValueForUpload) {
+		alertPop($.i18n.t('errorShip'));
+		return;
 	}
 	
 	$('#loading').css('display','block');
@@ -1169,11 +1178,13 @@ function makeDataList(json){
 	let dinnerPList = [];
 	let lateNightPList = [];
 	
+	const shipValueForExcel = deriveShipValueFromInput();
+	const shipLabelForExcel = getShipDescription(shipValueForExcel) || shipValueForExcel;
 	if(json.length > 0) {
 		for(let i = 0; i < json.length; i++) {
 			let data = json[i];		
 
-			let projNo = $("#ship option:selected").text();
+			let projNo = shipLabelForExcel;
 		
 			let kind = isNull(data['구분'], '');
 			let domesticYn = isNull(data['내국/외국'], 'Y');
@@ -1216,6 +1227,145 @@ function makeDataList(json){
 	}
 	
 	setListEmpty();
+}
+
+function buildShipAutoSourceBaseFromDOM() {
+	const options = document.querySelectorAll('#shipSource option');
+	const base = [];
+	options.forEach(option => {
+		if (!option) return;
+		const value = (option.value || '').trim();
+		const label = (option.textContent || '').trim();
+		if (!value && !label) {
+			return;
+		}
+		base.push({ value, label: label || value });
+	});
+	window.shipAutoSourceBase = base;
+	window.shipAutoSource = base.slice();
+}
+
+function initShipAutocomplete() {
+	const $input = $('#shipInput');
+	if (!$input.length || typeof $input.autocomplete !== 'function') return;
+
+	$input.autocomplete({
+		minLength: SHIP_AUTOCOMPLETE_MIN_LENGTH,
+		delay: 200,
+		source: shipAutocompleteSource,
+		focus: function(event, ui) {
+			event.preventDefault();
+			if (ui && ui.item) {
+				$input.val(ui.item.label);
+			}
+		},
+		select: function(event, ui) {
+			event.preventDefault();
+			if (ui && ui.item) {
+				setShipValue(ui.item.value, ui.item.label);
+				getAnchMealList();
+			}
+		}
+	});
+
+	$input.on('input', function() {
+		$('#ship').val('');
+	});
+
+	$input.on('blur', function() {
+		deriveShipValueFromInput();
+	});
+}
+
+function shipAutocompleteSource(request, response) {
+	const term = (request.term || '').trim().toUpperCase();
+	const source = getShipSourceArray();
+	if (!term) {
+		response(source.slice(0, 20));
+		return;
+	}
+	const matches = source.filter(item => {
+		if (!item) return false;
+		const value = (item.value || '').toString().toUpperCase();
+		const label = (item.label || '').toString().toUpperCase();
+		return value.includes(term) || label.includes(term);
+	});
+	response(matches.slice(0, 20));
+}
+
+function updateShipAutocompleteSource() {
+	if (!window.shipAutoSourceBase) {
+		buildShipAutoSourceBaseFromDOM();
+	}
+	window.shipAutoSource = (window.shipAutoSourceBase || []).slice();
+	const $input = $('#shipInput');
+	if ($input.length && $input.data('ui-autocomplete')) {
+		$input.autocomplete('option', 'source', shipAutocompleteSource);
+	}
+}
+
+function setShipValue(value, label) {
+	const sanitizedValue = value || '';
+	$('#ship').val(sanitizedValue);
+	if (label !== undefined) {
+		$('#shipInput').val(label);
+	} else if (!sanitizedValue) {
+		$('#shipInput').val('');
+	} else {
+		const desc = getShipDescription(sanitizedValue);
+		$('#shipInput').val(desc || sanitizedValue);
+	}
+}
+
+function getShipDescription(value) {
+	const match = findShipOption(value, false);
+	return match ? match.label : '';
+}
+
+function findShipOption(term, allowPartial) {
+	const source = getShipSourceArray();
+	const raw = (term || '').toString().trim();
+	if (!raw) return null;
+	const upper = raw.toUpperCase();
+	let partialMatch = null;
+	for (const item of source) {
+		if (!item) continue;
+		const val = (item.value || '').toString();
+		const label = (item.label || '').toString();
+		if (val.toUpperCase() === upper || label.toUpperCase() === upper) {
+			return item;
+		}
+		if (allowPartial && !partialMatch && (val.toUpperCase().includes(upper) || label.toUpperCase().includes(upper))) {
+			partialMatch = item;
+		}
+	}
+	return allowPartial ? partialMatch : null;
+}
+
+function deriveShipValueFromInput() {
+	const $input = $('#shipInput');
+	if (!$input.length) {
+		return $('#ship').val() || '';
+	}
+	const raw = ($input.val() || '').trim();
+	if (!raw) {
+		setShipValue('', '');
+		return '';
+	}
+	const match = findShipOption(raw, true);
+	if (match) {
+		setShipValue(match.value, match.label);
+		return match.value;
+	}
+	setShipValue(raw, raw);
+	return raw;
+}
+
+function getShipSourceArray() {
+	if (window.shipAutoSource && window.shipAutoSource.length) {
+		return window.shipAutoSource;
+	}
+	return window.shipAutoSourceBase || [];
 }
 
 // 양식 업로드 데이터 세팅.
@@ -1435,6 +1585,8 @@ function save() {
 	
 	let uidValue = "";	
 	let isError = false;
+	const currentShipValue = deriveShipValueFromInput();
+	const currentShipLabel = getShipDescription(currentShipValue) || currentShipValue;
 	//alert(1);
 	for(let i = 0; i < kindVl.length; i++) {
 		breakfastPVl[i].value = breakfastPVl[i] && breakfastPVl[i].value !== "" ? breakfastPVl[i].value : 0;
@@ -1458,7 +1610,7 @@ function save() {
 	for(let i = 0; i < kindVl.length; i++){
 		//alert(projNoVl[i].value);
 		if(isEmpty(projNoVl[i].value)) {
-			if($('#ship').val() == "ALL" || $('#ship').val() == "") {
+			if(!currentShipValue) {
 					alertPop($.i18n.t('errorShip'));
 					isError = true;
 			}
@@ -1474,8 +1626,7 @@ function save() {
 		uidVl[i].value = uidVl[i] && uidVl[i].value !== "" ? uidVl[i].value : -1;
 		
 		if(isEmpty(projNoVl[i].value)) {
-			//projNoVl[i].value = $("#ship option:selected").text();
-			projNoVl[i].value = $("#ship option:selected").text();
+			projNoVl[i].value = currentShipLabel;
 		}
 		
 		//alert(projNoVl[i].value);

@@ -4283,3 +4283,40 @@ td > select {
 	min-width: 56px;
 	background: #ffffff;
 }
+
+
+.autocomplete-ship {
+  min-width: 220px;
+}
+
+.crew-filter-control {
+  height: 36px;
+  min-width: 160px;
+  padding: 6px 10px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #1f2633;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.crew-filter-control:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.crew-filter-control::placeholder {
+  color: #98a2b3;
+}
+
+.select-data-source {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
