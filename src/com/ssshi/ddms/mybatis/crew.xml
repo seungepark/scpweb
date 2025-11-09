@@ -275,20 +275,89 @@
 	</update>
 	
 	<!-- 실적집계리스트 -->
-		<select id="getMealResultList" parameterType="AnchorageMealRequestBean" resultType="AnchorageMealRequestBean">
+<!--
+	<select id="getMealResultList" parameterType="AnchorageMealRequestBean" resultType="AnchorageMealRequestBean">
 		select UID, SCHEDULERINFOUID as schedulerInfoUid, PROJ_NO as projNo, 
 			TRIALKEY as trialKey, KIND as kind, DOMESTIC_YN as domesticYn, DEPT_NAME as department,
 			MEAL_DATE as mealDate, ORDER_STATUS as orderStatus, ORDER_DATE as orderDate,
 			ORDER_UID as orderUid, DEL_YN as deleteYn, COMMENT as comment, REG_DATE as inputDate, REG_USERNAME as inputUid
 			from mobile_anchor_meal_info
-			where 1=1 
-			  <!-- and meal_date <![CDATA[ >= ]]> '2025-11-01'
-			  and meal_date <![CDATA[ <= ]]> '2025-11-13'  --> 
+			where 1=1 			 
 			   and meal_date <![CDATA[ >= ]]> #{inDate}
 			  and meal_date <![CDATA[ <= ]]> #{outDate} 
 		 <if test="ship != null and ship != 'ALL'" >
 			AND PROJ_NO <![CDATA[ = ]]> #{ship}			
 		 </if>
+	</select>
+-->
+	<select id="getMealResultList" parameterType="AnchorageMealRequestBean" resultType="AnchorageMealRequestBean">
+		SELECT 
+			merged.UID,
+			merged.SCHEDULERINFOUID AS schedulerInfoUid,
+			merged.PROJ_NO AS projNo,
+			merged.TRIALKEY AS trialKey,
+			merged.KIND AS kind,
+			merged.DOMESTIC_YN AS domesticYn,
+			merged.department,
+			merged.MEAL_DATE AS mealDate,
+			merged.ORDER_STATUS AS orderStatus,
+			merged.ORDER_DATE AS orderDate,
+			merged.ORDER_UID AS orderUid,
+			merged.DEL_YN AS deleteYn,
+			merged.COMMENT AS comment,
+			merged.REG_DATE AS inputDate,
+			merged.REG_USERNAME AS inputUid
+		FROM (
+			SELECT 
+				info.UID,
+				info.SCHEDULERINFOUID,
+				info.PROJ_NO,
+				info.TRIALKEY,
+				info.KIND,
+				info.DOMESTIC_YN,
+				info.DEPT_NAME AS department,
+				DATE(info.MEAL_DATE) AS MEAL_DATE,
+				info.ORDER_STATUS,
+				info.ORDER_DATE,
+				info.ORDER_UID,
+				info.DEL_YN,
+				info.COMMENT,
+				info.REG_DATE,
+				info.REG_USERNAME
+			  FROM mobile_anchor_meal_info info
+			 WHERE 1=1
+			   AND info.MEAL_DATE <![CDATA[ >= ]]> #{inDate}
+			   AND info.MEAL_DATE <![CDATA[ <= ]]> #{outDate}
+			 <if test="ship != null and ship != '' and ship != 'ALL'">
+				AND info.PROJ_NO <![CDATA[ = ]]> #{ship}
+			 </if>
+			UNION
+			SELECT 
+				NULL AS UID,
+				userinfo.SCHEDULERINFOUID,
+				userinfo.PROJ_NO,
+				userinfo.TRIALKEY,
+				NULL AS KIND,
+				NULL AS DOMESTIC_YN,
+				userinfo.DEPT_NAME AS department,
+				userinfo.MEAL_DATE AS MEAL_DATE,
+				NULL AS ORDER_STATUS,
+				NULL AS ORDER_DATE,
+				NULL AS ORDER_UID,
+				'N' AS DEL_YN,
+				NULL AS COMMENT,
+				NULL AS REG_DATE,
+				NULL AS REG_USERNAME
+			  FROM mobile_anchor_meal_userinfo userinfo
+			 WHERE 1=1
+			   AND userinfo.MEAL_DATE <![CDATA[ >= ]]> #{inDate}
+			   AND userinfo.MEAL_DATE <![CDATA[ <= ]]> #{outDate}
+			 <if test="ship != null and ship != '' and ship != 'ALL'">
+				AND userinfo.PROJ_NO <![CDATA[ = ]]> #{ship}
+			 </if>
+		) merged
+		WHERE merged.department IS NOT NULL AND merged.department <![CDATA[ <> ]]> ''
+		ORDER BY merged.MEAL_DATE, merged.department
 	</select>
 	
 	<select id="getMealResultListCnt" resultType="int">
@@ -466,6 +535,58 @@
 		WHERE MR.SCHEDULERINFOUID = #{schedulerInfoUid}
 			AND MR.DEL_YN = 'N'
 		ORDER BY MR.ROOM_NO, MR.NAME
+	</select>
+	
+	<select id="getMealDepartmentList" parameterType="AnchorageMealRequestBean" resultType="string">
+		SELECT dept_name
+		  FROM (
+			SELECT DISTINCT DEPT_NAME AS dept_name
+			  FROM mobile_anchor_meal_info
+			 WHERE 1=1
+			 <if test="inDate != null and inDate != ''">
+				AND MEAL_DATE <![CDATA[ >= ]]> #{inDate}
+			 </if>
+			 <if test="outDate != null and outDate != ''">
+				AND MEAL_DATE <![CDATA[ <= ]]> #{outDate}
+			 </if>
+			 <if test="ship != null and ship != '' and ship != 'ALL'">
+				AND PROJ_NO <![CDATA[ = ]]> #{ship}
+			 </if>
+			UNION
+			SELECT DISTINCT DEPT_NAME AS dept_name
+			  FROM mobile_anchor_meal_userinfo
+			 WHERE 1=1
+			 <if test="inDate != null and inDate != ''">
+				AND MEAL_DATE <![CDATA[ >= ]]> #{inDate}
+			 </if>
+			 <if test="outDate != null and outDate != ''">
+				AND MEAL_DATE <![CDATA[ <= ]]> #{outDate}
+			 </if>
+			 <if test="ship != null and ship != '' and ship != 'ALL'">
+				AND PROJ_NO <![CDATA[ = ]]> #{ship}
+			 </if>
+		  ) dept
+		 WHERE dept_name IS NOT NULL AND dept_name <![CDATA[ <> ]]> ''
+		 ORDER BY dept_name
+	</select>
+	
+	<select id="getMealResultDeptCombinations" parameterType="AnchorageMealRequestBean" resultType="AnchorageMealRequestBean">
+		SELECT DISTINCT 
+			PROJ_NO AS projNo,
+			DATE(MEAL_DATE) AS mealDate,
+			DEPT_NAME AS department
+		  FROM mobile_anchor_meal_userinfo
+		 WHERE 1=1
+		 <if test="inDate != null and inDate != ''">
+			AND MEAL_DATE <![CDATA[ >= ]]> #{inDate}
+		 </if>
+		 <if test="outDate != null and outDate != ''">
+			AND MEAL_DATE <![CDATA[ <= ]]> #{outDate}
+		 </if>
+		 <if test="ship != null and ship != '' and ship != 'ALL'">
+			AND PROJ_NO <![CDATA[ = ]]> #{ship}
+		 </if>
+		 ORDER BY projNo, mealDate, department
 	</select>
 	
 </mapper>

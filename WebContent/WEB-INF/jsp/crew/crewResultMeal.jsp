@@ -146,18 +146,19 @@
                    		
 					</div>
                    	<div class="sp-16"></div>
-                    <div class="tb-wrap table_fixed_head" style="overflow-x: auto;">
-                        <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap " style="width:3000px; height:200px; white-space: nowrap;"> <thead>
-                            <thead>
-                                <tr id="tbHeader"></tr>
-                            </thead>
-                            <tbody id="tbRowList" class ="dash-ship-list-area-scroll">
-                                <tr>
-									<td class="text-center" data-i18n="share:noList">There is no data to display</td>
-								</tr>
-                            </tbody>
-                    	</table>
-					</div>
+                    <div class="crew-result-table-wrapper">
+                        <div class="crew-result-scroll-inner">
+                            <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap" style="width:3000px; white-space: nowrap;">
+                                <colgroup></colgroup>
+                                <thead id="tbHeader"></thead>
+                                <tbody id="tbRowList">
+                                    <tr>
+                                        <td class="text-center" data-i18n="share:noList">There is no data to display</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 					<!-- <div class="sp-16"></div>
                     <div class="pg-area" id="pagination"></div> -->
                 </div>

@@ -143,4 +143,10 @@ public interface CrewDaoI {
 	
 	// SCHEDULERINFOUID로 방배정명단 목록 조회
 	List<com.ssshi.ddms.dto.MobileRoomUserlistBean> getMobileRoomUserlist(int schedulerInfoUid) throws Exception;
+	
+	// 앵카링 실적/계획 부서 목록
+	List<String> getMealDepartmentList(AnchorageMealRequestBean bean) throws Exception;
+	
+	// 실적에 존재하는 부서 조합 목록
+	List<AnchorageMealRequestBean> getMealResultDeptCombinations(AnchorageMealRequestBean bean) throws Exception;
 }

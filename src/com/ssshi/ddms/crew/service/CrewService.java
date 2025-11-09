@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -728,8 +729,12 @@ public class CrewService implements CrewServiceI {
 			System.out.println("setResultList"+ anchList.size());
 		}
 		
+		anchList = ensureResultOnlyDepartmentsIncluded(anchList, bean);
+		
 		//resultMap.put(Const.BEAN, dao.getScheduler(bean.getUid()));
 		resultMap.put(Const.LIST, anchList);
+		List<String> departmentListForInitial = crewDao.getMealDepartmentList(bean);
+		resultMap.put("departmentList", departmentListForInitial);
 		//resultMap.put("status", dao.getTrialStatus(bean.getUid()));
 		
 		/* 조회조건 : 호선리스트 */
@@ -1197,11 +1202,65 @@ public class CrewService implements CrewServiceI {
 			System.out.println("setResultList"+ anchList.size());
 		}
 
+		anchList = ensureResultOnlyDepartmentsIncluded(anchList, bean);
+
 		resultMap.put(Const.LIST, anchList);
+		List<String> departmentList = crewDao.getMealDepartmentList(bean);
+		resultMap.put("departmentList", departmentList);
 		
 		/* 조회조건 : 호선리스트 */
 		resultMap.put(Const.LIST + "Ship", crewDao.getAnchShipList());
 		return resultMap;
+	}
+	
+	private List<AnchorageMealRequestBean> ensureResultOnlyDepartmentsIncluded(List<AnchorageMealRequestBean> anchList, AnchorageMealRequestBean filterBean) throws Exception {
+		if (anchList == null) {
+			anchList = new ArrayList<>();
+		}
+		
+		Map<String, AnchorageMealRequestBean> anchorMap = new LinkedHashMap<>();
+		for (AnchorageMealRequestBean item : anchList) {
+			String key = buildMealDepartmentKey(item.getProjNo(), item.getDepartment(), item.getMealDate());
+			anchorMap.put(key, item);
+		}
+		
+		List<AnchorageMealRequestBean> resultCombos = crewDao.getMealResultDeptCombinations(filterBean);
+		if (resultCombos != null) {
+			for (AnchorageMealRequestBean combo : resultCombos) {
+				String key = buildMealDepartmentKey(combo.getProjNo(), combo.getDepartment(), combo.getMealDate());
+				AnchorageMealRequestBean existing = anchorMap.get(key);
+				if (existing == null) {
+					AnchorageMealRequestBean newBean = new AnchorageMealRequestBean();
+					newBean.setProjNo(combo.getProjNo());
+					newBean.setDepartment(combo.getDepartment());
+					newBean.setMealDate(combo.getMealDate());
+					newBean.setPlanList(new ArrayList<AnchorageMealQtyBean>());
+					
+					AnchorageMealQtyBean resultParam = new AnchorageMealQtyBean();
+					resultParam.setProjNo(combo.getProjNo());
+					resultParam.setDepartment(combo.getDepartment());
+					resultParam.setMealDate(combo.getMealDate());
+					newBean.setResultList(crewDao.getMealResultQtyList(resultParam));
+					
+					anchList.add(newBean);
+					anchorMap.put(key, newBean);
+				} else if (existing.getResultList() == null || existing.getResultList().isEmpty()) {
+					AnchorageMealQtyBean resultParam = new AnchorageMealQtyBean();
+					resultParam.setProjNo(combo.getProjNo());
+					resultParam.setDepartment(combo.getDepartment());
+					resultParam.setMealDate(combo.getMealDate());
+					existing.setResultList(crewDao.getMealResultQtyList(resultParam));
+				}
+			}
+		}
+		return anchList;
+	}
+	
+	private String buildMealDepartmentKey(String projNo, String department, String mealDate) {
+		String safeProjNo = projNo == null ? "" : projNo.trim();
+		String safeDept = department == null ? "" : department.trim();
+		String safeDate = mealDate == null ? "" : mealDate.trim();
+		return safeProjNo + "|" + safeDept + "|" + safeDate;
 	}
 	
 	@Transactional(rollbackFor = Exception.class)
@@ -1255,7 +1314,7 @@ public class CrewService implements CrewServiceI {
 				if(path == null || path.startsWith("ERROR")) {
 					throw new IllegalArgumentException("DRM 파일 해제에 실패했습니다.");
 				}
-			} else {
+						} else {
 				tempFile = File.createTempFile("room_assignment_", ".xlsx");
 				file.transferTo(tempFile);
 				path = tempFile.getAbsolutePath();

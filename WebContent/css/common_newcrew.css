@@ -1606,11 +1606,12 @@ page[size="A4"] {
 }
 
 .tb-style {
-  width: 100%; 
-  background: #FFFFFF; 
-  border-collapse: separate; 
-  border-spacing: 0;
-  table-layout: auto;  /* fixed를 auto로 변경 2025.11.02 12*/
+	border-collapse: collapse;
+}
+
+.tb-style th,
+.tb-style td {
+	border: 1px solid var(--neutral-300);
 }
 
 .tb-style thead {
@@ -4229,3 +4230,56 @@ td > select {
 #tbList th:nth-child(25), #tbList td:nth-child(25) { 시리얼번호
   min-width: 150px;
 } */
+
+.crew-result-meal-table {
+	table-layout: fixed;
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.crew-result-meal-table thead th {
+	background: #e3e6ef !important;
+	color: #1f2633 !important;
+	font-weight: 600;
+	padding: 10px 6px;
+	border: 1px solid #d0d5dd !important;
+}
+
+.crew-result-meal-table thead th span,
+.crew-result-meal-table thead th div {
+	color: #1f2633 !important;
+}
+
+.crew-result-meal-table td {
+	padding: 8px 6px;
+	border: 1px solid #d0d5dd !important;
+	color: #1f2633;
+}
+
+.crew-result-meal-table td.ship-cell {
+	font-weight: 700;
+	background: #f4f5f9;
+}
+
+.crew-result-meal-table td.group-cell {
+	font-weight: 600;
+	background: #f8f9fc;
+}
+
+.crew-result-meal-table tr.total-row td.group-cell,
+.crew-result-meal-table tr.total-row td.ship-cell {
+	background: #eaeff7;
+}
+
+.crew-result-meal-table td.type-cell {
+	font-weight: 600;
+}
+
+.crew-result-meal-table td.cuisine-cell {
+	font-weight: 500;
+}
+
+.crew-result-meal-table td.meal-cell {
+	min-width: 56px;
+	background: #ffffff;
+}
