@@ -1,0 +1,181 @@
+/* common_result.css 수정 */
+
+/* Result Meal Dedicated Styles */
+
+#tbList {
+  table-layout: fixed;
+  width: auto;
+  border-collapse: collapse;
+  border: 1px solid #d0d5dd;
+}
+
+#tbList thead th,
+#tbList td {
+  box-sizing: border-box;
+  min-width: 56px;
+}
+
+#tbList thead th {
+  background: #e3e6ef;
+  color: #1f2633;
+  font-weight: 600;
+  border: 1px solid #d0d5dd;
+  padding: 10px 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#tbList thead th span,
+#tbList thead th div {
+  color: #1f2633;
+}
+
+/* 고정 열 스타일 */
+#tbList thead th.ship-header,
+#tbList td.ship-cell {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  width: 140px;
+  min-width: 140px;
+  background: #e3e6ef;
+}
+
+#tbList thead th.dept-header,
+#tbList td.group-cell {
+  position: sticky;
+  left: 140px;
+  z-index: 3;
+  width: 140px;
+  min-width: 140px;
+  background: #e3e6ef;
+}
+
+#tbList thead th.type-header,
+#tbList td.type-cell {
+  position: sticky;
+  left: 280px;
+  z-index: 3;
+  width: 90px;
+  min-width: 90px;
+  background: #e3e6ef;
+}
+
+#tbList thead th.cuisine-header,
+#tbList td.cuisine-cell {
+  position: sticky;
+  left: 370px;
+  z-index: 3;
+  width: 90px;
+  min-width: 90px;
+  background: #e3e6ef;
+}
+
+/* tbody 셀 배경색 */
+#tbList tbody td.ship-cell {
+  font-weight: 700;
+  background: #f4f5f9;
+}
+
+#tbList tbody td.group-cell {
+  font-weight: 600;
+  background: #f8f9fc;
+}
+
+#tbList tbody td.type-cell {
+  font-weight: 600;
+  background: #e3e6ef;
+}
+
+#tbList tbody td.cuisine-cell {
+  font-weight: 500;
+  background: #e3e6ef;
+}
+
+/* Total 행 스타일 */
+#tbList tr.total-row td.group-cell,
+#tbList tr.total-row td.ship-cell {
+  background: #eaeff7;
+}
+
+/* 날짜 열 (스크롤 가능) */
+#tbList thead th.meal-header,
+#tbList thead th.meal-sub-header,
+#tbList td.meal-cell {
+  width: 80px;
+  min-width: 80px;
+  z-index: 1;
+}
+
+#tbList td {
+  border: 1px solid #d0d5dd;
+  padding: 8px 6px;
+  color: #1f2633;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#tbList td.meal-cell {
+  min-width: 80px;
+  background: #ffffff;
+}
+
+/* 테이블 래퍼 스타일 */
+.crew-result-table-wrapper {
+  width: 100%;
+  position: relative;
+}
+
+.crew-result-scroll-inner {
+  overflow: auto;
+}
+
+.crew-result-table-wrapper table {
+  margin: 0;
+}
+
+.crew-result-table-wrapper thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.crew-result-table-wrapper thead tr:first-child th {
+  z-index: 3;
+}
+
+.crew-result-table-wrapper thead th.ship-header,
+.crew-result-table-wrapper tbody td.ship-cell {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  background: #f4f5f9;
+}
+
+.crew-result-table-wrapper thead th.dept-header,
+.crew-result-table-wrapper tbody td.group-cell {
+  position: sticky;
+  left: 140px;
+  z-index: 4;
+  background: #f8f9fc;
+}
+
+.crew-result-table-wrapper thead th.type-header,
+.crew-result-table-wrapper tbody td.type-cell {
+  position: sticky;
+  left: 280px;
+  z-index: 4;
+  background: #fefefe;
+}
+
+.crew-result-table-wrapper thead th.cuisine-header,
+.crew-result-table-wrapper tbody td.cuisine-cell {
+  position: sticky;
+  left: 370px;
+  z-index: 4;
+  background: #fdfdfd;
+}
+
+.crew-result-table-wrapper tbody td.group-cell.total-row {
+  background: #eaeff7;
+}

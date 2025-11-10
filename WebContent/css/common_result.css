@@ -1,0 +1,200 @@
+.autocomplete-ship {
+  min-width: 220px;
+}
+
+.select-data-source {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.crew-filter-control {
+  height: 36px;
+  min-width: 160px;
+  padding: 6px 10px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #1f2633;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.crew-filter-control:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.crew-filter-control::placeholder {
+  color: #98a2b3;
+}
+/* common_result.css 수정 */
+
+:root {
+  --crew-result-header-row-height: 48px;
+}
+
+/* Result Meal Dedicated Styles */
+
+#tbList {
+  table-layout: fixed;
+  width: auto;
+  border-collapse: collapse;
+  border: 1px solid #d0d5dd;
+}
+
+#tbList thead th,
+#tbList td {
+  box-sizing: border-box;
+  min-width: 56px;
+}
+
+#tbList thead th {
+  background: #e3e6ef;
+  color: #1f2633;
+  font-weight: 600;
+  border: 1px solid #d0d5dd;
+  padding: 10px 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#tbList thead th span,
+#tbList thead th div {
+  color: #1f2633;
+}
+
+/* 고정 열 스타일 */
+#tbList thead th.ship-header,
+#tbList td.ship-cell {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  width: 140px;
+  min-width: 140px;
+  background: #e3e6ef;
+}
+
+#tbList thead th.dept-header,
+#tbList td.group-cell {
+  position: sticky;
+  left: 140px;
+  z-index: 3;
+  width: 140px;
+  min-width: 140px;
+  background: #e3e6ef;
+}
+
+#tbList thead th.type-header,
+#tbList td.type-cell {
+  position: sticky;
+  left: 280px;
+  z-index: 3;
+  width: 90px;
+  min-width: 90px;
+  background: #e3e6ef;
+}
+
+#tbList thead th.cuisine-header,
+#tbList td.cuisine-cell {
+  position: sticky;
+  left: 370px;
+  z-index: 3;
+  width: 90px;
+  min-width: 90px;
+  background: #e3e6ef;
+}
+
+/* tbody 셀 배경색 */
+#tbList tbody td.ship-cell {
+  font-weight: 700;
+  background: #f4f5f9;
+}
+
+#tbList tbody td.group-cell {
+  font-weight: 600;
+  background: #f8f9fc;
+}
+
+#tbList tbody td.type-cell {
+  font-weight: 600;
+  background: #e3e6ef;
+}
+
+#tbList tbody td.cuisine-cell {
+  font-weight: 500;
+  background: #e3e6ef;
+}
+
+/* Total 행 스타일 */
+#tbList tr.total-row td.group-cell,
+#tbList tr.total-row td.ship-cell {
+  background: #eaeff7;
+}
+
+/* 날짜 열 (스크롤 가능) */
+#tbList thead th.meal-header,
+#tbList thead th.meal-sub-header,
+#tbList td.meal-cell {
+  width: 80px;
+  min-width: 80px;
+  z-index: 1;
+}
+
+#tbList td {
+  border: 1px solid #d0d5dd;
+  padding: 8px 6px;
+  color: #1f2633;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#tbList td.meal-cell {
+  min-width: 80px;
+  background: #ffffff;
+}
+
+/* 테이블 래퍼/스크롤 */
+.tb-wrap.table_fixed_head {
+  position: relative;
+  max-width: 100%;
+  max-height: 60vh;
+  overflow: auto;
+  border: 1px solid #d0d5dd;
+  background: #fff;
+}
+
+#tbList thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #e3e6ef;
+}
+
+#tbList thead tr:first-child th {
+  top: 0;
+}
+
+#tbList thead tr:nth-child(2) th {
+  top: var(--crew-result-header-row-height, 48px);
+}
+
+.tb-wrap.table_fixed_head::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+.tb-wrap.table_fixed_head::-webkit-scrollbar-thumb {
+  background: var(--neutral-300, #ccc);
+  border-radius: 10px;
+}
+
+.tb-wrap.table_fixed_head::-webkit-scrollbar-track {
+  background: transparent;
+}
+
