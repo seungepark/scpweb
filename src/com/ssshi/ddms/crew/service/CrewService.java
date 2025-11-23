@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -719,12 +721,37 @@ public class CrewService implements CrewServiceI {
 			// 실적
 				System.out.println("setPlanList :"+ anchList.size());
 		 
+				// 전체 실적 리스트를 한번에 조회
+				List<AnchorageMealQtyBean> allResultListForAnchorage = crewDao.getAnchorageMealResultQtyList(bean);
+				
+				// 각 항목별로 부서, 날짜에 맞는 실적 필터링
 				for(int z = 0; z < anchList.size(); z++) {
-					anchList.get(z).setResultList(crewDao.getAnchorageMealResultQtyList(anchList.get(z).getUid()));
+					AnchorageMealRequestBean item = anchList.get(z);
+					List<AnchorageMealQtyBean> filteredResultList = new ArrayList<AnchorageMealQtyBean>();
+					
+					if(allResultListForAnchorage != null) {
+						for(AnchorageMealQtyBean result : allResultListForAnchorage) {
+							// 부서, 날짜, 호선이 일치하는 실적만 추가
+							boolean deptMatch = (item.getDepartment() == null && result.getDepartment() == null) ||
+											   (item.getDepartment() != null && item.getDepartment().equals(result.getDepartment()));
+							String itemDate = item.getMealDate() != null ? item.getMealDate().substring(0, Math.min(10, item.getMealDate().length())) : null;
+							String resultDate = result.getResultMealDate() != null && result.getResultMealDate().length() >= 10 ? result.getResultMealDate().substring(0, 10) : result.getResultMealDate();
+							boolean dateMatch = (itemDate == null && resultDate == null) ||
+											   (itemDate != null && resultDate != null && itemDate.equals(resultDate));
+							boolean projMatch = (item.getProjNo() == null && result.getProjNo() == null) ||
+											   (item.getProjNo() != null && item.getProjNo().equals(result.getProjNo()));
+							
+							if(deptMatch && dateMatch && projMatch) {
+								filteredResultList.add(result);
+							}
+						}
+					}
+					item.setResultList(filteredResultList);
 				}
 				System.out.println("setResultList"+ anchList.size());
 			 
-				anchList = ensureResultOnlyDepartmentsIncluded(anchList, bean);
+				// 전체 실적 리스트를 전달하여 호출
+				anchList = ensureResultOnlyDepartmentsIncluded(anchList, bean, allResultListForAnchorage);
 				
 				//resultMap.put(Const.BEAN, dao.getScheduler(bean.getUid()));
 				resultMap.put(Const.LIST, anchList);
@@ -754,11 +781,108 @@ public class CrewService implements CrewServiceI {
 			}
 			System.out.println("setPlanList2 :"+ anchList.size());
 		}
-		//실적
+		
+		//부서별, 한식/양식별로 ROW 분리
+		List<AnchorageMealRequestBean> expandedList = new ArrayList<AnchorageMealRequestBean>();
 		if(anchList != null) {
-			System.out.println("오나용123dfgdfg4");
+			for(int i = 0; i < anchList.size(); i++) {
+				AnchorageMealRequestBean originalBean = anchList.get(i);
+				List<AnchorageMealQtyBean> planList = originalBean.getPlanList();
+				
+				if(planList != null && planList.size() > 0) {
+					// planList에서 고유한 MEAL_GUBUN 추출
+					Set<String> mealGubunSet = new HashSet<String>();
+					for(AnchorageMealQtyBean plan : planList) {
+						if(plan.getPlanMealGubun() != null && !plan.getPlanMealGubun().isEmpty()) {
+							mealGubunSet.add(plan.getPlanMealGubun());
+						}
+					}
+					
+					// MEAL_GUBUN이 없으면 원본 그대로 추가
+					if(mealGubunSet.isEmpty()) {
+						expandedList.add(originalBean);
+					} else {
+						// 각 MEAL_GUBUN별로 별도의 ROW 생성
+						for(String mealGubun : mealGubunSet) {
+							AnchorageMealRequestBean newBean = new AnchorageMealRequestBean();
+							// 원본 Bean의 정보 복사
+							newBean.setUid(originalBean.getUid());
+							newBean.setSchedulerInfoUid(originalBean.getSchedulerInfoUid());
+							newBean.setProjNo(originalBean.getProjNo());
+							newBean.setTrialKey(originalBean.getTrialKey());
+							newBean.setKind(originalBean.getKind());
+							newBean.setDomesticYn(originalBean.getDomesticYn());
+							newBean.setDepartment(originalBean.getDepartment());
+							newBean.setMealDate(originalBean.getMealDate());
+							newBean.setOrderStatus(originalBean.getOrderStatus());
+							newBean.setOrderDate(originalBean.getOrderDate());
+							newBean.setOrderUid(originalBean.getOrderUid());
+							newBean.setDeleteYn(originalBean.getDeleteYn());
+							newBean.setComment(originalBean.getComment());
+							newBean.setInputDate(originalBean.getInputDate());
+							newBean.setInputUid(originalBean.getInputUid());
+							newBean.setFoodStyle(mealGubun);
+							
+							// 해당 MEAL_GUBUN에 맞는 planList 필터링
+							List<AnchorageMealQtyBean> filteredPlanList = new ArrayList<AnchorageMealQtyBean>();
+							for(AnchorageMealQtyBean plan : planList) {
+								if(mealGubun.equals(plan.getPlanMealGubun())) {
+									filteredPlanList.add(plan);
+								}
+							}
+							newBean.setPlanList(filteredPlanList);
+							expandedList.add(newBean);
+						}
+					}
+				} else {
+					// planList가 없으면 원본 그대로 추가
+					expandedList.add(originalBean);
+				}
+			}
+		}
+		anchList = expandedList;
+		
+		//실적 - 조회기간 전체에 대한 실적을 한번에 조회
+		if(anchList != null) {
+			// 조회기간 전체에 대한 실적을 한번에 조회
+			List<AnchorageMealQtyBean> allResultListForAnchorage = crewDao.getAnchorageMealResultQtyList(bean);
+			
+			// 각 항목별로 부서, 날짜에 맞는 실적 필터링
 			for(int z = 0; z < anchList.size(); z++) {
-				anchList.get(z).setResultList(crewDao.getAnchorageMealResultQtyList(anchList.get(z).getUid()));
+				AnchorageMealRequestBean item = anchList.get(z);
+				List<AnchorageMealQtyBean> filteredResultList = new ArrayList<AnchorageMealQtyBean>();
+				
+				if(allResultListForAnchorage != null) {
+					for(AnchorageMealQtyBean result : allResultListForAnchorage) {
+						// 부서, 날짜, 호선이 일치하는 실적만 추가
+						boolean deptMatch = (item.getDepartment() == null && result.getDepartment() == null) ||
+										   (item.getDepartment() != null && item.getDepartment().equals(result.getDepartment()));
+						String itemDate = item.getMealDate() != null ? item.getMealDate().substring(0, Math.min(10, item.getMealDate().length())) : null;
+						String resultDate = result.getResultMealDate() != null && result.getResultMealDate().length() >= 10 ? result.getResultMealDate().substring(0, 10) : result.getResultMealDate();
+						boolean dateMatch = (itemDate == null && resultDate == null) ||
+										   (itemDate != null && resultDate != null && itemDate.equals(resultDate));
+						boolean projMatch = (item.getProjNo() == null && result.getProjNo() == null) ||
+										   (item.getProjNo() != null && item.getProjNo().equals(result.getProjNo()));
+						
+						// 식사구분도 일치하는지 확인 (foodStyle이 있는 경우)
+						boolean mealGubunMatch = true;
+						if(item.getFoodStyle() != null && !item.getFoodStyle().isEmpty()) {
+							String itemFoodStyle = item.getFoodStyle();
+							String resultFoodStyle = result.getResultMealGubun();
+							// 한식/양식 매칭 (K=한식, W=양식)
+							if("K".equals(itemFoodStyle) || "한식".equals(itemFoodStyle)) {
+								mealGubunMatch = ("K".equals(resultFoodStyle) || "한식".equals(resultFoodStyle));
+							} else if("W".equals(itemFoodStyle) || "양식".equals(resultFoodStyle)) {
+								mealGubunMatch = ("W".equals(resultFoodStyle) || "양식".equals(resultFoodStyle));
+							}
+						}
+						
+						if(deptMatch && dateMatch && projMatch && mealGubunMatch) {
+							filteredResultList.add(result);
+						}
+					}
+				}
+				item.setResultList(filteredResultList);
 			}
 			System.out.println("setResultList"+ anchList.size());
 		}
@@ -1136,38 +1260,207 @@ public class CrewService implements CrewServiceI {
 	
 	@Override
 	public Map<String, Object> resultMeal(HttpServletRequest request, AnchorageMealRequestBean bean) throws Exception {
+		
 		Map<String, Object> resultMap = new HashMap<String, Object>();
+		
+		/* 조회조건 : 호선리스트 */
+		resultMap.put(Const.LIST + "Ship", crewDao.getAnchShipList());
+		
+		// 조회 조건 확인: inDate와 outDate가 모두 있어야 조회 수행
+		boolean hasSearchCondition = (bean.getInDate() != null && !bean.getInDate().isEmpty()) 
+								  && (bean.getOutDate() != null && !bean.getOutDate().isEmpty());
+		
+		if(!hasSearchCondition) {
+			System.out.println("[resultMeal] 조회 조건이 없어 조회를 수행하지 않습니다. (inDate 또는 outDate가 없음)");
+			resultMap.put(Const.LIST, new ArrayList<AnchorageMealRequestBean>());
+			resultMap.put(Const.LIST_CNT, 0);
+			resultMap.put(Const.LIST + "Ship", crewDao.getAnchShipList());
+			return resultMap;
+		}
+		
+		System.out.println("[resultMeal] getMealResultList 쿼리 조회 시작");
 		List<AnchorageMealRequestBean> anchList = crewDao.getMealResultList(bean);
+		System.out.println("[resultMeal] getMealResultList 쿼리 조회 완료 - 결과 건수: " + (anchList != null ? anchList.size() : 0));
+		
+		// UID가 NULL인 항목(실적 전용 행)을 별도로 필터링
+		List<AnchorageMealRequestBean> filteredAnchList = new ArrayList<AnchorageMealRequestBean>();
+		List<AnchorageMealRequestBean> resultOnlyList = new ArrayList<AnchorageMealRequestBean>();
+		if(anchList != null) {
+			for(AnchorageMealRequestBean item : anchList) {
+				if(item.getUid() > 0) {
+					// 계획이 있는 항목 (UID가 있음)
+					filteredAnchList.add(item);
+				} else {
+					// 실적만 있는 항목 (UID가 NULL)
+					resultOnlyList.add(item);
+					System.out.println("[resultMeal] 실적 전용 행 발견 - 부서: " + item.getDepartment() + ", 날짜: " + item.getMealDate() + ", 호선: " + item.getProjNo());
+				}
+			}
+		}
+		System.out.println("[resultMeal] 계획 행 필터링 완료 - 계획 행: " + filteredAnchList.size() + ", 실적 전용 행: " + resultOnlyList.size());
+		
+		anchList = filteredAnchList;  // 계획 행만 사용
+		
 		resultMap.put(Const.LIST_CNT, crewDao.getAnchorageMealListCnt());
-		System.out.println("getInDate : "+bean.getInDate());
+		System.out.println("[resultMeal] LIST_CNT: " + crewDao.getAnchorageMealListCnt());
 
 		//계획
+		System.out.println("[resultMeal] 계획(plan) 리스트 설정 시작");
 		if(anchList != null) {				
 			for(int i = 0; i < anchList.size(); i++) {
-				anchList.get(i).setPlanList(crewDao.getMealResultPlanQtyList(anchList.get(i).getUid()));
-				System.out.println("getUid1 :"+ anchList.get(i).getUid());
-				System.out.println("setPlanList:"+ anchList.get(i).getPlanList().size());
+				AnchorageMealRequestBean item = anchList.get(i);
+				System.out.println("[resultMeal] 계획 조회 - UID: " + item.getUid() + ", 부서: " + item.getDepartment() + ", 날짜: " + item.getMealDate());
+				if(item.getUid() > 0) {
+					List<AnchorageMealQtyBean> planList = crewDao.getMealResultPlanQtyList(item.getUid());
+					item.setPlanList(planList);
+					System.out.println("[resultMeal]   -> 계획 건수: " + (planList != null ? planList.size() : 0));
+					if(planList != null && planList.size() > 0) {
+						for(int j = 0; j < planList.size(); j++) {
+							AnchorageMealQtyBean plan = planList.get(j);
+							System.out.println("[resultMeal]     계획 상세[" + j + "]: 날짜=" + plan.getPlanMealDate() + ", 시간=" + plan.getPlanMealTime() + ", 구분=" + plan.getPlanMealGubun() + ", 수량=" + plan.getPlanMealQty());
+						}
+					}
+				} else {
+					System.out.println("[resultMeal]   -> UID가 없어 계획 조회 스킵");
+					item.setPlanList(new ArrayList<AnchorageMealQtyBean>());
+				}
 			}
-			System.out.println("setPlanList :"+ anchList.size());
+			System.out.println("[resultMeal] 계획(plan) 리스트 설정 완료 - 전체 항목 수: " + anchList.size());
 		}
-		//실적
+		
+		//실적 - 조회기간 전체에 대한 실적을 한번에 조회
+		System.out.println("[resultMeal] 실적(result) 수량 조회 시작");
 		if(anchList != null) {
+			// 조회기간 전체에 대한 실적을 한번에 조회
+			AnchorageMealQtyBean allResultQty = new AnchorageMealQtyBean();
+			allResultQty.setProjNo(bean.getShip() != null && !bean.getShip().isEmpty() && !bean.getShip().equals("ALL") ? bean.getShip() : null);
+			allResultQty.setInDate(bean.getInDate());
+			allResultQty.setOutDate(bean.getOutDate());
+			
+			System.out.println("[resultMeal] getMealResultQtyList 쿼리 파라미터:");
+			System.out.println("  - projNo: " + allResultQty.getProjNo());
+			System.out.println("  - inDate: " + allResultQty.getInDate());
+			System.out.println("  - outDate: " + allResultQty.getOutDate());
+			
+			System.out.println("[resultMeal] getMealResultQtyList 쿼리 실행 시작");
+			List<AnchorageMealQtyBean> allResultList = crewDao.getMealResultQtyList(allResultQty);
+			System.out.println("[resultMeal] getMealResultQtyList 쿼리 실행 완료 - 전체 실적 건수: " + (allResultList != null ? allResultList.size() : 0));
+			
+			// 각 항목별로 부서, 날짜에 맞는 실적 필터링
+			System.out.println("[resultMeal] 항목별 실적 필터링 시작");
 			for(int z = 0; z < anchList.size(); z++) {
-				AnchorageMealQtyBean anchResultQty = new AnchorageMealQtyBean();
-				anchResultQty.setProjNo(anchList.get(z).getProjNo());
-				anchResultQty.setDepartment(anchList.get(z).getDepartment());
-				anchResultQty.setMealDate(anchList.get(z).getMealDate());
-				anchList.get(z).setResultList(crewDao.getMealResultQtyList(anchResultQty));
+				AnchorageMealRequestBean item = anchList.get(z);
+				List<AnchorageMealQtyBean> filteredResultList = new ArrayList<AnchorageMealQtyBean>();
+				
+				System.out.println("[resultMeal] 항목[" + z + "] 필터링 - 부서: " + item.getDepartment() + ", 날짜: " + item.getMealDate() + ", 호선: " + item.getProjNo());
+				
+				if(allResultList != null) {
+					int matchCount = 0;
+					for(AnchorageMealQtyBean result : allResultList) {
+						// 부서, 날짜, 호선이 일치하는 실적만 추가
+						boolean deptMatch = (item.getDepartment() == null && result.getDepartment() == null) ||
+										   (item.getDepartment() != null && item.getDepartment().equals(result.getDepartment()));
+						String itemDate = item.getMealDate() != null ? item.getMealDate().substring(0, Math.min(10, item.getMealDate().length())) : null;
+						String resultDate = result.getResultMealDate() != null && result.getResultMealDate().length() >= 10 ? result.getResultMealDate().substring(0, 10) : result.getResultMealDate();
+						boolean dateMatch = (itemDate == null && resultDate == null) ||
+										   (itemDate != null && resultDate != null && itemDate.equals(resultDate));
+						boolean projMatch = (item.getProjNo() == null && result.getProjNo() == null) ||
+										   (item.getProjNo() != null && item.getProjNo().equals(result.getProjNo()));
+						
+						if(deptMatch && dateMatch && projMatch) {
+							filteredResultList.add(result);
+							matchCount++;
+							System.out.println("[resultMeal]   -> 매칭된 실적: 부서=" + result.getDepartment() + ", 날짜=" + resultDate + ", 시간=" + result.getResultMealTime() + ", 구분=" + result.getResultMealGubun() + ", 수량=" + result.getResultMealQty());
+						}
+					}
+					System.out.println("[resultMeal] 항목[" + z + "] 필터링 완료 - 매칭된 실적 건수: " + matchCount);
+				}
+				item.setResultList(filteredResultList);
 			}
-			System.out.println("setResultList"+ anchList.size());
+			System.out.println("[resultMeal] 항목별 실적 필터링 완료 - 전체 항목 수: " + anchList.size());
+		}
+
+		// 전체 실적 리스트를 조회하여 전달
+		System.out.println("[resultMeal] ensureResultOnlyDepartmentsIncluded 호출 시작");
+		// ensureResultOnlyDepartmentsIncluded 호출 전 계획 데이터 확인
+		if(anchList != null) {
+			System.out.println("[resultMeal] ensureResultOnlyDepartmentsIncluded 호출 전 계획 데이터 확인:");
+			for(int i = 0; i < anchList.size(); i++) {
+				AnchorageMealRequestBean item = anchList.get(i);
+				System.out.println("[resultMeal]   항목[" + i + "] UID: " + item.getUid() + ", 계획 건수: " + (item.getPlanList() != null ? item.getPlanList().size() : 0));
+			}
+		}
+		AnchorageMealQtyBean allResultQtyForInclude = new AnchorageMealQtyBean();
+		allResultQtyForInclude.setProjNo(bean.getShip() != null && !bean.getShip().isEmpty() && !bean.getShip().equals("ALL") ? bean.getShip() : null);
+		allResultQtyForInclude.setInDate(bean.getInDate());
+		allResultQtyForInclude.setOutDate(bean.getOutDate());
+		List<AnchorageMealQtyBean> allResultListForInclude = crewDao.getMealResultQtyList(allResultQtyForInclude);
+		System.out.println("[resultMeal] ensureResultOnlyDepartmentsIncluded 호출 전 - anchList 건수: " + (anchList != null ? anchList.size() : 0));
+		anchList = ensureResultOnlyDepartmentsIncluded(anchList, bean, allResultListForInclude);
+		System.out.println("[resultMeal] ensureResultOnlyDepartmentsIncluded 호출 후 - anchList 건수: " + (anchList != null ? anchList.size() : 0));
+		// ensureResultOnlyDepartmentsIncluded 호출 후 계획 데이터 확인
+		if(anchList != null) {
+			System.out.println("[resultMeal] ensureResultOnlyDepartmentsIncluded 호출 후 계획 데이터 확인:");
+			for(int i = 0; i < anchList.size(); i++) {
+				AnchorageMealRequestBean item = anchList.get(i);
+				System.out.println("[resultMeal]   항목[" + i + "] UID: " + item.getUid() + ", 계획 건수: " + (item.getPlanList() != null ? item.getPlanList().size() : 0));
+			}
 		}
 
 		//resultMap.put(Const.BEAN, dao.getScheduler(bean.getUid()));
 		resultMap.put(Const.LIST, anchList);
 		//resultMap.put("status", dao.getTrialStatus(bean.getUid()));
 		
-		/* 조회조건 : 호선리스트 */
-		resultMap.put(Const.LIST + "Ship", crewDao.getAnchShipList());
+		
+		
+		System.out.println("[resultMeal] 최종 결과 - anchList 건수: " + (anchList != null ? anchList.size() : 0));
+		
+		// anchList 상세 데이터 로그 출력
+//		if(anchList != null && anchList.size() > 0) {
+//			System.out.println("[resultMeal] ========== anchList 상세 데이터 ==========");
+//			for(int i = 0; i < anchList.size(); i++) {
+//				AnchorageMealRequestBean item = anchList.get(i);
+//				System.out.println("[resultMeal] 항목[" + i + "]:");
+//				System.out.println("  - UID: " + item.getUid());
+//				System.out.println("  - 호선(PROJ_NO): " + item.getProjNo());
+//				System.out.println("  - 부서(DEPT_NAME): " + item.getDepartment());
+//				System.out.println("  - 날짜(MEAL_DATE): " + item.getMealDate());
+//				System.out.println("  - 구분(KIND): " + item.getKind());
+//				System.out.println("  - 내외국(DOMESTIC_YN): " + item.getDomesticYn());
+//				System.out.println("  - 발주상태(ORDER_STATUS): " + item.getOrderStatus());
+//				System.out.println("  - 식사구분(FOODSTYLE): " + item.getFoodStyle());
+//				
+//				// 계획(plan) 리스트
+//				List<AnchorageMealQtyBean> planList = item.getPlanList();
+//				if(planList != null && planList.size() > 0) {
+//					System.out.println("  - 계획(planList) 건수: " + planList.size());
+//					for(int j = 0; j < planList.size(); j++) {
+//						AnchorageMealQtyBean plan = planList.get(j);
+//						System.out.println("    계획[" + j + "]: 날짜=" + plan.getPlanMealDate() + ", 시간=" + plan.getPlanMealTime() + ", 구분=" + plan.getPlanMealGubun() + ", 수량=" + plan.getPlanMealQty());
+//					}
+//				} else {
+//					System.out.println("  - 계획(planList): 없음");
+//				}
+//				
+//				// 실적(result) 리스트
+//				List<AnchorageMealQtyBean> resultList = item.getResultList();
+//				if(resultList != null && resultList.size() > 0) {
+//					System.out.println("  - 실적(resultList) 건수: " + resultList.size());
+//					for(int j = 0; j < resultList.size(); j++) {
+//						AnchorageMealQtyBean result = resultList.get(j);
+//						System.out.println("    실적[" + j + "]: 날짜=" + result.getResultMealDate() + ", 시간=" + result.getResultMealTime() + ", 구분=" + result.getResultMealGubun() + ", 부서=" + result.getDepartment() + ", 호선=" + result.getProjNo() + ", 수량=" + result.getResultMealQty());
+//					}
+//				} else {
+//					System.out.println("  - 실적(resultList): 없음");
+//				}
+//				System.out.println("");
+//			}
+//			System.out.println("[resultMeal] ==============================================");
+//		} else {
+//			System.out.println("[resultMeal] anchList가 비어있습니다.");
+//		}
+//		
+		System.out.println("========== resultMeal() 함수 종료 ==========");
 		return resultMap;
 	}
 	
@@ -1186,19 +1479,49 @@ public class CrewService implements CrewServiceI {
 			}
 			System.out.println("setPlanList :"+ anchList.size());
 		}
-		//실적
+		//실적 - 조회기간 전체에 대한 실적을 한번에 조회
 		if(anchList != null) {
+			// 조회기간 전체에 대한 실적을 한번에 조회
+			AnchorageMealQtyBean allResultQty = new AnchorageMealQtyBean();
+			allResultQty.setProjNo(bean.getShip() != null && !bean.getShip().isEmpty() && !bean.getShip().equals("ALL") ? bean.getShip() : null);
+			allResultQty.setInDate(bean.getInDate());
+			allResultQty.setOutDate(bean.getOutDate());
+			List<AnchorageMealQtyBean> allResultList = crewDao.getMealResultQtyList(allResultQty);
+			
+			// 각 항목별로 부서, 날짜에 맞는 실적 필터링
 			for(int z = 0; z < anchList.size(); z++) {
-				AnchorageMealQtyBean anchResultQty = new AnchorageMealQtyBean();
-				anchResultQty.setProjNo(anchList.get(z).getProjNo());
-				anchResultQty.setDepartment(anchList.get(z).getDepartment());
-				anchResultQty.setMealDate(anchList.get(z).getMealDate());
-				anchList.get(z).setResultList(crewDao.getMealResultQtyList(anchResultQty));
+				AnchorageMealRequestBean item = anchList.get(z);
+				List<AnchorageMealQtyBean> filteredResultList = new ArrayList<AnchorageMealQtyBean>();
+				
+				if(allResultList != null) {
+					for(AnchorageMealQtyBean result : allResultList) {
+						// 부서, 날짜, 호선이 일치하는 실적만 추가
+						boolean deptMatch = (item.getDepartment() == null && result.getDepartment() == null) ||
+										   (item.getDepartment() != null && item.getDepartment().equals(result.getDepartment()));
+						String itemDate = item.getMealDate() != null ? item.getMealDate().substring(0, Math.min(10, item.getMealDate().length())) : null;
+						String resultDate = result.getResultMealDate() != null && result.getResultMealDate().length() >= 10 ? result.getResultMealDate().substring(0, 10) : result.getResultMealDate();
+						boolean dateMatch = (itemDate == null && resultDate == null) ||
+										   (itemDate != null && resultDate != null && itemDate.equals(resultDate));
+						boolean projMatch = (item.getProjNo() == null && result.getProjNo() == null) ||
+										   (item.getProjNo() != null && item.getProjNo().equals(result.getProjNo()));
+						
+						if(deptMatch && dateMatch && projMatch) {
+							filteredResultList.add(result);
+						}
+					}
+				}
+				anchList.get(z).setResultList(filteredResultList);
 			}
 			System.out.println("setResultList"+ anchList.size());
 		}
 
-		anchList = ensureResultOnlyDepartmentsIncluded(anchList, bean);
+		// 전체 실적 리스트를 조회하여 전달
+		AnchorageMealQtyBean allResultQtyForInclude = new AnchorageMealQtyBean();
+		allResultQtyForInclude.setProjNo(bean.getShip() != null && !bean.getShip().isEmpty() && !bean.getShip().equals("ALL") ? bean.getShip() : null);
+		allResultQtyForInclude.setInDate(bean.getInDate());
+		allResultQtyForInclude.setOutDate(bean.getOutDate());
+		List<AnchorageMealQtyBean> allResultListForInclude = crewDao.getMealResultQtyList(allResultQtyForInclude);
+		anchList = ensureResultOnlyDepartmentsIncluded(anchList, bean, allResultListForInclude);
 
 		resultMap.put(Const.LIST, anchList);
 		List<String> departmentList = crewDao.getMealDepartmentList(bean);
@@ -1209,7 +1532,7 @@ public class CrewService implements CrewServiceI {
 		return resultMap;
 	}
 	
-	private List<AnchorageMealRequestBean> ensureResultOnlyDepartmentsIncluded(List<AnchorageMealRequestBean> anchList, AnchorageMealRequestBean filterBean) throws Exception {
+	private List<AnchorageMealRequestBean> ensureResultOnlyDepartmentsIncluded(List<AnchorageMealRequestBean> anchList, AnchorageMealRequestBean filterBean, List<AnchorageMealQtyBean> allResultList) throws Exception {
 		if (anchList == null) {
 			anchList = new ArrayList<>();
 		}
@@ -1232,20 +1555,48 @@ public class CrewService implements CrewServiceI {
 					newBean.setMealDate(combo.getMealDate());
 					newBean.setPlanList(new ArrayList<AnchorageMealQtyBean>());
 					
-					AnchorageMealQtyBean resultParam = new AnchorageMealQtyBean();
-					resultParam.setProjNo(combo.getProjNo());
-					resultParam.setDepartment(combo.getDepartment());
-					resultParam.setMealDate(combo.getMealDate());
-					newBean.setResultList(crewDao.getMealResultQtyList(resultParam));
+					// 전체 실적 리스트에서 필터링
+					List<AnchorageMealQtyBean> filteredResultListForNew = new ArrayList<AnchorageMealQtyBean>();
+					if(allResultList != null) {
+						for(AnchorageMealQtyBean result : allResultList) {
+							boolean deptMatch = (combo.getDepartment() == null && result.getDepartment() == null) ||
+											   (combo.getDepartment() != null && combo.getDepartment().equals(result.getDepartment()));
+							String comboDate = combo.getMealDate() != null ? combo.getMealDate().substring(0, Math.min(10, combo.getMealDate().length())) : null;
+							String resultDate = result.getResultMealDate() != null && result.getResultMealDate().length() >= 10 ? result.getResultMealDate().substring(0, 10) : result.getResultMealDate();
+							boolean dateMatch = (comboDate == null && resultDate == null) ||
+											   (comboDate != null && resultDate != null && comboDate.equals(resultDate));
+							boolean projMatch = (combo.getProjNo() == null && result.getProjNo() == null) ||
+											   (combo.getProjNo() != null && combo.getProjNo().equals(result.getProjNo()));
+							
+							if(deptMatch && dateMatch && projMatch) {
+								filteredResultListForNew.add(result);
+							}
+						}
+					}
+					newBean.setResultList(filteredResultListForNew);
 					
 					anchList.add(newBean);
 					anchorMap.put(key, newBean);
 				} else if (existing.getResultList() == null || existing.getResultList().isEmpty()) {
-					AnchorageMealQtyBean resultParam = new AnchorageMealQtyBean();
-					resultParam.setProjNo(combo.getProjNo());
-					resultParam.setDepartment(combo.getDepartment());
-					resultParam.setMealDate(combo.getMealDate());
-					existing.setResultList(crewDao.getMealResultQtyList(resultParam));
+					// 전체 실적 리스트에서 필터링
+					List<AnchorageMealQtyBean> filteredResultListForExisting = new ArrayList<AnchorageMealQtyBean>();
+					if(allResultList != null) {
+						for(AnchorageMealQtyBean result : allResultList) {
+							boolean deptMatch = (combo.getDepartment() == null && result.getDepartment() == null) ||
+											   (combo.getDepartment() != null && combo.getDepartment().equals(result.getDepartment()));
+							String comboDate = combo.getMealDate() != null ? combo.getMealDate().substring(0, Math.min(10, combo.getMealDate().length())) : null;
+							String resultDate = result.getResultMealDate() != null && result.getResultMealDate().length() >= 10 ? result.getResultMealDate().substring(0, 10) : result.getResultMealDate();
+							boolean dateMatch = (comboDate == null && resultDate == null) ||
+											   (comboDate != null && resultDate != null && comboDate.equals(resultDate));
+							boolean projMatch = (combo.getProjNo() == null && result.getProjNo() == null) ||
+											   (combo.getProjNo() != null && combo.getProjNo().equals(result.getProjNo()));
+							
+							if(deptMatch && dateMatch && projMatch) {
+								filteredResultListForExisting.add(result);
+							}
+						}
+					}
+					existing.setResultList(filteredResultListForExisting);
 				}
 			}
 		}

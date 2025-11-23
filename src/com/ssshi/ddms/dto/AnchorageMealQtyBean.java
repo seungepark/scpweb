@@ -19,6 +19,9 @@ public class AnchorageMealQtyBean {
 	private String resultMealGubun;
 	private int resultMealQty;
 	
+	private String inDate;
+	private String outDate;
+	
 	private int userUid;
 	
 	private int insertBy;
@@ -122,6 +125,19 @@ public class AnchorageMealQtyBean {
 	}
 	public void setResultMealQty(int resultMealQty) {
 		this.resultMealQty = resultMealQty;
+	}
+	
+	public String getInDate() {
+		return inDate;
+	}
+	public void setInDate(String inDate) {
+		this.inDate = inDate;
+	}
+	public String getOutDate() {
+		return outDate;
+	}
+	public void setOutDate(String outDate) {
+		this.outDate = outDate;
 	}
 	
 	public int getUserUid() {

@@ -90,7 +90,7 @@ public interface CrewDaoI {
 	List<AnchorageMealQtyBean> getAnchorageMealPlanQtyList(int anchorMealUid) throws Exception;
 	
 	// 앵카링 식사신청 수량 (실적).
-	List<AnchorageMealQtyBean> getAnchorageMealResultQtyList(int anchorMealUid) throws Exception;
+	List<AnchorageMealQtyBean> getAnchorageMealResultQtyList(AnchorageMealRequestBean bean) throws Exception;
 	
 	// 앵카링 식사신청 목록 삭제.
 	int deleteAnchList(int anchUid) throws Exception;

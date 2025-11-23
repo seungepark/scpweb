@@ -198,26 +198,128 @@ function buildDataset(list, startDate, endDate) {
 			shipBucket.departments[dept] = {};
 			shipBucket.departmentOrder.push(dept);
 		}
-		processMealEntries(shipBucket.departments[dept], item.planList, 'plan', startDate, endDate);
+		
+		// planList 처리: planMealDate가 없으면 item의 mealDate를 사용하도록 설정
+		const planListWithDate = (item.planList || []).map(plan => {
+			// planMealDate가 null이거나 빈 문자열이면 item.mealDate 사용
+			const originalPlanDate = plan.planMealDate || '';
+			const planDate = (originalPlanDate && originalPlanDate.trim() !== '' && originalPlanDate.trim() !== 'null') 
+				? originalPlanDate.trim() 
+				: (item.mealDate || '').trim();
+			
+			if (planDate && planDate !== 'null' && planDate !== '') {
+				// planMealDate와 mealDate 모두 설정하여 processMealEntries에서 사용할 수 있도록 함
+				const result = {
+					planMealDate: planDate,
+					planMealTime: plan.planMealTime,
+					planMealGubun: plan.planMealGubun,
+					planMealQty: plan.planMealQty,
+					mealDate: planDate
+				};
+				console.log('[buildDataset] 계획 처리:', {
+					originalPlanDate: originalPlanDate,
+					itemMealDate: item.mealDate,
+					finalPlanDate: planDate,
+					planMealTime: plan.planMealTime,
+					planMealGubun: plan.planMealGubun,
+					planMealQty: plan.planMealQty
+				});
+				return result;
+			}
+			console.warn('[buildDataset] 계획 날짜 없음:', {
+				originalPlanDate: originalPlanDate,
+				itemMealDate: item.mealDate,
+				plan: plan
+			});
+			return plan;
+		});
+		
+		processMealEntries(shipBucket.departments[dept], planListWithDate, 'plan', startDate, endDate);
 		processMealEntries(shipBucket.departments[dept], item.resultList, 'result', startDate, endDate);
-		processMealEntries(shipBucket.total, item.planList, 'plan', startDate, endDate);
+		processMealEntries(shipBucket.total, planListWithDate, 'plan', startDate, endDate);
 		processMealEntries(shipBucket.total, item.resultList, 'result', startDate, endDate);
 	});
 	return dataset;
 }
 
 function processMealEntries(target, list, type, startDate, endDate) {
-	if (!Array.isArray(list)) return;
+	if (!Array.isArray(list)) {
+		console.log('[processMealEntries] list가 배열이 아님:', list);
+		return;
+	}
+	
+	let processedCount = 0;
+	let skippedCount = 0;
+	
 	list.forEach(entry => {
 		const cuisine = normalizeCuisine(entry.planMealGubun || entry.resultMealGubun || entry.mealGubun);
-		if (!cuisine) return;
+		if (!cuisine) {
+			skippedCount++;
+			console.log('[processMealEntries] cuisine 매칭 실패:', {
+				type: type,
+				planMealGubun: entry.planMealGubun,
+				resultMealGubun: entry.resultMealGubun,
+				mealGubun: entry.mealGubun
+			});
+			return;
+		}
+		
 		const rawDate = entry.planMealDate || entry.resultMealDate || entry.mealDate;
 		const date = normalizeDate(rawDate);
-		if (!isDateWithinRange(date, startDate, endDate)) return;
+		if (!isDateWithinRange(date, startDate, endDate)) {
+			skippedCount++;
+			console.log('[processMealEntries] 날짜 범위 밖:', {
+				type: type,
+				rawDate: rawDate,
+				normalizedDate: date,
+				startDate: startDate,
+				endDate: endDate
+			});
+			return;
+		}
+		
 		const meal = normalizeMeal(entry.planMealTime || entry.resultMealTime || entry.mealTime);
-		if (!meal) return;
+		if (!meal) {
+			skippedCount++;
+			console.log('[processMealEntries] meal 매칭 실패:', {
+				type: type,
+				planMealTime: entry.planMealTime,
+				resultMealTime: entry.resultMealTime,
+				mealTime: entry.mealTime
+			});
+			return;
+		}
+		
 		const qty = toNumber(entry.planMealQty || entry.resultMealQty || entry.mealQty);
+		if (qty <= 0) {
+			skippedCount++;
+			console.log('[processMealEntries] 수량이 0 이하:', {
+				type: type,
+				planMealQty: entry.planMealQty,
+				resultMealQty: entry.resultMealQty,
+				mealQty: entry.mealQty,
+				normalizedQty: qty
+			});
+			return;
+		}
+		
+		processedCount++;
+		console.log('[processMealEntries] 처리됨:', {
+			type: type,
+			cuisine: cuisine,
+			date: date,
+			meal: meal,
+			qty: qty
+		});
+		
 		addMealValue(target, type, cuisine, date, meal, qty);
+	});
+	
+	console.log('[processMealEntries] 완료:', {
+		type: type,
+		total: list.length,
+		processed: processedCount,
+		skipped: skippedCount
 	});
 }
 

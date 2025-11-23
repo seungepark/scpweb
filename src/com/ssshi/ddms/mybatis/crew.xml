@@ -222,6 +222,8 @@
 		WHERE ANCHOR_MEAL_UID = #{anchorMealUid}
 	</select>
 	
+	<!-- 기존 실적 수량 쿼리 (ANCHOR_MEAL_UID 기준) -->
+	<!--
 	<select id="getAnchorageMealResultQtyList" parameterType="int" resultType = "AnchorageMealQtyBean">
 		SELECT ANCHOR_MEAL_UID,  MEAL_TIME as resultMealTime,
 			   MEAL_GUBUN as resultMealGubun, MEAL_DATE as resultMealDate, COUNT(*) as resultMealPlanQty
@@ -229,6 +231,26 @@
 		 where 1=1
 		   and ANCHOR_MEAL_UID = #{anchorMealUid}
 		 group by ANCHOR_MEAL_UID, MEAL_TIME, MEAL_GUBUN, MEAL_DATE
+	</select>
+	-->
+	
+	<!-- 수정된 실적 수량 쿼리 (호선, 조회기간 기준, 부서별 집계) -->
+	<select id="getAnchorageMealResultQtyList" parameterType="AnchorageMealRequestBean" resultType = "AnchorageMealQtyBean">
+		SELECT ANCHOR_MEAL_UID, MEAL_TIME as resultMealTime,
+			   MEAL_GUBUN as resultMealGubun, MEAL_DATE as resultMealDate, 
+			   DEPT_NAME as department, COUNT(*) as resultMealQty
+		  FROM mobile_anchor_meal_userinfo
+		 where 1=1
+		 <if test="ship != null and ship != '' and ship != 'ALL'">
+		   AND PROJ_NO <![CDATA[ = ]]> #{ship}
+		 </if>
+		 <if test="inDate != null and inDate != ''">
+		   AND MEAL_DATE <![CDATA[ >= ]]> #{inDate}
+		 </if>
+		 <if test="outDate != null and outDate != ''">
+		   AND MEAL_DATE <![CDATA[ <= ]]> #{outDate}
+		 </if>
+		 group by ANCHOR_MEAL_UID, DEPT_NAME, MEAL_TIME, MEAL_GUBUN, MEAL_DATE
 	</select>
 	
 	<delete id="deleteAnchList" parameterType="int">
@@ -374,6 +396,8 @@
 		  and TRIALKEY <![CDATA[ = ]]> #{projNo}  -->
 	</select>
 	
+	<!-- 기존 실적 수량 쿼리 (특정 날짜, 부서별) -->
+	<!--
 	<select id="getMealResultQtyList" parameterType="AnchorageMealQtyBean" resultType = "AnchorageMealQtyBean">
 		SELECT ANCHOR_MEAL_UID,  MEAL_TIME as resultMealTime, DEPT_NAME as department, proj_no as projNo,
 			   MEAL_GUBUN as resultMealGubun, MEAL_DATE as resultMealDate, COUNT(*) as resultMealQty
@@ -383,6 +407,29 @@
 		   and PROJ_NO <![CDATA[ = ]]> #{projNo} 
 		   AND DEPT_NAME <![CDATA[ = ]]> #{department}
 		 group by ANCHOR_MEAL_UID, MEAL_TIME, MEAL_GUBUN, MEAL_DATE
+	</select>
+	-->
+	
+	<!-- 수정된 실적 수량 쿼리 (호선, 조회기간 기준, 부서별, 식사구분별 집계) -->
+	<select id="getMealResultQtyList" parameterType="AnchorageMealQtyBean" resultType = "AnchorageMealQtyBean">
+		SELECT MEAL_TIME as resultMealTime,
+			   MEAL_GUBUN as resultMealGubun, MEAL_DATE as resultMealDate, 
+			   DEPT_NAME as department, PROJ_NO as projNo, COUNT(*) as resultMealQty
+		  FROM mobile_anchor_meal_userinfo
+		 where 1=1
+		 <if test="projNo != null and projNo != ''">
+		   AND PROJ_NO <![CDATA[ = ]]> #{projNo}
+		 </if>
+		 <if test="inDate != null and inDate != ''">
+		   AND MEAL_DATE <![CDATA[ >= ]]> #{inDate}
+		 </if>
+		 <if test="outDate != null and outDate != ''">
+		   AND MEAL_DATE <![CDATA[ <= ]]> #{outDate}
+		 </if>
+		 <if test="mealDate != null and mealDate != ''">
+		   AND MEAL_DATE <![CDATA[ = ]]> #{mealDate}
+		 </if>
+		 group by PROJ_NO, DEPT_NAME, MEAL_TIME, MEAL_GUBUN, MEAL_DATE
 	</select>
 	
 	<!-- 방정보 저장 -->

@@ -254,11 +254,31 @@ function initData() {
 			
 		}
 		
-		//식사신청 수량(실적)
+		//식사신청 수량(실적) - 부서, 날짜, 식사구분별 필터링
 		for(let x = 0; x < resultList.length; x++) {
-			let code = resultList[x].resultMealTime;
-			let qty = resultList[x].resultMealQty;
-			foodStyle = resultList[0].resultMealGubun;
+			let resultItem = resultList[x];
+			// 부서가 일치하는 실적만 사용
+			if(resultItem.department && department && resultItem.department !== department) {
+				continue;
+			}
+			// 날짜가 일치하는 실적만 사용
+			let resultMealDate = resultItem.resultMealDate ? resultItem.resultMealDate.match(/\d{4}-\d{2}-\d{2}/) : null;
+			if(resultMealDate && mealDate && resultMealDate[0] !== mealDate) {
+				continue;
+			}
+			let code = resultItem.resultMealTime;
+			let qty = resultItem.resultMealQty;
+			let resultMealGubun = resultItem.resultMealGubun;
+			
+			// 식사구분이 없으면 첫번째 값 사용
+			if(!foodStyle && resultMealGubun) {
+				foodStyle = resultMealGubun;
+			}
+			
+			// 같은 시간대의 경우 식사구분도 일치하는 것만 사용
+			if(foodStyle && resultMealGubun && foodStyle !== resultMealGubun) {
+				continue;
+			}
 			
 			//alert(code);
 			if(code == '조식') {
@@ -484,6 +504,10 @@ function getAnchorageMealList(page) {
 					for(let x = 0; x < planList.length; x++) {
 						let code = planList[x].planMealTime;
 						let qty = planList[x].planMealQty;
+						// foodStyle이 없으면 계획에서 가져오기
+						if(!foodStyle && planList[x].planMealGubun) {
+							foodStyle = planList[x].planMealGubun;
+						}
 						if(code == '조식') {
 							breakfastP = qty;
 						}else if(code == '중식') {
@@ -495,10 +519,32 @@ function getAnchorageMealList(page) {
 						}
 					}		
 					
-					//식사신청 수량(실적)
+					//식사신청 수량(실적) - 부서, 날짜, 식사구분별 필터링
 					for(let x = 0; x < resultList.length; x++) {
-						let code = resultList[x].resultMealTime;
-						let qty = resultList[x].resultMealQty;
+						let resultItem = resultList[x];
+						// 부서가 일치하는 실적만 사용
+						if(resultItem.department && department && resultItem.department !== department) {
+							continue;
+						}
+						// 날짜가 일치하는 실적만 사용
+						let resultMealDate = resultItem.resultMealDate ? resultItem.resultMealDate.match(/\d{4}-\d{2}-\d{2}/) : null;
+						if(resultMealDate && mealDate && resultMealDate[0] !== mealDate) {
+							continue;
+						}
+						let code = resultItem.resultMealTime;
+						let qty = resultItem.resultMealQty;
+						let resultMealGubun = resultItem.resultMealGubun;
+						
+						// 식사구분이 없으면 첫번째 값 사용
+						if(!foodStyle && resultMealGubun) {
+							foodStyle = resultMealGubun;
+						}
+						
+						// 같은 시간대의 경우 식사구분도 일치하는 것만 사용
+						if(foodStyle && resultMealGubun && foodStyle !== resultMealGubun) {
+							continue;
+						}
+						
 						//alert(code);
 						if(code == '조식') {
 							breakfastR = qty;

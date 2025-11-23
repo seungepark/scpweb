@@ -195,13 +195,13 @@
 					<div class="sub-item-wrap sub-item" data-i18n="share:sidebar.main2.sub4"></div>
 				</a>
 		       	<a onclick="delSearchCookie()" href="${pageContext.request.contextPath}/crew/anchorageMealRequest.html">
-		       		<div class="sub-item-wrap sub-item" data-i18n="share:sidebar.main2.sub2"></div>
-		       	</a>
-		       	<a onclick="delSearchCookie()" href="${pageContext.request.contextPath}/crew/resultMeal.html">
 		       		<div class="sub-item-wrap sub-item-active">
 		           		<span class="sub-item-active-bar"></span>
-		           		<span class="sub-item-active-title" data-i18n="share:sidebar.main2.sub3"></span>
+		           		<span class="sub-item-active-title" data-i18n="share:sidebar.main2.sub2"></span>
 		       		</div>
+		       	</a>
+		       	<a onclick="delSearchCookie()" href="${pageContext.request.contextPath}/crew/resultMeal.html">
+		       		<div class="sub-item-wrap sub-item" data-i18n="share:sidebar.main2.sub3"></div>
 		       	</a>
 	   		</div>
 	   	</c:if>
