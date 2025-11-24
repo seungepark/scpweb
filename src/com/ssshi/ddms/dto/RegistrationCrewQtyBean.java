@@ -34,6 +34,7 @@ public class RegistrationCrewQtyBean {
 	private String revDay;
 	
 	private String ship;
+	private String trialKey;
 	
 	public String getShip() {
 		return ship;
@@ -41,6 +42,14 @@ public class RegistrationCrewQtyBean {
 	
 	public void setShip(String ship) {
 		this.ship = ship;
+	}
+	
+	public String getTrialKey() {
+		return trialKey;
+	}
+	
+	public void setTrialKey(String trialKey) {
+		this.trialKey = trialKey;
 	}
 	
 	public int getUid() {

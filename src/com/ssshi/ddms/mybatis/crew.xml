@@ -335,7 +335,7 @@
 			   AND userinfo.MEAL_DATE <![CDATA[ >= ]]> #{inDate}
 			   AND userinfo.MEAL_DATE <![CDATA[ <= ]]> #{outDate}
 			 <if test="ship != null and ship != '' and ship != 'ALL'">
-				AND userinfo.PROJ_NO <![CDATA[ = ]]> #{ship}
+				AND userinfo.SCHEDULERINFOUID <![CDATA[ = ]]> #{ship}
 			 </if>
 		) merged
 		WHERE merged.department IS NOT NULL AND merged.department <![CDATA[ <> ]]> ''
@@ -355,11 +355,11 @@
 	<select id="getCrewResultQtyList" parameterType="RegistrationCrewQtyBean" resultType = "RegistrationCrewQtyBean">
 		SELECT MEAL_TIME as resultMealTime,
 			   MEAL_GUBUN as resultMealGubun, MEAL_DATE as resultMealDate, 
-			   DEPT_NAME as department, PROJ_NO as projNo, COUNT(*) as resultMealQty
+			   DEPT_NAME as department, TRIALKEY as projNo, COUNT(*) as resultMealQty
 		  FROM mobile_meal_userinfo
 		 where 1=1
 		 <if test="projNo != null and projNo != ''">
-		   AND PROJ_NO <![CDATA[ = ]]> #{projNo}
+		   AND SCHEDULERINFOUID <![CDATA[ = ]]> #{projNo}
 		 </if>
 		 <if test="inDate != null and inDate != ''">
 		   AND MEAL_DATE <![CDATA[ >= ]]> #{inDate}
@@ -370,12 +370,12 @@
 		 <if test="mealDate != null and mealDate != ''">
 		   AND MEAL_DATE <![CDATA[ = ]]> #{mealDate}
 		 </if>
-		 group by PROJ_NO, DEPT_NAME, MEAL_TIME, MEAL_GUBUN, MEAL_DATE
+		 group by TRIALKEY, SCHEDULERINFOUID, DEPT_NAME, MEAL_TIME, MEAL_GUBUN, MEAL_DATE
 	</select>
 	
 	<select id="getCrewResultDeptCombinations" parameterType="RegistrationCrewRequestBean" resultType="RegistrationCrewRequestBean">
 		SELECT DISTINCT 
-			PROJ_NO AS projNo,
+			TRIALKEY AS projNo,
 			DATE(MEAL_DATE) AS mealDate,
 			DEPT_NAME AS department
 		  FROM mobile_meal_userinfo
@@ -387,7 +387,7 @@
 			AND MEAL_DATE <![CDATA[ <= ]]> #{outDate}
 		 </if>
 		 <if test="ship != null and ship != '' and ship != 'ALL'">
-			AND PROJ_NO <![CDATA[ = ]]> #{ship}
+			AND SCHEDULERINFOUID <![CDATA[ = ]]> #{ship}
 		 </if>
 		 ORDER BY projNo, mealDate, department
 	</select>

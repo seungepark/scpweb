@@ -1336,8 +1336,10 @@ public class CrewService implements CrewServiceI {
 			// 조회기간 전체에 대한 실적을 한번에 조회
 			RegistrationCrewQtyBean allResultQty = new RegistrationCrewQtyBean();
 			allResultQty.setProjNo(bean.getShip() != null && !bean.getShip().isEmpty() && !bean.getShip().equals("ALL") ? bean.getShip() : null);
+			
 			allResultQty.setInDate(bean.getInDate());
 			allResultQty.setOutDate(bean.getOutDate());
+			
 			
 			System.out.println("[crewResultMeal] getCrewResultQtyList 쿼리 파라미터:");
 			System.out.println("  - projNo: " + allResultQty.getProjNo());
