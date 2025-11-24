@@ -14,6 +14,7 @@
 <c:if test="${(empty P_CREW_RESULT_MEAL_R and empty P_CREW_RESULT_MEAL_W)}">
 	<c:redirect url="/index.html" />
 </c:if>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,6 +37,7 @@
 	<link href="${pageContext.request.contextPath}/vendors/fontawesome/css/v4-shims.min.css" rel="stylesheet">
 	<link href="${pageContext.request.contextPath}/css/custom.min.css" rel="stylesheet">
 	<link href="${pageContext.request.contextPath}/css/common.css" rel="stylesheet">
+	<link href="${pageContext.request.contextPath}/css/common_result.css" rel="stylesheet">
 </head>
 <body>
 	<div class="body-wrap">
@@ -55,19 +57,25 @@
 									<span data-i18n="listOp.btnSearch"></span>
 						</button>
 						<!--<button class="bt-obj bt-primary mr-5" onclick="getRegistrationCrewList(1)">조회</button>-->
-	                   		<input type="date" id="outDate"/>&nbsp&nbsp
-							<input type="date" id="inDate"/>
+	                   		<input type="date" id="outDate" class=""/>&nbsp&nbsp
+							<input type="date" id="inDate" class=""/>
 						<div class="lb-title-no-sp" style="line-height: 44px;">기간&nbsp&nbsp</div>
 					
 					    <!-- 호선번호 조회(스케줄키) -->
-					    <!-- style="border: 1px solid red" -->
 					    <div class="col-auto">
-							<select id="ship">
-                                <option value="ALL" data-i18n="listOp.shipAll"></option>
-                                <c:forEach var="ship" items="${listShip}">
-                                    <option value="${ship.val}">${ship.description}</option>
-                                </c:forEach>
-                            </select>
+							<input type="text"
+								   id="shipInput"
+								   class="autocomplete-ship"
+								   placeholder=""
+								   data-i18n="[placeholder]listOp.shipPlaceholder"
+								   autocomplete="off">
+							<input type="hidden" id="ship" value="">
+							<select id="shipSource" class="select-data-source">
+								<option value="ALL"></option>
+								<c:forEach var="ship" items="${listShip}">
+									<option value="<c:out value='${ship.val}'/>"><c:out value="${ship.description}"/></option>
+								</c:forEach>
+							</select>
 						</div>
 						
 						<div class="lb-title-no-sp" style="line-height: 44px;">호선번호</div>						
@@ -146,19 +154,31 @@
                    		
 					</div>
                    	<div class="sp-16"></div>
-                    <div class="crew-result-table-wrapper">
-                        <div class="crew-result-scroll-inner">
-                            <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap" style="width:3000px; white-space: nowrap;">
-                                <colgroup></colgroup>
-                                <thead id="tbHeader"></thead>
-                                <tbody id="tbRowList">
-                                    <tr>
-                                        <td class="text-center" data-i18n="share:noList">There is no data to display</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                   	<div class="tb-wrap table_fixed_head">
+						<table id="tbList" class="tb-style tb-layout-fixed ws-nowrap">
+							<thead>
+								<tr id="tbHeader"></tr>
+							</thead>
+							<tbody id="tbRowList">
+								<tr>
+									<td class="text-center" data-i18n="share:noList">There is no data to display</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+                   	
+                   <!--  <div class="tb-wrap table_fixed_head" style="overflow-x: auto;">
+                        <table id="tbList" class="tb-style tb-layout-fixed ws-nowrap " style="width:3000px; height:200px; white-space: nowrap;"> <thead>
+                            <thead>
+                                <tr id="tbHeader"></tr>
+                            </thead>
+                            <tbody id="tbRowList" class ="dash-ship-list-area-scroll">
+                                <tr>
+									<td class="text-center" data-i18n="share:noList">There is no data to display</td>
+								</tr>
+                            </tbody>
+                    	</table>
+					</div> -->
 					<!-- <div class="sp-16"></div>
                     <div class="pg-area" id="pagination"></div> -->
                 </div>
@@ -187,7 +207,7 @@
 	    let _eDate = "${bean.edate}";
 	    let _anchList = [];
 	    let _status = "${status}";
-  	
+
 	    <c:forEach var="item" items="${list}">
 			_anchList.push({
 	  			uid:"${item.uid}",
@@ -234,6 +254,6 @@
 	<script src="${pageContext.request.contextPath}/vendors/i18n/lang.js"></script>
 	<script src="${pageContext.request.contextPath}/js/custom.min.js"></script>
 	<script src="${pageContext.request.contextPath}/js/common.js"></script>
-	<script src="${pageContext.request.contextPath}/js/crew/resultMeal.js"></script>
+	<script src="${pageContext.request.contextPath}/js/crew/crewResultMeal.js"></script>
 </body>
 </html>

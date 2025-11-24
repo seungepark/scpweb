@@ -296,6 +296,101 @@
 		WHERE UID = #{anchUid}
 	</update>
 	
+	<select id="getCrewMealResultList" parameterType="RegistrationCrewRequestBean" resultType="RegistrationCrewRequestBean">
+	  SELECT
+			merged.UID,
+			merged.SCHEDULERINFOUID AS schedulerInfoUid,
+			merged.PROJ_NO AS projNo,
+			merged.TRIALKEY AS trialKey,	
+			merged.KIND AS kind,
+			merged.DOMESTIC_YN AS domesticYn,
+			merged.department,
+			merged.MEAL_DATE AS mealDate,
+			merged.ORDER_STATUS AS orderStatus,
+			merged.ORDER_DATE AS orderDate,
+			merged.ORDER_UID AS orderUid,
+			merged.DEL_YN AS deleteYn,
+			merged.COMMENT AS comment,
+			merged.REG_DATE AS inputDate,
+			merged.REG_USERNAME AS inputUid
+		FROM (
+			SELECT 
+				NULL AS UID,
+				userinfo.SCHEDULERINFOUID,
+				userinfo.PROJ_NO,
+				userinfo.TRIALKEY,
+				NULL AS KIND,
+				NULL AS DOMESTIC_YN,
+				userinfo.DEPT_NAME AS department,
+				DATE(userinfo.MEAL_DATE) AS MEAL_DATE,
+				NULL AS ORDER_STATUS,
+				NULL AS ORDER_DATE,
+				NULL AS ORDER_UID,
+				'N' AS DEL_YN,
+				NULL AS COMMENT,
+				NULL AS REG_DATE,
+				NULL AS REG_USERNAME
+			  FROM mobile_meal_userinfo userinfo
+			 WHERE 1=1
+			   AND userinfo.MEAL_DATE <![CDATA[ >= ]]> #{inDate}
+			   AND userinfo.MEAL_DATE <![CDATA[ <= ]]> #{outDate}
+			 <if test="ship != null and ship != '' and ship != 'ALL'">
+				AND userinfo.PROJ_NO <![CDATA[ = ]]> #{ship}
+			 </if>
+		) merged
+		WHERE merged.department IS NOT NULL AND merged.department <![CDATA[ <> ]]> ''
+		ORDER BY merged.MEAL_DATE, merged.department
+	</select>
+	
+	<select id="getCrewMealListCnt" resultType="int">
+		SELECT FOUND_ROWS()
+	</select>
+	
+	<select id="getCrewPlanQtyList" parameterType="int" resultType = "RegistrationCrewQtyBean">
+		SELECT null as UID, null as scheCrewUid, null as TRIALKEY, null as planMealTime,
+		null as planMealGubun, null as planMealDate, 0 as planMealQty
+		FROM dual
+	</select>
+	
+	<select id="getCrewResultQtyList" parameterType="RegistrationCrewQtyBean" resultType = "RegistrationCrewQtyBean">
+		SELECT MEAL_TIME as resultMealTime,
+			   MEAL_GUBUN as resultMealGubun, MEAL_DATE as resultMealDate, 
+			   DEPT_NAME as department, PROJ_NO as projNo, COUNT(*) as resultMealQty
+		  FROM mobile_meal_userinfo
+		 where 1=1
+		 <if test="projNo != null and projNo != ''">
+		   AND PROJ_NO <![CDATA[ = ]]> #{projNo}
+		 </if>
+		 <if test="inDate != null and inDate != ''">
+		   AND MEAL_DATE <![CDATA[ >= ]]> #{inDate}
+		 </if>
+		 <if test="outDate != null and outDate != ''">
+		   AND MEAL_DATE <![CDATA[ <= ]]> #{outDate}
+		 </if>
+		 <if test="mealDate != null and mealDate != ''">
+		   AND MEAL_DATE <![CDATA[ = ]]> #{mealDate}
+		 </if>
+		 group by PROJ_NO, DEPT_NAME, MEAL_TIME, MEAL_GUBUN, MEAL_DATE
+	</select>
+	
+	<select id="getCrewResultDeptCombinations" parameterType="RegistrationCrewRequestBean" resultType="RegistrationCrewRequestBean">
+		SELECT DISTINCT 
+			PROJ_NO AS projNo,
+			DATE(MEAL_DATE) AS mealDate,
+			DEPT_NAME AS department
+		  FROM mobile_meal_userinfo
+		 WHERE 1=1
+		 <if test="inDate != null and inDate != ''">
+			AND MEAL_DATE <![CDATA[ >= ]]> #{inDate}
+		 </if>
+		 <if test="outDate != null and outDate != ''">
+			AND MEAL_DATE <![CDATA[ <= ]]> #{outDate}
+		 </if>
+		 <if test="ship != null and ship != '' and ship != 'ALL'">
+			AND PROJ_NO <![CDATA[ = ]]> #{ship}
+		 </if>
+		 ORDER BY projNo, mealDate, department
+	</select>
 	<!-- 실적집계리스트 -->
 <!--
 	<select id="getMealResultList" parameterType="AnchorageMealRequestBean" resultType="AnchorageMealRequestBean">

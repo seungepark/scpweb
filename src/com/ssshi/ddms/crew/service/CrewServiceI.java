@@ -15,6 +15,7 @@ import com.ssshi.ddms.dto.RegistrationCrewListBean;
 import com.ssshi.ddms.dto.AnchorageMealRequestBean;
 import com.ssshi.ddms.dto.AnchorageMealQtyBean;
 import com.ssshi.ddms.dto.AnchorageMealListBean;
+import com.ssshi.ddms.dto.RegistrationCrewRequestBean;
 
 public interface CrewServiceI {
 	
@@ -48,6 +49,8 @@ public interface CrewServiceI {
 	Map<String, Object> resultMeal(HttpServletRequest request, AnchorageMealRequestBean bean) throws Exception;
 	
 	Map<String, Object> getMealResultList(HttpServletRequest request, AnchorageMealRequestBean bean) throws Exception;
+	
+	Map<String, Object> crewResultMeal(HttpServletRequest request, RegistrationCrewRequestBean bean) throws Exception;
 	
 	//방배정 업로드
 	Map<String, Object> roomAssignmentUpload(HttpServletRequest request, HttpServletResponse response, MultipartFile file, int schedulerInfoUid, String trialKey, String projNo) throws Exception;

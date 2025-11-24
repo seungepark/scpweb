@@ -20,6 +20,8 @@ import com.ssshi.ddms.dto.RegistrationCrewBean;
 import com.ssshi.ddms.dto.RegistrationCrewDetailBean;
 import com.ssshi.ddms.dto.RegistrationCrewListBean;
 import com.ssshi.ddms.dto.AnchorageMealQtyBean;
+import com.ssshi.ddms.dto.RegistrationCrewRequestBean;
+import com.ssshi.ddms.dto.RegistrationCrewQtyBean;
 
 /********************************************************************************
  * 프로그램 개요 : Crew
@@ -80,6 +82,21 @@ public interface CrewDaoI {
 	// 승선자 발주
 	int updateCrewOrder(Map<String, Object> map) throws Exception;
 	
+	// 시운전 실적집계리스트
+	List<RegistrationCrewRequestBean> getCrewMealResultList(RegistrationCrewRequestBean bean) throws Exception;
+	
+	// 시운전 식사신청 수량 (계획).
+	List<RegistrationCrewQtyBean> getCrewPlanQtyList(int crewUid) throws Exception;
+	
+	// 시운전 식사신청 수량 (실적).
+	List<RegistrationCrewQtyBean> getCrewResultQtyList(RegistrationCrewQtyBean bean) throws Exception;
+	
+	// 시운전 실적 목록 개수.
+	int getCrewMealListCnt() throws Exception;
+	
+	// 실적에 존재하는 부서 조합 목록(시운전)
+	List<RegistrationCrewRequestBean> getCrewResultDeptCombinations(RegistrationCrewRequestBean bean) throws Exception;
+	
 	// 앵카링 식사 신청 목록
 	List<AnchorageMealRequestBean> getAnchorageMealList(AnchorageMealRequestBean bean) throws Exception;
 	
@@ -113,7 +130,7 @@ public interface CrewDaoI {
 	// 앵카링 발주
 	int updateAnchOrder(Map<String, Object> map) throws Exception;
 	
-	//실적집계리스트
+	//실적집계리스트 (앵카링).
 	List<AnchorageMealRequestBean> getMealResultList(AnchorageMealRequestBean bean) throws Exception;
 	
 	// 앵카링 식사신청 수량 (계획).

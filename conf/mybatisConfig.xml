@@ -69,6 +69,8 @@
 	    <typeAlias alias="AnchorageMealRequestBean" type="com.ssshi.ddms.dto.AnchorageMealRequestBean" />
 	    <typeAlias alias="AnchorageMealQtyBean" type="com.ssshi.ddms.dto.AnchorageMealQtyBean" />
 	    <typeAlias alias="AnchorageMealListBean" type="com.ssshi.ddms.dto.AnchorageMealListBean" />
+	    <typeAlias alias="RegistrationCrewQtyBean" type="com.ssshi.ddms.dto.RegistrationCrewQtyBean" />
+	    <typeAlias alias="RegistrationCrewRequestBean" type="com.ssshi.ddms.dto.RegistrationCrewRequestBean" />
 	    <typeAlias alias="MobileRoomInfoBean" type="com.ssshi.ddms.dto.MobileRoomInfoBean" />
 	    <typeAlias alias="MobileRoomUserlistBean" type="com.ssshi.ddms.dto.MobileRoomUserlistBean" />
 	    

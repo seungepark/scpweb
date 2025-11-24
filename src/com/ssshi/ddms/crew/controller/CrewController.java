@@ -32,6 +32,7 @@ import com.ssshi.ddms.util.ExcelUtil;
 import com.ssshi.ddms.dto.AnchorageMealRequestBean;
 import com.ssshi.ddms.dto.AnchorageMealQtyBean;
 import com.ssshi.ddms.dto.AnchorageMealListBean;
+import com.ssshi.ddms.dto.RegistrationCrewRequestBean;
 
 /********************************************************************************
  * 프로그램 개요 : Crew
@@ -328,11 +329,18 @@ public class CrewController {
 
 	//Main(실적 확인_시운전)
 	@RequestMapping(value="/crew/crewResultMeal.html")
-	public String crewResultMeal(HttpServletRequest request, ModelMap model, AnchorageMealRequestBean bean) throws Exception {
-		System.out.print("여기");
-		model.addAllAttributes(service.resultMeal(request, bean));
+	public String crewResultMeal(HttpServletRequest request, ModelMap model, RegistrationCrewRequestBean bean) throws Exception {
+		model.addAllAttributes(service.crewResultMeal(request, bean));
 		
 		return "crew/crewResultMeal";
+	}
+	
+	//시운전 실적 리스트 조회
+	@RequestMapping(value="/crew/getCrewMealResultList.html")
+	public String getCrewMealResultList(HttpServletRequest request, ModelMap model, RegistrationCrewRequestBean bean) throws Exception {
+		model.addAllAttributes(service.crewResultMeal(request, bean));
+		
+		return "crew/getMealResultList";
 	}
 	
 	//Main(실적 확인_앵카링)
