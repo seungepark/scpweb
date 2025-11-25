@@ -38,7 +38,10 @@
 		  		"serialNo": "${tmp.serialNo}",
 		  		"foreigner": "${tmp.foreigner}",	
 		  		"passportNo": "${tmp.passportNo}",	 
-				"orderStatus": "${tmp.orderStatus}",		
+				"orderStatus": "${tmp.orderStatus}",	
+				"roomNo" : "${tmp.roomNo}",
+		  		"boatNm" : "${tmp.boatNm}",
+		  		"role" : "${tmp.role}",	
 				"deleteYn": "${tmp.deleteYn}"			
 			}
 			<c:if test="${!status.last}">,</c:if>

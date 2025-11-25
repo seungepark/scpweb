@@ -37,6 +37,9 @@ public class RegistrationCrewBean {
 	private String isPlan;
 	private String deleteYn;
 	
+	private String boatNm;
+	private String role;
+	
 	private int userUid;
 	private List<ScheCrewInOutBean> inOutList;
 	private int cnt;
@@ -281,6 +284,18 @@ public class RegistrationCrewBean {
 	}
 	public void setDeleteYn(String deleteYn) {
 		this.deleteYn = deleteYn;
+	}
+	public String getBoatNm() {
+		return boatNm;
+	}
+	public void setBoatNm(String boatNm) {
+		this.boatNm = boatNm;
+	}
+	public String getRole() {
+		return role;
+	}
+	public void setRole(String role) {
+		this.role = role;
 	}
 	public int getInsertBy() {
 		return insertBy;

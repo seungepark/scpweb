@@ -292,7 +292,8 @@ function initTableHeader() {
 				'<th>' + $.i18n.t('list.serialNo') + '</th>' + 
 				'<th>' + $.i18n.t('list.foreigner') + '</th>' + 
 				'<th>' + $.i18n.t('list.passportNo') + '</th>' + 
-				'<th>' + $.i18n.t('list.orderStatus') + '</th>'; 
+				'<th>' + $.i18n.t('list.orderStatus') + '</th>' +
+				'<th class="th-w-150">' + $.i18n.t('list.boatNm') + '</th>' ;
 				
 	$('#tbHeader').empty();
 	$('#tbHeader').append(text);
@@ -382,7 +383,12 @@ function initData() {
 		let foreigner = _crewList[z].foreigner;
 		let passportNo = _crewList[z].passportNo;
 		let orderStatus = _crewList[z].orderStatus;
+		let boatNm = _crewList[z].boatNm;
+		let role = _crewList[z].role;
 		//let deleteYn = _crewList[z].deleteYn;
+		
+		if(boatNm != '')
+			boatNm = boatNm + "(" + role + ")";
 	
 		//승선일,하선일 지정
 		for(let x = 0; x < inOutList.length; x++) {
@@ -541,7 +547,8 @@ function initData() {
 										'<td class="text-center">' + '<input name="serialNo" type="text" disabled value="'+ serialNo +'">' + '</td>' +
 										'<td class="text-center">' + '<input name="foreigner" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (foreigner === 'Y' ? 'checked' : '') + '>' + '</td>' +
 										'<td class="text-center">' + '<input name="passportNo" type="text" disabled value="'+ passportNo +'">' + '</td>' +
-										'<td class="text-center">' + '<input name="orderStatus" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>';
+										'<td class="text-center">' + '<input name="orderStatus" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>'+
+										'<td class="text-center th-w-150">' + '<input name="boatNm" type="text" disabled value="' + (boatNm || '') + '>' + '</td>';
 										//'<td class="text-center">' + '<input name="deleteYn" type="checkbox" onclick="setRowSelected()" value="'+ deleteYn +'">' + '</td>';
 					
 						text += '</tr>';	
@@ -690,7 +697,8 @@ function initData() {
 								'<td class="text-center">' + '<input name="serialNo" type="text" value="'+ serialNo +'">' + '</td>' +
 								'<td class="text-center">' + '<input name="foreigner" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (foreigner === 'Y' ? 'checked' : '') + '>' + '</td>' +
 								'<td class="text-center">' + '<input name="passportNo" type="text" value="'+ passportNo +'">' + '</td>' +
-								'<td class="text-center">' + '<input name="orderStatus" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>';
+								'<td class="text-center">' + '<input name="orderStatus" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>' +
+								'<td class="text-center th-w-150">' + '<input name="boatNm" type="text" disabled value="' + (boatNm || '') + '">' + '</td>';
 								//'<td class="text-center">' + '<input name="deleteYn" type="checkbox" onclick="setRowSelected()" value="'+ deleteYn +'">' + '</td>';
 			
 				text += '</tr>';
@@ -763,6 +771,7 @@ function crewListDownloadAll() {
 								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.phone') + '</span></div><div class="fht-cell"></div></th>' +
 								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.in') + '</span></div><div class="fht-cell"></div></th>' +
 								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.out') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.roomNo') + '</span></div><div class="fht-cell"></div></th>' +
 								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.terminal') + '</span></div><div class="fht-cell"></div></th>' +
 								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.laptop') + '</span></div><div class="fht-cell"></div></th>' +
 								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.modelNm') + '</span></div><div class="fht-cell"></div></th>' +
@@ -770,11 +779,15 @@ function crewListDownloadAll() {
 								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.foreigner') + '</span></div><div class="fht-cell"></div></th>' +
 								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.passportNo') + '</span></div><div class="fht-cell"></div></th>' +
 								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.orderStatus') + '</span></div><div class="fht-cell"></div></th>' +
+								'<th class="column-title border" style=""><div class="th-inner sortable both"><span>' + $.i18n.t('list.boatNm') + '</span></div><div class="fht-cell"></div></th>' +
 								'</tr>' +
 						'</thead>' +
 						'<tbody id="getUserList">';
 
 			for(var i in jsonResult) {
+				if(jsonResult[i].boatNm != null && jsonResult[i].boatNm != '')
+					jsonResult[i].boatNm = jsonResult[i].boatNm + "(" + jsonResult[i].role + ")";
+				
 				text += '<tr class="even pointer">';
 				text += '  <td>' + _cnt++ + '</td>';
 				text += '  <td>' + jsonResult[i].trialKey + '</td>';
@@ -795,6 +808,7 @@ function crewListDownloadAll() {
 				text += '  <td>' + jsonResult[i].phone + '</td>';
 				text += '  <td>' + jsonResult[i].inDate + '</td>';
 				text += '  <td>' + jsonResult[i].outDate + '</td>';
+				text += '  <td>' + jsonResult[i].roomNo + '</td>';
 				text += '  <td>' + jsonResult[i].terminal + '</td>';
 				text += '  <td>' + jsonResult[i].laptop + '</td>';
 				text += '  <td>' + jsonResult[i].modelNm + '</td>';
@@ -802,6 +816,7 @@ function crewListDownloadAll() {
 				text += '  <td>' + jsonResult[i].foreigner + '</td>';
 				text += '  <td>' + jsonResult[i].passportNo + '</td>';
 				text += '  <td>' + jsonResult[i].orderStatus+ '</td>';
+				text += '  <td>' + jsonResult[i].boatNm +'</td>';
 				//text += '  <td>' + jsonResult[i].deleteYn+ '</td>';
 				text += '</tr>';
 			}
@@ -1002,7 +1017,8 @@ function addCrew() {
 					'<td class="text-center">' + '<input name="serialNo" class="text-center" type="text">' + '</td>' +
 					'<td class="text-center">' + '<input name="foreigner" type="checkbox" value="N" onclick="setCheckBox(this)">' + '</td>' +
 					'<td class="text-center">' + '<input name="passportNo" class="text-center" type="text">' + '</td>' +
-					'<td class="text-center">' + '<input name="orderStatus" type="checkbox" value="N" onclick="setCheckBox(this)">' + '</td>';
+					'<td class="text-center">' + '<input name="orderStatus" type="checkbox" value="N" onclick="setCheckBox(this)">' + '</td>' +
+					'<td class="text-center th-w-150">' + '<input name="boatNm" type="text" disabled value="">' + '</td>';
 					//'<td class="text-center">' + '<input name="deleteYn" class="text-center" type="checkbox" onclick="setRowSelected()">' + '</td>' 
 					
 	text += '</tr>';
@@ -1653,7 +1669,8 @@ function setExcelData(trialKeyList, pjtList,kindList, companyList, departmentLis
 							'<td class="text-center">' + '<input name="serialNo" type="text" value="'+ serialNo +'">' + '</td>' +
 							'<td class="text-center">' + '<input name="foreigner" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (foreigner === 'Y' ? 'checked' : '') + '>' + '</td>' +
 							'<td class="text-center">' + '<input name="passportNo" type="text" value="'+ passportNo +'">' + '</td>' +
-							'<td class="text-center">' + '<input name="orderStatus" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>';
+							'<td class="text-center">' + '<input name="orderStatus" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>' +
+							'<td class="text-center th-w-150">' + '<input name="boatNm" type="text" disabled value="' + (boatNm || '') + '">' + '</td>' ;
 							//'<td class="text-center">' + '<input name="deleteYn" type="checkbox" onclick="setRowSelected()">' + '</td>';
 		text += '</tr>';
 	
@@ -2104,7 +2121,12 @@ function getRegistrationCrewList(page) {
 					let foreigner = json.list[i].foreigner;
 					let passportNo = json.list[i].passportNo;
 					let orderStatus = json.list[i].orderStatus;
+					let boatNm = json.list[i].boatNm;
+					let role = json.list[i].role;
 					//let deleteYn = json.list[i].deleteYn;
+					
+					if(boatNm != '')
+						boatNm = boatNm + "(" + role + ")";
 					
 					//승선일,하선일 지정
 					for(let x = 0; x < inOutList.length; x++) {
@@ -2269,7 +2291,8 @@ function getRegistrationCrewList(page) {
 										'<td class="text-center">' + '<input name="serialNo" type="text" disabled value="'+ serialNo +'">' + '</td>' +
 										'<td class="text-center">' + '<input name="foreigner" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (foreigner === 'Y' ? 'checked' : '') + '>' + '</td>' +
 										'<td class="text-center">' + '<input name="passportNo" type="text" disabled value="'+ passportNo +'"' + '</td>' +
-										'<td class="text-center">' + '<input name="orderStatus" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>';
+										'<td class="text-center">' + '<input name="orderStatus" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>' +
+										'<td class="text-center th-w-150">' + '<input name="boatNm" type="text" disabled value="' + (boatNm || '') + '">' + '</td>';
 										//'<td class="text-center">' + '<input name="deleteYn" type="checkbox" onclick="setRowSelected()">' + '</td>';
 						text += '</tr>';
 					}
@@ -2414,7 +2437,8 @@ function getRegistrationCrewList(page) {
 											'<td class="text-center">' + '<input name="serialNo" type="text" value="'+ serialNo +'">' + '</td>' +
 											'<td class="text-center">' + '<input name="foreigner" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (foreigner === 'Y' ? 'checked' : '') + '>' + '</td>' +
 											'<td class="text-center">' + '<input name="passportNo" type="text" value="'+ passportNo +'"' + '</td>' +
-											'<td class="text-center">' + '<input name="orderStatus" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>';
+											'<td class="text-center">' + '<input name="orderStatus" type="checkbox" value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>' +
+											'<td class="text-center">' + '<input name="boatNm" type="text" disabled value="' + (boatNm || '') + '">' + '</td>';
 											//'<td class="text-center">' + '<input name="deleteYn" type="checkbox" onclick="setRowSelected()">' + '</td>';
 						text += '</tr>';
 					}

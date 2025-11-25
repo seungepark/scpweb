@@ -265,6 +265,8 @@
 		  		serialNo: "${item.serialNo}",
 		  		foreigner: "${item.foreigner}",	 
 		  		passportNo: "${item.passportNo}",	
+		  		boatNm : "${item.boatNm}",
+		  		role : "${item.role}",
 		  		//deleteYn: "${item.deleteYn}",
 				orderStatus: "${item.orderStatus}"				
 	 		});

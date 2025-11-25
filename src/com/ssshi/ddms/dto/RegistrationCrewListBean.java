@@ -33,6 +33,11 @@ public class RegistrationCrewListBean {
 	private String[] foreigner;
 	private String[] passportNo;
 	private String[] orderStatus;
+	
+	private String[] roomNo;
+	private String[] boatNm;
+	private String[] role;
+	
 	//private String[] deleteYn;
 	private int[] uidArr;
 	private String[] scheduleUid;
@@ -217,6 +222,24 @@ public class RegistrationCrewListBean {
 	}
 	public void setOrderStatus(String[] orderStatus) {
 		this.orderStatus = orderStatus;
+	}	
+	public String[] getRoomNo() {
+		return roomNo;
+	}
+	public void setRoomNo(String[] roomNo) {
+		this.roomNo = roomNo;
+	}	
+	public String[] getBoatNm() {
+		return boatNm;
+	}
+	public void setBoatNm(String[] boatNm) {
+		this.boatNm = boatNm;
+	}	
+	public String[] getRole() {
+		return role;
+	}
+	public void setRole(String[] role) {
+		this.role = role;
 	}	
 
 	public String[] getScheduleUid() {

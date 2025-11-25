@@ -4671,7 +4671,10 @@ var RES_LANG = {
 						'serialNo': '시리얼번호',
 						'foreigner': '외국인여부',
 						'passportNo': '여권번호',
-						'deleteYn':'삭제'
+						'deleteYn':'삭제',
+						'roomNo':'방번호',
+						'boatNm':'배정보트명',
+						'role':'역할'
 					},
 					'delPop': {
 						'title': '승선자 삭제',
