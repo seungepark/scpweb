@@ -12,10 +12,13 @@ import com.ssshi.ddms.dto.ParamBean;
 import com.ssshi.ddms.dto.RegistrationCrewBean;
 import com.ssshi.ddms.dto.RegistrationCrewListBean;
 
+import java.util.List;
+
 import com.ssshi.ddms.dto.AnchorageMealRequestBean;
 import com.ssshi.ddms.dto.AnchorageMealQtyBean;
 import com.ssshi.ddms.dto.AnchorageMealListBean;
 import com.ssshi.ddms.dto.RegistrationCrewRequestBean;
+import com.ssshi.ddms.dto.SmsRequestBean;
 
 public interface CrewServiceI {
 	
@@ -57,4 +60,7 @@ public interface CrewServiceI {
 	
 	//방배정 다운로드
 	void downRoomAssignmentExcel(HttpServletResponse response, int schedulerInfoUid) throws Exception;
+	
+	//QR 발송
+	Map<String, Object> crewQRSend(HttpServletRequest request, List<SmsRequestBean> smsList) throws Exception;
 }

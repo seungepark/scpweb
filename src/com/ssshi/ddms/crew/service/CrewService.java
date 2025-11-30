@@ -51,6 +51,7 @@ import com.ssshi.ddms.dto.AnchorageMealRequestBean;
 import com.ssshi.ddms.dto.AnchorageMealQtyBean;
 import com.ssshi.ddms.dto.AnchorageMealListBean;
 import com.ssshi.ddms.dto.RegistrationCrewRequestBean;
+import com.ssshi.ddms.dto.SmsRequestBean;
 import com.ssshi.ddms.dto.RegistrationCrewQtyBean;
 
 /********************************************************************************
@@ -2556,6 +2557,171 @@ public class CrewService implements CrewServiceI {
 		}
 		
 		return value.length() >= 10 ? value.substring(0, 10) : value;
+	}
+	
+	@Override
+	public Map<String, Object> crewQRSend(HttpServletRequest request, List<SmsRequestBean> smsList) throws Exception {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		
+		// SMS API URL
+		String apiUrl = "http://pse.iptime.org:7090/scp_mapi/mobileAppAPI/smsSendMessage";
+		
+		if(smsList == null || smsList.isEmpty()) {
+			resultMap.put(Const.RESULT, DBConst.FAIL);
+			resultMap.put("msg", "발송할 데이터가 없습니다.");
+			return resultMap;
+		}
+		
+		// 유효한 SMS 목록 필터링
+		java.util.List<SmsRequestBean> validSmsList = new ArrayList<SmsRequestBean>();
+		for(int i = 0; i < smsList.size(); i++) {
+			SmsRequestBean sms = smsList.get(i);
+			
+			if(sms == null || sms.getReceiver() == null || sms.getReceiver().trim().isEmpty() 
+				|| sms.getContent() == null || sms.getContent().trim().isEmpty()) {
+				continue;
+			}
+			
+			// qrType 기본값 설정
+			if(sms.getQrType() == null || sms.getQrType().trim().isEmpty()) {
+				sms.setQrType("SCH");
+			}
+			
+			validSmsList.add(sms);
+		}
+		
+		int validCount = validSmsList.size();
+		
+		if(validCount == 0) {
+			resultMap.put(Const.RESULT, DBConst.FAIL);
+			resultMap.put("msg", "발송할 유효한 데이터가 없습니다.");
+			return resultMap;
+		}
+		
+		// 각 항목을 하나씩 개별 호출
+		int successCount = 0;
+		int failCount = 0;
+		int lastResponseCode = 0;
+		String lastErrorMsg = "";
+		
+		for(int i = 0; i < validSmsList.size(); i++) {
+			SmsRequestBean sms = validSmsList.get(i);
+			
+			// 단일 객체 JSON 생성
+			String jsonBody;
+			try {
+				com.google.gson.Gson gson = new com.google.gson.Gson();
+				jsonBody = gson.toJson(sms);
+			} catch (Exception e) {
+				// Gson이 없을 경우 수동 생성
+				String qrType = sms.getQrType() != null ? sms.getQrType() : "SCH";
+				jsonBody = "{\"qrType\":\"" + escapeJson(qrType) + "\",\"receiver\":\"" 
+					+ escapeJson(sms.getReceiver()) + "\",\"content\":\"" 
+					+ escapeJson(sms.getContent()) + "\"}";
+			}
+			
+			try {
+				java.net.URL url = new java.net.URL(apiUrl);
+				java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+				
+				// POST 요청 설정
+				conn.setRequestMethod("POST");
+				conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+				conn.setDoOutput(true);
+				conn.setConnectTimeout(10000);
+				conn.setReadTimeout(10000);
+				
+				// JSON 단일 객체 데이터 전송
+				try (java.io.OutputStream os = conn.getOutputStream()) {
+					byte[] input = jsonBody.getBytes("UTF-8");
+					os.write(input, 0, input.length);
+				}
+				
+				// 응답 확인
+				int responseCode = conn.getResponseCode();
+				lastResponseCode = responseCode;
+				
+				// 응답 읽기
+				String responseBody = "";
+				try (java.io.BufferedReader br = new java.io.BufferedReader(
+						new java.io.InputStreamReader(
+							responseCode >= 200 && responseCode < 300 ? conn.getInputStream() : conn.getErrorStream(), "UTF-8"))) {
+					StringBuilder response = new StringBuilder();
+					String responseLine;
+					while ((responseLine = br.readLine()) != null) {
+						response.append(responseLine);
+					}
+					responseBody = response.toString();
+				} catch(Exception ex) {
+					// 응답 읽기 실패 시 무시
+				}
+				
+				conn.disconnect();
+				
+				if(responseCode == 200 || responseCode == 201) {
+					successCount++;
+				} else {
+					failCount++;
+					// 오류 응답 본문 로깅 (디버깅용 - 서버 로그에만 기록)
+					System.err.println("========================================");
+					System.err.println("QR SMS API 호출 실패 [" + (i+1) + "/" + validCount + "]: 응답코드=" + responseCode);
+					System.err.println("요청 URL: " + apiUrl);
+					System.err.println("요청 JSON: " + jsonBody);
+					System.err.println("응답 본문: " + responseBody);
+					System.err.println("========================================");
+					
+					lastErrorMsg = "응답코드: " + responseCode;
+					if(responseCode == 400) {
+						lastErrorMsg += " - 잘못된 요청 형식";
+					} else if(responseCode == 404) {
+						lastErrorMsg += " - API 경로 없음";
+					} else if(responseCode == 500) {
+						lastErrorMsg += " - 서버 내부 오류";
+					}
+				}
+			} catch(Exception e) {
+				failCount++;
+				lastResponseCode = 0;
+				lastErrorMsg = "오류: " + e.getMessage();
+				System.err.println("QR SMS API 호출 중 예외 발생 [" + (i+1) + "/" + validCount + "]: " + e.getMessage());
+				e.printStackTrace();
+			}
+		}
+		
+		// 결과 집계
+		if(failCount == 0) {
+			resultMap.put(Const.RESULT, DBConst.SUCCESS);
+			resultMap.put("msg", "QR발송이 완료되었습니다. (발송: " + successCount + "건)");
+			resultMap.put("responseCode", 200);
+			resultMap.put("successCount", successCount);
+			resultMap.put("failCount", 0);
+		} else if(successCount > 0) {
+			resultMap.put(Const.RESULT, DBConst.SUCCESS);
+			resultMap.put("msg", "QR발송 완료. (성공: " + successCount + "건, 실패: " + failCount + "건, 마지막 오류: " + lastErrorMsg + ")");
+			resultMap.put("responseCode", lastResponseCode);
+			resultMap.put("successCount", successCount);
+			resultMap.put("failCount", failCount);
+		} else {
+			resultMap.put(Const.RESULT, DBConst.FAIL);
+			resultMap.put("msg", "QR발송에 실패했습니다. (" + lastErrorMsg + ")");
+			resultMap.put("responseCode", lastResponseCode);
+			resultMap.put("successCount", 0);
+			resultMap.put("failCount", failCount);
+		}
+		
+		return resultMap;
+	}
+	
+	// JSON 문자열 이스케이프 처리
+	private String escapeJson(String str) {
+		if(str == null) {
+			return "";
+		}
+		return str.replace("\\", "\\\\")
+				 .replace("\"", "\\\"")
+				 .replace("\n", "\\n")
+				 .replace("\r", "\\r")
+				 .replace("\t", "\\t");
 	}
 }
 	

@@ -74,7 +74,7 @@
 						<!-- <a href="${pageContext.request.contextPath}/mobile/mobileCrewinfo.html?uid=${bean.uid}" class="bt-obj bt-secondary mr-2" target="_blank">
 							<i class="fas fa-mobile-alt"></i> QR발송
 						</a> -->
-						<a href="javascript:void(0);" class="bt-obj bt-secondary mr-2" onclick="alertPop('개발중입니다');">
+						<a href="javascript:void(0);" class="bt-obj bt-secondary mr-2" onclick="sendQRSMS()">
 							<i class="fas fa-mobile-alt"></i> QR발송
 						</a>
 						

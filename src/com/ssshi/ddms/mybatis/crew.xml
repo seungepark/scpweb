@@ -135,6 +135,7 @@
 		  	ON MLB.SCHEDULERINFOUID  = S.SCHEDULERINFOUID
 		   and MLB.USER_UID  = S.UID 
 		 WHERE S.SCHEDULERINFOUID = #{schedulerInfoUid}
+		 order by S.UID DESC
 	</select>
 	
 	<select id="getCrewInOutList" parameterType="ParamBean" resultType="scheCrewInOutBean">
@@ -193,7 +194,7 @@
 	
 	<update id="updateCrewOrder" parameterType="map">
 		UPDATE SCHECREWDETAILINFO SET ORDER_STATUS = 'Y', ORDER_DATE = SYSDATE(), ORDER_UID = #{userId}
-		WHERE SCHEDULERINFOUID = #{crewUid}
+		WHERE SCHECREWUID = #{crewUid}
 	</update>
 		
 	<select id="getAnchorageMealList" parameterType="AnchorageMealRequestBean" resultType="AnchorageMealRequestBean">
