@@ -144,7 +144,7 @@
 						<%-- <a href="${pageContext.request.contextPath}/mobile/mobileCrewinfo.html?uid=${bean.uid}" class="bt-obj bt-secondary mr-2" target="_blank">
 							<i class="fas fa-mobile-alt"></i> QR발송
 						</a> --%>
-						<a href="javascript:void(0);" class="bt-obj bt-secondary mr-2" onclick="alertPop('개발중입니다');">
+						<a href="javascript:void(0);" class="bt-obj bt-secondary mr-2" onclick="sendQRSMS()">
 							<i class="fas fa-mobile-alt"></i> QR발송
 						</a>
 						<button class="bt-obj bt-primary" onclick="orderSave()">발주</button>
@@ -210,6 +210,7 @@
 	 			comment: "${item.comment}",
 	 			inputUid: "${item.inputUid}",
 	 			inputDate: "${item.inputDate}",
+	 			smsReceiver: "<c:out value='${item.smsReceiver}'/>",
 	 			planList: [
 	 				<c:forEach var="plan" items="${item.planList}" varStatus="status">
 	 					{
@@ -250,6 +251,7 @@
 	<script src="${pageContext.request.contextPath}/vendors/i18n/lang.js"></script>
 	<script src="${pageContext.request.contextPath}/js/custom.min.js"></script>
 	<script src="${pageContext.request.contextPath}/js/common.js"></script>
+	<script src="${pageContext.request.contextPath}/js/crew/common.js"></script>
 	<script src="${pageContext.request.contextPath}/js/crew/anchorageMealRequest.js"></script>
 </body>
 </html>

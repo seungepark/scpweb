@@ -285,6 +285,7 @@
 	<script src="${pageContext.request.contextPath}/vendors/i18n/lang.js"></script>
 	<script src="${pageContext.request.contextPath}/js/custom.min.js"></script>
 	<script src="${pageContext.request.contextPath}/js/common.js"></script>
+	<script src="${pageContext.request.contextPath}/js/crew/common.js"></script>
 	<script src="${pageContext.request.contextPath}/js/crew/registrationCrew.js"></script>
 </body>
 </html>

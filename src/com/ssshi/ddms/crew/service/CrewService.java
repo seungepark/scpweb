@@ -712,12 +712,12 @@ public class CrewService implements CrewServiceI {
 		// schedulerInfoUid가 있으면 해당 스케줄의 승선자 리스트 조회
 		if(bean.getSchedulerInfoUid() > 0) {
 			anchList = crewDao.getAnchorageMealListBySchedulerInfoUid(bean.getSchedulerInfoUid());
-		 
+			 
 			//계획
 			if(anchList != null) {
 				for(int i = 0; i < anchList.size(); i++) {
 					anchList.get(i).setPlanList(crewDao.getAnchorageMealPlanQtyList(anchList.get(i).getUid()));
-					System.out.println("getUid :"+ anchList.get(i).getUid());
+					System.out.println("getUid :"+ anchList.get(i).getUid()+""+anchList.get(i).getSmsReceiver());
 					System.out.println("setPlanList :"+ anchList.get(i).getPlanList().size());
 				}
 				
@@ -772,6 +772,28 @@ public class CrewService implements CrewServiceI {
 	public Map<String, Object> getAnchorageMealList(HttpServletRequest request, AnchorageMealRequestBean bean) throws Exception {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		List<AnchorageMealRequestBean> anchList = crewDao.getAnchorageMealList(bean);
+		// anchList 데이터 값 출력
+//		System.out.println("========== anchList 데이터 출력 시작 ==========");
+//		if(anchList != null) {
+//			System.out.println("anchList.size(): " + anchList.size());
+//			for(int i = 0; i < anchList.size(); i++) {
+//				AnchorageMealRequestBean item = anchList.get(i);
+//				System.out.println("--- anchList[" + i + "] ---");
+//				System.out.println("  uid: " + item.getUid());
+//				System.out.println("  projNo: " + item.getProjNo());
+//				System.out.println("  department: " + item.getDepartment());
+//				System.out.println("  mealDate: " + item.getMealDate());
+//				System.out.println("  smsReceiver: " + item.getSmsReceiver());
+//				System.out.println("  smsReceiver 타입: " + (item.getSmsReceiver() != null ? item.getSmsReceiver().getClass().getName() : "null"));
+//				if(item.getSmsReceiver() != null) {
+//					System.out.println("  smsReceiver 길이: " + item.getSmsReceiver().length());
+//					System.out.println("  smsReceiver isEmpty: " + item.getSmsReceiver().isEmpty());
+//				}
+//			}
+//		} else {
+//			System.out.println("anchList is null");
+//		}
+//		System.out.println("========== anchList 데이터 출력 종료 ==========");
 		resultMap.put(Const.LIST_CNT, crewDao.getAnchorageMealListCnt());
 
 		//계획
@@ -824,6 +846,7 @@ public class CrewService implements CrewServiceI {
 							newBean.setComment(originalBean.getComment());
 							newBean.setInputDate(originalBean.getInputDate());
 							newBean.setInputUid(originalBean.getInputUid());
+							newBean.setSmsReceiver(originalBean.getSmsReceiver());
 							newBean.setFoodStyle(mealGubun);
 							
 							// 해당 MEAL_GUBUN에 맞는 planList 필터링
@@ -844,6 +867,23 @@ public class CrewService implements CrewServiceI {
 			}
 		}
 		anchList = expandedList;
+		
+		// smsReceiver를 JSON에 안전하게 변환
+		if(anchList != null) {
+			for(int i = 0; i < anchList.size(); i++) {
+				AnchorageMealRequestBean item = anchList.get(i);
+				if(item.getSmsReceiver() != null && !item.getSmsReceiver().isEmpty()) {
+					// JSON에 안전한 형태로 변환 (줄바꿈, 따옴표 이스케이프)
+					String smsReceiver = item.getSmsReceiver();
+					smsReceiver = smsReceiver.replace("\\", "\\\\")  // 백슬래시 먼저
+					                          .replace("\"", "\\\"")  // 따옴표
+					                          .replace("\n", "\\n")   // 줄바꿈
+					                          .replace("\r", "\\r")   // 캐리지 리턴
+					                          .replace("\t", "\\t");  // 탭
+					item.setSmsReceiver(smsReceiver);
+				}
+			}
+		}
 		
 		//실적 - 조회기간 전체에 대한 실적을 한번에 조회
 		if(anchList != null) {
@@ -921,6 +961,7 @@ public class CrewService implements CrewServiceI {
 				crewDao.deleteAnchList(bean.getUid()[i]);
 				crewDao.deleteAnchPlanList(bean.getUid()[i]);
 				crewDao.deleteAnchResultList(bean.getUid()[i]);
+				crewDao.deleteAnchSmsUserInfo(bean.getUid()[i]);
 			}
 			
 			//재저장 
@@ -1004,6 +1045,41 @@ public class CrewService implements CrewServiceI {
 					System.out.println("/오나용7888"+mealQty.getAnchorMealUid());
 					crewDao.insertMealQty(mealQty);
 				}
+				
+				// SMS수신자 저장
+				if(bean.getSmsReceiver() != null && bean.getSmsReceiver().length > i && bean.getSmsReceiver()[i] != null && !bean.getSmsReceiver()[i].trim().isEmpty()) {
+					String smsReceiverText = bean.getSmsReceiver()[i].trim();
+					// 쉼표 또는 줄바꿈으로 구분하여 전화번호 추출
+					String[] phoneNumbers = smsReceiverText.split("[,\\n\\r]+");
+					
+					for(String phone : phoneNumbers) {
+						phone = phone.trim();
+						if(phone != null && !phone.isEmpty()) {
+							// 전화번호 형식 정리 (하이픈 제거 후 다시 추가)
+							phone = phone.replaceAll("[^0-9]", ""); // 숫자만 추출
+							if(phone.length() >= 10) {
+								// 전화번호 형식 정리 (010-1234-5678)
+								if(phone.length() == 11) {
+									phone = phone.substring(0, 3) + "-" + phone.substring(3, 7) + "-" + phone.substring(7);
+								} else if(phone.length() == 10) {
+									phone = phone.substring(0, 3) + "-" + phone.substring(3, 6) + "-" + phone.substring(6);
+								}
+								
+								// SMS수신자 정보 저장
+								java.util.Map<String, Object> smsMap = new java.util.HashMap<String, Object>();
+								smsMap.put("projNo", bean.getProjNo()[i]);
+								smsMap.put("schedulerInfoUid", anch.getSchedulerInfoUid());
+								smsMap.put("trialKey", anch.getTrialKey());
+								smsMap.put("anchorMealUid", anch.getUid());
+								UserInfoBean userInfo = (UserInfoBean)(request.getSession().getAttribute(Const.SS_USERINFO));
+								String regUsername = (userInfo.getFirstName() != null ? userInfo.getFirstName() : "") + " " + (userInfo.getLastName() != null ? userInfo.getLastName() : "");
+								smsMap.put("regUsername", regUsername.trim());
+								smsMap.put("phone", phone);
+								crewDao.insertAnchSmsUserInfo(smsMap);
+							}
+						}
+					}
+				}
 			}
 		}
 		
@@ -1085,7 +1161,7 @@ public class CrewService implements CrewServiceI {
 		double endDate = DateUtil.getExcelDate(java.sql.Date.valueOf("2100-12-31"));
 		
 		/// Columm *****/
-		/// No., 구분, 내국/외국, 부서, 날자, 한식/양식, 발주, 특이사항
+		/// No., 구분, 내국/외국, 부서, 날자, 한식/양식, 발주, 특이사항, SMS수신자
 		sheet.setColumnWidth(1, 3500);
 		sheet.setColumnWidth(2, 3500);
 		sheet.setColumnWidth(3, 3500);
@@ -1098,6 +1174,7 @@ public class CrewService implements CrewServiceI {
 		sheet.setColumnWidth(10, 3500);
 		sheet.setColumnWidth(11, 3500);
 		sheet.setColumnWidth(12, 3500);
+		sheet.setColumnWidth(13, 4000); // SMS수신자 컬럼 너비
 		
 		/// Style *****/		
 		CellStyle headStyle = wb.createCellStyle();
@@ -1121,6 +1198,14 @@ public class CrewService implements CrewServiceI {
 		bodyCenterStyle.setBorderTop(CellStyle.BORDER_THIN);
 		bodyCenterStyle.setBorderRight(CellStyle.BORDER_THIN);
 		bodyCenterStyle.setAlignment(CellStyle.ALIGN_CENTER);
+		
+		// SMS수신자 셀용 스타일 (줄바꿈 표시용)
+		CellStyle bodyWrapStyle = wb.createCellStyle();
+		bodyWrapStyle.setBorderBottom(CellStyle.BORDER_THIN);
+		bodyWrapStyle.setBorderLeft(CellStyle.BORDER_THIN);
+		bodyWrapStyle.setBorderTop(CellStyle.BORDER_THIN);
+		bodyWrapStyle.setBorderRight(CellStyle.BORDER_THIN);
+		bodyWrapStyle.setWrapText(true); // 줄바꿈 표시 활성화
 		
 		// 날짜 입력 형식(DatePicker 스타일)
 		CreationHelper creationHelper = wb.getCreationHelper();
@@ -1167,6 +1252,9 @@ public class CrewService implements CrewServiceI {
 		cell = row.createCell(cellIdx++);
 		cell.setCellStyle(headStyle);
 		cell.setCellValue("특이사항");
+		cell = row.createCell(cellIdx++);
+		cell.setCellStyle(headStyle);
+		cell.setCellValue("SMS수신자");
 		
 		for(int i = 0; i < 20; i++) {
 			cellIdx = 0;
@@ -1249,6 +1337,15 @@ public class CrewService implements CrewServiceI {
 			cell = row.createCell(cellIdx++);
 			cell.setCellStyle(bodyStyle);
 			cell.setCellType(Cell.CELL_TYPE_STRING);
+			
+			//SMS수신자
+			cell = row.createCell(cellIdx++);
+			cell.setCellStyle(bodyWrapStyle); // 줄바꿈이 가능한 스타일 사용
+			cell.setCellType(Cell.CELL_TYPE_STRING);
+			// 샘플 데이터 (2행에만)
+			if(i == 0) {
+				cell.setCellValue("010-0000-0000,\n010-0000-0001,");
+			} 
 			
 			rowNo++;
 		}

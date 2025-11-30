@@ -921,192 +921,23 @@ function orderSave() {
 
 //QR발송 - 체크박스 선택된 데이터 중 발주된 UID 값들만 QR전송
 function sendQRSMS() {
-	// 체크박스 선택 확인
-	if($('input[name=listChk]:checked').length === 0) {
-		alertPop('QR발송할 항목을 선택해주세요.');
-		return;
-	}
-	
-	// ship select에서 선택한 trialKey 가져오기
-	let trialKey = $('#ship option:selected').text().trim();
-	
-	// trialKey 확인 (스케줄번호 선택 확인)
-	if(!trialKey || trialKey === '' || trialKey === '선택하세요') {
-		alertPop('스케줄번호를 선택해주세요.');
-		return;
-	}
-	
-	// 발주 미완료 항목 확인
-	let nonOrderedItems = [];
-	$('input[name=listChk]:checked').each(function(index, checkbox) {
-		let tr = $(checkbox).closest('tr');
-		let orderStatusCheckbox = tr.find('input[name=orderStatus]');
-		
-		if(!orderStatusCheckbox.is(':checked')) {
-			let name = tr.find('input[name=name]').val() || '이름없음';
-			nonOrderedItems.push(name);
-		}
-	});
-	
-	// 발주 미완료 항목이 있으면 팝업 띄우고 리턴
-	if(nonOrderedItems.length > 0) {
-		let message = '발주 완료되지 않은 항목이 있습니다.\n';
-		if(nonOrderedItems.length <= 3) {
-			message += '발주 미완료 항목: ' + nonOrderedItems.join(', ');
-		} else {
-			message += '발주 미완료 항목: ' + nonOrderedItems.slice(0, 3).join(', ') + ' 외 ' + (nonOrderedItems.length - 3) + '건';
-		}
-		alertPop(message);
-		return;
-	}
-	
-	// 발주된 항목 중 휴대폰번호가 없는 항목 확인
-	let noPhoneItems = [];
-	$('input[name=listChk]:checked').each(function(index, checkbox) {
-		let tr = $(checkbox).closest('tr');
-		let orderStatusCheckbox = tr.find('input[name=orderStatus]');
-		
-		// 발주된 항목만 확인
-		if(orderStatusCheckbox.is(':checked')) {
-			let phone = tr.find('input[name=phone]').val();
-			if(!phone || phone.trim() === '') {
-				let name = tr.find('input[name=name]').val() || '이름없음';
-				noPhoneItems.push(name);
-			}
-		}
-	});
-	
-	// 휴대폰번호가 없는 항목이 있으면 팝업 띄우고 리턴
-	if(noPhoneItems.length > 0) {
-		let message = '휴대폰번호가 없는 항목이 있습니다.\n';
-		if(noPhoneItems.length <= 3) {
-			message += '휴대폰번호 없음: ' + noPhoneItems.join(', ');
-		} else {
-			message += '휴대폰번호 없음: ' + noPhoneItems.slice(0, 3).join(', ') + ' 외 ' + (noPhoneItems.length - 3) + '건';
-		}
-		alertPop(message);
-		return;
-	}
-	
-	let qrDataList = [];
-	
-	// 체크된 항목 중 발주된 항목만 수집 (이미 발주 확인 및 휴대폰번호 확인 완료)
-	$('input[name=listChk]:checked').each(function(index, checkbox) {
-		let tr = $(checkbox).closest('tr');
-		
-		// orderStatus 확인 (체크박스가 checked인지 확인)
-		let orderStatusCheckbox = tr.find('input[name=orderStatus]');
-		if(!orderStatusCheckbox.is(':checked')) {
-			// 이미 발주 확인했지만 혹시 모르니 한번 더 확인
-			return;
-		}
-		
-		// 데이터 수집
-		let uid = tr.find('input[name=uid]').val();
-		let phone = tr.find('input[name=phone]').val();
-		
-		// 필수 데이터 확인
-		if(!uid || uid === '-1') {
-			return;
-		}
-		
-		if(!phone || phone.trim() === '') {
-			return;
-		}
-		
-		// 휴대폰 번호 형식 정리 (하이픈 제거 후 다시 추가)
-		phone = phone.replace(/-/g, '').replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
-		
-		// content 생성: trialKey%26uid (%26은 &)
-		let content = trialKey + '%26' + uid;
-		
-		qrDataList.push({
-			uid: uid,
-			trialKey: trialKey,
-			phone: phone,
-			content: content
-		});
-	});
-	
-	if(qrDataList.length === 0) {
-		alertPop('QR발송할 수 있는 항목이 없습니다.');
-		return;
-	}
-	
-	// 확인 메시지
-	if(!confirm('선택한 ' + qrDataList.length + '명에게 QR을 발송하시겠습니까?')) {
-		return;
-	}
-	
-	// SMS 요청 배열 생성 (BODY 형식)
-	let smsRequestArray = [];
-	
-	qrDataList.forEach(function(item) {
-		smsRequestArray.push({
-			qrType: 'SCH',  // AC : 앵카링, SCH : 시운전
-			receiver: item.phone,
-			content: item.content  // trialKey%26uid 형식
-		});
-	});
-	
-	$('#loading').css("display","block");
-	
-	// 컨트롤러를 통해 QR 발송 (JSON 배열로 전송)
-	$.ajax({
-		url: contextPath + '/crew/crewQRSend.html',
-		type: 'POST',
-		contentType: 'application/json; charset=UTF-8',
-		data: JSON.stringify(smsRequestArray),
-		success: function(data) {
-			$('#loading').css("display","none");
-			
-			try {
-				let json = typeof data === 'string' ? JSON.parse(data) : data;
-				
-				if(json.result) {
-					let msg = json.msg || 'QR발송이 완료되었습니다.';
-					
-					// "Read timed out" 체크
-					if(msg.indexOf('Read timed out') !== -1 || (json.msg && json.msg.indexOf('Read timed out') !== -1)) {
-						msg += '\n [운영]SCP 웹페이지에서만 실행 가능합니다.';
-					}
-					
-					alertPop(msg);
-				} else {
-					let msg = json.msg || 'QR발송에 실패했습니다.';
-					
-					// "Read timed out" 체크
-					if(msg.indexOf('Read timed out') !== -1 || (json.msg && json.msg.indexOf('Read timed out') !== -1)) {
-						msg += '\n [운영]SCP 웹페이지에서만 실행 가능합니다.';
-					}
-					
-					alertPop(msg);
-				}
-			} catch(ex) {
-				console.error('QR발송 응답 파싱 오류:', ex);
-				let errorMsg = $.i18n.t('share:tryAgain');
-				
-				// 응답 데이터에 "Read timed out"이 포함되어 있는지 체크
-				if(data && typeof data === 'string' && data.indexOf('Read timed out') !== -1) {
-					errorMsg += '\n [운영]SCP 웹페이지에서만 실행 가능합니다.';
-				}
-				
-				alertPop(errorMsg);
-			}
+	// 공통 함수 사용 (시운전용)
+	sendQRSMSCommon({
+		qrType: 'SCH',  // AC : 앵카링, SCH : 시운전
+		getTrialKey: function() {
+			return $('#ship option:selected').text().trim();
 		},
-		error: function(xhr, status, error) {
-			$('#loading').css("display","none");
-			console.error('QR발송 요청 실패:', error);
-			
-			let errorMsg = 'QR발송 요청 중 오류가 발생했습니다. 다시 시도해주세요.';
-			
-			// timeout 오류 체크
-			if(status === 'timeout' || error === 'timeout' || (xhr.responseText && xhr.responseText.indexOf('Read timed out') !== -1)) {
-				errorMsg += '\n [운영]SCP 웹페이지에서만 실행 가능합니다.';
-			}
-			
-			alertPop(errorMsg);
-		}
+		getReceiver: function(tr) {
+			return tr.find('input[name=phone]').val();
+		},
+		getContent: function(itemData) {
+			// 시운전: trialKey%26uid
+			return itemData.trialKey + '%26' + itemData.uid;
+		},
+		getItemName: function(tr) {
+			return tr.find('input[name=name]').val() || '이름없음';
+		},
+		checkPhoneRequired: true
 	});
 }
 

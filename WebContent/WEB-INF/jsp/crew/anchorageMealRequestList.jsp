@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 {
 	"list": [
 		<c:forEach var="tmp" items="${list}" varStatus="status">
@@ -18,6 +19,7 @@
 	 			"comment": "${tmp.comment}",
 	 			"inputUid": "${tmp.inputUid}",
 	 			"inputDate": "${tmp.inputDate}",
+	 			"smsReceiver": <c:choose><c:when test="${tmp.smsReceiver != null && tmp.smsReceiver != ''}">"<c:out value='${tmp.smsReceiver}' escapeXml='false'/>"</c:when><c:otherwise>null</c:otherwise></c:choose>,
 	 			"planList": [
 	 				<c:forEach var="plan" items="${tmp.planList}" varStatus="planStatus">
 	 					{

@@ -37,6 +37,8 @@ public class AnchorageMealListBean {
 	private int[] dinnerR;
 	private int[] lateNightR;
 	
+	private String[] smsReceiver;
+	
 	private String[] planMealDate;
 	private String[] planMealTime;
 	private String[] planMealGubun;
@@ -266,6 +268,13 @@ public class AnchorageMealListBean {
 	}
 	public void LateNightR(int[] lateNightR) {
 		this.lateNightR = lateNightR;
+	}
+	
+	public String[] getSmsReceiver() {
+		return smsReceiver;
+	}
+	public void setSmsReceiver(String[] smsReceiver) {
+		this.smsReceiver = smsReceiver;
 	}
 	/*
 	 * public String[] getDeleteYn() { return deleteYn; } public void

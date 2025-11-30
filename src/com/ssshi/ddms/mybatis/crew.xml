@@ -198,26 +198,72 @@
 	</update>
 		
 	<select id="getAnchorageMealList" parameterType="AnchorageMealRequestBean" resultType="AnchorageMealRequestBean">
-		select UID, SCHEDULERINFOUID as schedulerInfoUid, PROJ_NO as projNo, 
-			TRIALKEY as trialKey, KIND as kind, DOMESTIC_YN as domesticYn, DEPT_NAME as department,
-			MEAL_DATE as mealDate, ORDER_STATUS as orderStatus, ORDER_DATE as orderDate,
-			ORDER_UID as orderUid, DEL_YN as deleteYn, COMMENT as comment, REG_DATE as inputDate, REG_USERNAME as inputUid
-			from mobile_anchor_meal_info
-			where 1=1 
+		select 
+			info.UID, 
+			info.SCHEDULERINFOUID as schedulerInfoUid, 
+			info.PROJ_NO as projNo, 
+			info.TRIALKEY as trialKey, 
+			info.KIND as kind, 
+			info.DOMESTIC_YN as domesticYn, 
+			info.DEPT_NAME as department,
+			info.MEAL_DATE as mealDate, 
+			info.ORDER_STATUS as orderStatus, 
+			info.ORDER_DATE as orderDate,
+			info.ORDER_UID as orderUid, 
+			info.DEL_YN as deleteYn, 
+			info.COMMENT as comment, 
+			info.REG_DATE as inputDate, 
+			info.REG_USERNAME as inputUid,
+			GROUP_CONCAT(DISTINCT sms.PHONE ORDER BY sms.PHONE SEPARATOR ',\n') as smsReceiver
+		from mobile_anchor_meal_info info
+		LEFT JOIN mobile_meal_sms_userinfo sms 
+			ON info.PROJ_NO = sms.PROJ_NO 
+			AND info.UID = sms.ANCHOR_MEAL_UID 
+			AND sms.SMSYN = 'N'
+		where 1=1 
 		 <if test="ship != null and ship != 'ALL'" >
-			AND PROJ_NO <![CDATA[ = ]]> #{ship}			
+			AND info.PROJ_NO <![CDATA[ = ]]> #{ship}			
 		 </if>
+		 <if test="inDate != null and inDate != ''">
+		   AND info.MEAL_DATE <![CDATA[ >= ]]> #{inDate}
+		 </if>
+		 <if test="outDate != null and outDate != ''">
+		   AND info.MEAL_DATE <![CDATA[ <= ]]> #{outDate}
+		 </if>
+		 GROUP BY info.UID, info.SCHEDULERINFOUID, info.PROJ_NO, info.TRIALKEY, info.KIND, 
+		          info.DOMESTIC_YN, info.DEPT_NAME, info.MEAL_DATE, info.ORDER_STATUS, 
+		          info.ORDER_DATE, info.ORDER_UID, info.DEL_YN, info.COMMENT, info.REG_DATE, info.REG_USERNAME
 	</select>
 	
 	<select id="getAnchorageMealListBySchedulerInfoUid" parameterType="int" resultType="AnchorageMealRequestBean">
-		select UID, SCHEDULERINFOUID as schedulerInfoUid, PROJ_NO as projNo, 
-			TRIALKEY as trialKey, KIND as kind, DOMESTIC_YN as domesticYn, DEPT_NAME as department,
-			MEAL_DATE as mealDate, ORDER_STATUS as orderStatus, ORDER_DATE as orderDate,
-			ORDER_UID as orderUid, DEL_YN as deleteYn, COMMENT as comment, REG_DATE as inputDate, REG_USERNAME as inputUid
-			from mobile_anchor_meal_info
+		select 
+			info.UID, 
+			info.SCHEDULERINFOUID as schedulerInfoUid, 
+			info.PROJ_NO as projNo, 
+			info.TRIALKEY as trialKey, 
+			info.KIND as kind, 
+			info.DOMESTIC_YN as domesticYn, 
+			info.DEPT_NAME as department,
+			info.MEAL_DATE as mealDate, 
+			info.ORDER_STATUS as orderStatus, 
+			info.ORDER_DATE as orderDate,
+			info.ORDER_UID as orderUid, 
+			info.DEL_YN as deleteYn, 
+			info.COMMENT as comment, 
+			info.REG_DATE as inputDate, 
+			info.REG_USERNAME as inputUid,
+			GROUP_CONCAT(DISTINCT sms.PHONE ORDER BY sms.PHONE SEPARATOR ',\n') as smsReceiver
+		from mobile_anchor_meal_info info
+		LEFT JOIN mobile_meal_sms_userinfo sms 
+			ON info.PROJ_NO = sms.PROJ_NO 
+			AND info.UID = sms.ANCHOR_MEAL_UID 
+			AND sms.SMSYN = 'N'
 		 where 1=1 
-		   AND UID IS NOT NULL
-		   AND SCHEDULERINFOUID = #{schedulerInfoUid}
+		   AND info.UID IS NOT NULL
+		   AND info.PROJ_NO = #{schedulerInfoUid}
+		 GROUP BY info.UID, info.SCHEDULERINFOUID, info.PROJ_NO, info.TRIALKEY, info.KIND, 
+		          info.DOMESTIC_YN, info.DEPT_NAME, info.MEAL_DATE, info.ORDER_STATUS, 
+		          info.ORDER_DATE, info.ORDER_UID, info.DEL_YN, info.COMMENT, info.REG_DATE, info.REG_USERNAME
 	</select>
 	
 	<select id="getAnchorageMealListCnt" resultType="int">
@@ -277,6 +323,11 @@
 		WHERE ANCHOR_MEAL_UID = #{anchUid}
 	</delete>
 	
+	<delete id="deleteAnchSmsUserInfo" parameterType="int">
+		DELETE FROM mobile_meal_sms_userinfo
+		WHERE ANCHOR_MEAL_UID = #{anchUid}
+	</delete>
+	
 	<insert id="insertAnchorageMeal" parameterType="AnchorageMealRequestBean">
 		INSERT INTO mobile_anchor_meal_info (PROJ_NO, SCHEDULERINFOUID, TRIALKEY, KIND, DOMESTIC_YN, DEPT_NAME, MEAL_DATE, ORDER_STATUS, 
 			ORDER_DATE, ORDER_UID, DEL_YN, COMMENT, REG_DATE, 
@@ -298,7 +349,15 @@
 		<selectKey resultType="int" keyProperty="uid" order="AFTER">
 	        SELECT LAST_INSERT_ID()
 	    </selectKey>
-	</insert>   
+	</insert>
+	
+	<!-- 앵카링은 호선, meal_date 기준이기 때문에  SCHEDULERINFOUID=0 -->
+	<insert id="insertAnchSmsUserInfo" parameterType="map">
+		INSERT INTO mobile_meal_sms_userinfo (PROJ_NO, SCHEDULERINFOUID, TRIALKEY, ANCHOR_MEAL_UID, 
+			REG_USERNAME, PHONE, INSERT_DATE, REG_DEVICE, SMSYN)
+		VALUES (#{projNo}, 0, #{trialKey}, #{anchorMealUid}, 
+			#{regUsername}, #{phone}, SYSDATE(), 'WEB', 'N')
+	</insert>
 	
 	<update id="updateAnchOrder" parameterType="map">
 		UPDATE mobile_anchor_meal_info SET ORDER_STATUS = 'Y', ORDER_DATE = SYSDATE(), ORDER_UID = #{userId}
