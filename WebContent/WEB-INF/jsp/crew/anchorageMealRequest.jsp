@@ -127,7 +127,7 @@
 							<button class="bt-obj bt-primary" onclick="popDeleteAnchModal()" style="margin-right: 8px;"><i class="fa-solid fa-minus"></i></button>
 							<button class="bt-obj bt-primary" onclick="orderSave()" style="margin-right: 8px;">발주</button>
 							<c:choose>
-								<c:when test="${bean.isOff eq 'Y' or empty P_ANCH_MEAL_W}">
+								<c:when test="${empty P_ANCH_MEAL_W}">
 									<button class="bt-obj bt-primary" disabled><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
 								</c:when>
 								<c:otherwise>

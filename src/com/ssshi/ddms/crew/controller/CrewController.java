@@ -441,6 +441,7 @@ public class CrewController {
 						
 						String orderStatus = ExcelUtil.getCellValue(row.getCell(10)).toString();
 						String comment = ExcelUtil.getCellValue(row.getCell(11)).toString();
+						String smsReceiver = ExcelUtil.getCellValue(row.getCell(12)).toString();
 						
 						// Bean에 데이터 입력
 						anchBean.setCnt(Integer.parseInt(no));
@@ -457,6 +458,7 @@ public class CrewController {
 						
 						anchBean.setOrderStatus(orderStatus);
 						anchBean.setComment(comment);
+						anchBean.setSmsReceiver(smsReceiver);
 						
 						// 수량
 						List<AnchorageMealQtyBean> mealQtyList = new ArrayList<AnchorageMealQtyBean>();

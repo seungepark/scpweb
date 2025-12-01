@@ -1221,7 +1221,6 @@ function excelUpload(event) {
 			// DRM 걸린 파일 인지 확인
 			if(fileData.indexOf('Fasoo DRM') > -1){
 			//if(true){
-				//lert(3);
 				const formData = new FormData();
 				formData.append('file', input.files[0]);
 								
@@ -1247,14 +1246,11 @@ function excelUpload(event) {
 						$('#loading').css('display',"none");
 					}
 				});
-				
 			} else{
-				
 				let fileBinary = XLSX.read(fileData, {type: 'binary', cellDates: true, cellText: true, cellNF: false, dateNF: 'yyyy-mm-dd'});
 				let sheetNameList = fileBinary.SheetNames;
 				let sheet = fileBinary.Sheets[sheetNameList[0]];
 				json = XLSX.utils.sheet_to_json(sheet, {raw: false, dateNF: 'yyyy-mm-dd'});
-				
 				makeDataList(json);
 			}
 			
@@ -1290,7 +1286,6 @@ function makeDataList(json){
 	let lunchPList = [];
 	let dinnerPList = [];
 	let lateNightPList = [];
-	
 	const shipValueForExcel = deriveShipValueFromInput();
 	const shipLabelForExcel = getShipDescription(shipValueForExcel) || shipValueForExcel;
 	if(json.length > 0) {
@@ -1312,27 +1307,27 @@ function makeDataList(json){
 			let comment = isNull(data['특이사항'], '');
 			let smsReceiver = isNull(data['SMS수신자'], '');
 			
-			if(department == '' && name == '' && phone == '') {
+			if(department == '') {
 				break;
 			}
-
 			projNoList.push(projNo);
 			kindList.push(kind);
 			domesticYnList.push(domesticYn);
 			departmentList.push(department);
 			mealDateList.push(mealDate);
-			orderStatusList.push(foodStyle);
-			commentList.push(breakfastP);
-			foodStyleList.push(lunchP);
-			breakfastPList.push(dinnerP);
-			lunchPList.push(lateNightP);
-			dinnerPList.push(orderStatus);
-			lateNightPList.push(comment);
+			orderStatusList.push(orderStatus);
+			commentList.push(comment);
+			foodStyleList.push(foodStyle);
+			breakfastPList.push(breakfastP);
+			lunchPList.push(lunchP);
+			dinnerPList.push(dinnerP);
+			lateNightPList.push(lateNightP);
 			smsReceiverList.push(smsReceiver);
 		}
 		
 		if(isError) {
 			alertPop(errMsg);
+			
 		}else {
 			setExcelData(projNoList, kindList, domesticYnList, departmentList, mealDateList, orderStatusList, commentList, foodStyleList, breakfastPList,
 				 lunchPList, dinnerPList, lateNightPList, smsReceiverList);
@@ -1499,8 +1494,8 @@ function setExcelData(projNoList, kindList, domesticYnList, departmentList, meal
 		let domesticYn = domesticYnList[i];
 		let department = departmentList[i];
 		
-		let mealDate = departmentList[i];
-		let foodStyle = mealDateList[i];
+		let mealDate = mealDateList[i];
+		let foodStyle = foodStyleList[i];
 		let breakfastP = breakfastPList[i];
 		let lunchP = lunchPList[i];
 		let dinnerP = dinnerPList[i];
@@ -1520,7 +1515,7 @@ function setExcelData(projNoList, kindList, domesticYnList, departmentList, meal
 
 		let inputUid = "";
 		let inputDate = "";
-		
+					
 		let text = "";
 		text += '<tr id="tbRow_' + rowId + '">' + 
 							'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
@@ -1530,16 +1525,16 @@ function setExcelData(projNoList, kindList, domesticYnList, departmentList, meal
 							
 							'<td class="text-center">' + 
 								'<select name="kind">';
-							text += '<option value="S"' + (kind == 'S' ? ' selected' : '') + '>직영</option>' + 
-									'<option value="H"' + (kind == 'H' ? ' selected' : '') + '>협력사</option>'+
-									'<option value="V"' + (kind == 'V' ? ' selected' : '') + '>방문객</option>'+
-									'<option value="O"' + (kind == 'O' ? ' selected' : '') + '>Owner/Class</option>';
+							text += '<option value="S"' + (kind == '직영' ? ' selected' : '') + '>직영</option>' + 
+									'<option value="H"' + (kind == '협력사' ? ' selected' : '') + '>협력사</option>'+
+									'<option value="V"' + (kind == '방문객' ? ' selected' : '') + '>방문객</option>'+
+									'<option value="O"' + (kind == 'Owner/Class' ? ' selected' : '') + '>Owner/Class</option>';
 						text += '</select>' +
 						
 							'<td class="text-center">' + 
 								'<select name="domesticYn">';
-							text += '<option value="Y"' + (domesticYn == 'Y' ? ' selected' : '') + '>내국</option>' + 
-									'<option value="N"' + (domesticYn == 'N' ? ' selected' : '') + '>외국</option>';
+							text += '<option value="Y"' + (domesticYn == '내국' ? ' selected' : '') + '>내국</option>' + 
+									'<option value="N"' + (domesticYn == '외국' ? ' selected' : '') + '>외국</option>';
 						text += '</select>' +
 							
 							'<td class="text-center">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 												
@@ -1547,17 +1542,17 @@ function setExcelData(projNoList, kindList, domesticYnList, departmentList, meal
 							'<td class="text-center">' + 
 								'<select name="foodStyle" >';
 								
-							text += '<option value="K"' + (foodStyle == 'K' ? ' selected' : '') + '>한식</option>' + 
-									'<option value="W"' + (foodStyle == 'W' ? ' selected' : '') + '>양식(Normal Western)</option>' + 	
-									'<option value="H"' + (foodStyle == 'H' ? ' selected' : '') + '>양식(Halal)</option>' + 	
-									'<option value="V1"' + (foodStyle == 'V1' ? ' selected' : '') + '>양식(Veg. fruitarian)</option>' + 	
-									'<option value="V2"' + (foodStyle == 'V2' ? ' selected' : '') + '>양식(Veg. vegan)</option>' + 	
-									'<option value="V3"' + (foodStyle == 'V3' ? ' selected' : '') + '>양식(Veg. lacto-veg.)</option>' + 	
-									'<option value="V4"' + (foodStyle == 'V4' ? ' selected' : '') + '>양식(Veg. ovo-veg.)</option>' + 	
-									'<option value="V5"' + (foodStyle == 'V5' ? ' selected' : '') + '>양식(Veg. lacto-ovo-veg.)</option>' + 	
-									'<option value="V6"' + (foodStyle == 'V6' ? ' selected' : '') + '>양식(Veg. pesco-veg.)</option>' + 	
-									'<option value="V7"' + (foodStyle == 'V7' ? ' selected' : '') + '>양식(Veg. pollo-veg.)</option>' + 	
-									'<option value="V8"' + (foodStyle == 'V8' ? ' selected' : '') + '>양식(Veg. flexitarian)</option>';
+							text += '<option value="K"' + (foodStyle == '한식' ? ' selected' : '') + '>한식</option>' + 
+									'<option value="W"' + (foodStyle == '양식(Normal Western)' ? ' selected' : '') + '>양식(Normal Western)</option>' + 	
+									'<option value="H"' + (foodStyle == '양식(Halal)' ? ' selected' : '') + '>양식(Halal)</option>' + 	
+									'<option value="V1"' + (foodStyle == '양식(Veg. fruitarian)' ? ' selected' : '') + '>양식(Veg. fruitarian)</option>' + 	
+									'<option value="V2"' + (foodStyle == '양식(Veg. vegan)' ? ' selected' : '') + '>양식(Veg. vegan)</option>' + 	
+									'<option value="V3"' + (foodStyle == '양식(Veg. lacto-veg.)' ? ' selected' : '') + '>양식(Veg. lacto-veg.)</option>' + 	
+									'<option value="V4"' + (foodStyle == '양식(Veg. ovo-veg.)' ? ' selected' : '') + '>양식(Veg. ovo-veg.)</option>' + 	
+									'<option value="V5"' + (foodStyle == '양식(Veg. lacto-ovo-veg.)' ? ' selected' : '') + '>양식(Veg. lacto-ovo-veg.)</option>' + 	
+									'<option value="V6"' + (foodStyle == '양식(Veg. pesco-veg.)' ? ' selected' : '') + '>양식(Veg. pesco-veg.)</option>' + 	
+									'<option value="V7"' + (foodStyle == '양식(Veg. pollo-veg.)' ? ' selected' : '') + '>양식(Veg. pollo-veg.)</option>' + 	
+									'<option value="V8"' + (foodStyle == '양식(Veg. flexitarian)' ? ' selected' : '') + '>양식(Veg. flexitarian)</option>';
 									
 						text += '</select>' +
 							'</td>' +
