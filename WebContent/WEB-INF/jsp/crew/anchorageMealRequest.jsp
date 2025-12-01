@@ -44,114 +44,103 @@
             <%@ include file="/WEB-INF/jsp/include/menu/header_2_2.jsp"%>
             <div class="main-container">
 				<div class="tb-area">
-					<div class="d-flex">
-					<div class="d-flex flex-row-reverse">
-					
-						<!-- 승선일/하선일 기간 조회 -->
-						<button class="bt-obj bt-primary" onclick="getAnchMealList()">
-									<img src="${pageContext.request.contextPath}/img/i_btn_search.svg" class="bt-icon" height="16px">
-									<span data-i18n="listOp.btnSearch"></span>
-						</button>
-						<!--<button class="bt-obj bt-primary mr-5" onclick="getRegistrationCrewList(1)">조회</button>-->
-	                   		<input type="date" id="outDate"/>&nbsp&nbsp
-							<input type="date" id="inDate"/>
-						<div class="lb-title-no-sp" style="line-height: 44px;">기간&nbsp&nbsp</div>
-					
-					    <!-- 호선번호 조회(스케줄키) -->
-					    <!-- style="border: 1px solid red" -->
-					    <div class="col-auto">
-							<input type="text"
-								   id="shipInput"
-								   class="autocomplete-ship crew-filter-control"
-								   placeholder=""
-								   data-i18n="[placeholder]listOp.shipPlaceholder"
-								   autocomplete="off">
-							<input type="hidden" id="ship" value="">
-							<select id="shipSource" class="select-data-source" style="display:none;">
-                                <option value=""></option>
-                                <c:forEach var="ship" items="${listShip}">
-                                    <option value="<c:out value='${ship.val}'/>"><c:out value="${ship.description}"/></option>
-                                </c:forEach>
-                            </select>
+					<!-- 첫 번째 줄: 검색 영역(왼쪽) + 버튼 영역(오른쪽) -->
+					<div class="d-flex justify-content-between align-items-center mb-3">
+						<!-- 왼쪽: 검색 영역 -->
+						<div class="d-flex align-items-center">
+							<div class="lb-title-no-sp" style="line-height: 44px; margin-right: 8px;">호선번호</div>
+							<div class="col-auto" style="margin-right: 16px;">
+								<input type="text"
+									   id="shipInput"
+									   class="autocomplete-ship crew-filter-control"
+									   placeholder=""
+									   data-i18n="[placeholder]listOp.shipPlaceholder"
+									   autocomplete="off">
+								<input type="hidden" id="ship" value="">
+								<select id="shipSource" class="select-data-source" style="display:none;">
+	                                <option value=""></option>
+	                                <c:forEach var="ship" items="${listShip}">
+	                                    <option value="<c:out value='${ship.val}'/>"><c:out value="${ship.description}"/></option>
+	                                </c:forEach>
+	                            </select>
+							</div>
+							<div class="lb-title-no-sp" style="line-height: 44px; margin-right: 8px;">기간</div>
+							<input type="date" id="inDate" style="margin-right: 8px;"/>
+							<input type="date" id="outDate" style="margin-right: 16px;"/>
+							<button class="bt-obj bt-primary" onclick="getAnchMealList()">
+								<img src="${pageContext.request.contextPath}/img/i_btn_search.svg" class="bt-icon" height="16px">
+								<span data-i18n="listOp.btnSearch"></span>
+							</button>
 						</div>
 						
-						<div class="lb-title-no-sp" style="line-height: 44px;">호선번호</div>						
-                  	</div>
-                  	
-                  	<!-- <div style="padding-right: 7%;"></div> -->
-                  		
-					<div class="d-flex flex-row-reverse">
-						
-						
-						<c:choose>
-							<c:when test="${bean.isOff eq 'Y' or empty P_ANCH_MEAL_W}">
-								<button class="bt-obj bt-primary" disabled><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
-							</c:when>
-							<c:otherwise>
-								<button class="bt-obj bt-primary" onclick="save()"><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
-							</c:otherwise>
-						</c:choose>
-						
-                   		<button class="bt-obj bt-primary" onclick="popDeleteAnchModal()"><i class="fa-solid fa-minus"></i></button>
-                   		<button class="bt-obj bt-primary" onclick="addAnch()"><i class="fa-solid fa-plus"></i></button>
-                   		
-                   		<!-- 엑셀 업로드/다운로드 -->
-                   		<button class="bt-obj bt-secondary" onclick="downAnchExcel()" data-i18n="btnDownload"></button>
-                   		<div class="bt-obj bt-secondary file-btn">
-                   			<span data-i18n="btnUpload"></span>
-							<input class="cursor-pointer" type="file" id="fileInput" onchange="excelUpload(event)" accept=".xlsx">
-                   		</div> 
-                   		
-                   		<!-- <div style="padding-right: 44px;"></div> 	 -->
-                   	</div> 
+						<!-- 오른쪽: 버튼 영역 -->
+						<div class="d-flex align-items-center">
+							<div class="bt-obj bt-secondary file-btn" style="margin-right: 8px;">
+								<span data-i18n="btnUpload"></span>
+								<input class="cursor-pointer" type="file" id="fileInput" onchange="excelUpload(event)" accept=".xlsx">
+							</div>
+							<button class="bt-obj bt-secondary" onclick="downAnchExcel()" style="margin-right: 8px;" data-i18n="btnDownload"></button>
+							
+							
+						</div>
 					</div> 
 					
-                   	<div class="sp-8"></div>
-                   	<div class="d-flex">
-						<select id="filterKind" onchange="searchList()" class="mr-3">
-							<option value="ALL">[구분] All</option>
-							<option value="S">직영</option>
-							<option value="H">협력사</option>
-							<option value="V">방문객</option>
-							<option value="O">Owner/Class</option>
-						</select>
-						<select id="filterDomesticYN" onchange="searchList()" class="mr-3">
-							<option value="ALL">[내국/외국] All</option>
-							<option value="Y">내국</option>
-							<option value="N">외국</option>
-						</select>
-						<select id="filterFoodStyle" onchange="searchList()" class="mr-3">
-							<option value="ALL">[한식/양식] All</option>
-							<option value="K">한식</option>
-							<option value="W">양식(Normal Western)</option>
-							<option value="H">양식(Halal)</option>
-							<option value="V1">양식(Veg. fruitarian)</option>
-							<option value="V2">양식(Veg. vegan)</option>
-							<option value="V3">양식(Veg. lacto-veg.)</option>
-							<option value="V4">양식(Veg. ovo-veg.)</option>
-							<option value="V5">양식(Veg. lacto-ovo-veg.)</option>
-							<option value="V6">양식(Veg. pesco-veg.)</option>
-							<option value="V7">양식(Veg. pollo-veg.)</option>
-							<option value="V8">양식(Veg. flexitarian)</option>
-						</select>
-						<div class="input-wrap">
-               				<input id="filterWord" type="text" placeholder="검색어">
-               				<button id="filterSearchBtn" onclick="searchList()"><img src="${pageContext.request.contextPath}/img/new/search.png"></button>
-           				</div>
-           				
-           			    <!-- <div style="padding-right: 40px;"></div>  -->
-           				
-						<%-- <a href="${pageContext.request.contextPath}/mobile/mobileCrewinfo.html?uid=${bean.uid}" class="bt-obj bt-secondary mr-2" target="_blank">
-							<i class="fas fa-mobile-alt"></i> QR발송
-						</a> --%>
-						<a href="javascript:void(0);" class="bt-obj bt-secondary mr-2" onclick="sendQRSMS()">
-							<i class="fas fa-mobile-alt"></i> QR발송
-						</a>
-						<button class="bt-obj bt-primary" onclick="orderSave()">발주</button>
+					<!-- 두 번째 줄: 필터 영역(왼쪽) + 버튼 영역(오른쪽) -->
+					<div class="d-flex justify-content-between align-items-center">
+						<!-- 왼쪽: 필터 영역 -->
+						<div class="d-flex align-items-center">
+							<select id="filterKind" onchange="searchList()" class="mr-3">
+								<option value="ALL">[구분] All</option>
+								<option value="S">직영</option>
+								<option value="H">협력사</option>
+								<option value="V">방문객</option>
+								<option value="O">Owner/Class</option>
+							</select>
+							<select id="filterDomesticYN" onchange="searchList()" class="mr-3">
+								<option value="ALL">[내국/외국] All</option>
+								<option value="Y">내국</option>
+								<option value="N">외국</option>
+							</select>
+							<select id="filterFoodStyle" onchange="searchList()" class="mr-3">
+								<option value="ALL">[한식/양식] All</option>
+								<option value="K">한식</option>
+								<option value="W">양식(Normal Western)</option>
+								<option value="H">양식(Halal)</option>
+								<option value="V1">양식(Veg. fruitarian)</option>
+								<option value="V2">양식(Veg. vegan)</option>
+								<option value="V3">양식(Veg. lacto-veg.)</option>
+								<option value="V4">양식(Veg. ovo-veg.)</option>
+								<option value="V5">양식(Veg. lacto-ovo-veg.)</option>
+								<option value="V6">양식(Veg. pesco-veg.)</option>
+								<option value="V7">양식(Veg. pollo-veg.)</option>
+								<option value="V8">양식(Veg. flexitarian)</option>
+							</select>
+							<div class="input-wrap">
+								<input id="filterWord" type="text" placeholder="검색어">
+								<button id="filterSearchBtn" onclick="searchList()"><img src="${pageContext.request.contextPath}/img/new/search.png"></button>
+							</div>
+						</div>
 						
-						<!-- <button class="bt-obj bt-primary" onclick="setInOutDate()" target="_blank">다운로드</button> -->
-						<button class="bt-obj bt-primary" onClick="anchListDownloadAll()"><img src="${pageContext.request.contextPath}/img/i_download.svg" height="16px">&nbsp&nbsp다운로드</button>
-                   		
+						<!-- 오른쪽: 버튼 영역 -->
+						<div class="d-flex align-items-center">
+						<button class="bt-obj bt-primary" onclick="addAnch()" style="margin-right: 8px;"><i class="fa-solid fa-plus"></i></button>
+							<button class="bt-obj bt-primary" onclick="popDeleteAnchModal()" style="margin-right: 8px;"><i class="fa-solid fa-minus"></i></button>
+							<button class="bt-obj bt-primary" onclick="orderSave()" style="margin-right: 8px;">발주</button>
+							<c:choose>
+								<c:when test="${bean.isOff eq 'Y' or empty P_ANCH_MEAL_W}">
+									<button class="bt-obj bt-primary" disabled><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
+								</c:when>
+								<c:otherwise>
+									<button class="bt-obj bt-primary" onclick="save()"><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
+								</c:otherwise>
+							</c:choose>									
+							<a href="javascript:void(0);" class="bt-obj bt-secondary" onclick="sendQRSMS()">
+								<i class="fas fa-mobile-alt"></i> QR발송
+							</a>
+							<button class="bt-obj bt-primary" onClick="anchListDownloadAll()" style="margin-right: 8px;">
+								<img src="${pageContext.request.contextPath}/img/i_download.svg" height="16px">&nbsp&nbsp다운로드
+							</button>
+						</div>
 					</div>
                    	<div class="sp-16"></div>
                      <div class="tb-wrap table_fixed_head" style="overflow-x: auto;">
