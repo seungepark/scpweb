@@ -20,6 +20,20 @@ $(function(){
 	
 	setSearchOption();
 	
+	// 양식 업로드 버튼 클릭 시 스케줄번호 검증 후 파일 선택 다이얼로그 열기
+	$('#fileInput').on('click', function(e) {
+		// 스케줄번호 검증
+		let shipValue = $('#ship').val();
+		if(!shipValue || shipValue == "" || shipValue == "ALL") {
+			e.preventDefault();
+			e.stopPropagation();
+			alertPop($.i18n.t('errorShip'));
+			// 파일 입력 값을 초기화하여 이전 선택값이 남아있지 않도록
+			$(this).val('');
+			return false;
+		}
+	});
+	
 	// schedulerInfoUid가 있으면 이미 서버에서 데이터를 받아온 상태이므로 initData()에서 자동으로 표시됨
 	// schedulerInfoUid가 없으면 화면만 표시
 });
@@ -274,7 +288,7 @@ function initTableHeader() {
 				'<th class="th-w-150">' + $.i18n.t('list.department') + '</th>' +
 				'<th>' + $.i18n.t('list.name') + '</th>' +
 				'<th>' + $.i18n.t('list.rank') + '</th>' +
-				'<th>' + $.i18n.t('list.idNo') + '</th>' +
+				'<th class="th-w-120">' + $.i18n.t('list.idNo') + '</th>' +
 				'<th class="th-w-150">' + $.i18n.t('list.workType1') + '</th>' +
 				'<th class="th-w-150">' + $.i18n.t('list.workType2') + '</th>' +
 				'<th class="th-w-150">' + $.i18n.t('list.work') + '</th>' +
@@ -405,7 +419,7 @@ function initData() {
 		//alert(gender);
 		if(orderStatus == 'Y'){
 			text += '<tr id="tbRow_' + rowId + '">' + 
-									'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()" disabled></td>' +
+									'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
 									'<td class="text-center th-w-20"><div name="no">' + _crewCnt +'('+ uid + ') </div></td>' +
 									'<td class="text-center" style="display: none"><input name="uid" type="hidden" value="' + uid + '"></td>' +
 									'<td class="text-center">' + '<div>' + schedulerInfoUid + '</div><input name="scheduleUid" type="hidden" value="' + schedulerInfoUid + '">' + '</td>' +
@@ -430,7 +444,7 @@ function initData() {
 									//     '<span class="mask">*****</span>' + '<input name="idNo" type="text" disabled value="' + idNo + '">' + 
 									//   '</div>' + 
 									// '</td>' + 
-									'<td class="text-center">' + '<input name="idNo" type="text" disabled value="' + idNo + '">' + '</td>' + 
+									'<td class="text-center th-w-120">' + '<input name="idNo" type="text" disabled value="' + idNo + '">' + '</td>' + 
 									
 									'<td class="text-center th-w-150">' +
 										'<select name="workType1" disabled onchange="setWorkType2(' + rowId + ', this.value)">';
@@ -580,7 +594,7 @@ function initData() {
 							//     '<span class="mask">*****</span>' + '<input name="idNo" type="text" value="' + idNo + '">' + 
 							//   '</div>' + 
 							// '</td>' +
-							'<td class="text-center">' + '<input name="idNo" type="text" value="' + idNo + '">' + '</td>' +
+							'<td class="text-center th-w-120">' + '<input name="idNo" type="text" value="' + idNo + '">' + '</td>' +
 							
 							'<td class="text-center th-w-150">' + 
 								'<select name="workType1" onchange="setWorkType2(' + rowId + ', this.value)">';
@@ -905,6 +919,28 @@ function orderSave() {
 	}
 }
 
+//QR발송 - 체크박스 선택된 데이터 중 발주된 UID 값들만 QR전송
+function sendQRSMS() {
+	// 공통 함수 사용 (시운전용)
+	sendQRSMSCommon({
+		qrType: 'SCH',  // AC : 앵카링, SCH : 시운전
+		getTrialKey: function() {
+			return $('#ship option:selected').text().trim();
+		},
+		getReceiver: function(tr) {
+			return tr.find('input[name=phone]').val();
+		},
+		getContent: function(itemData) {
+			// 시운전: trialKey%26uid
+			return itemData.trialKey + '%26' + itemData.uid;
+		},
+		getItemName: function(tr) {
+			return tr.find('input[name=name]').val() || '이름없음';
+		},
+		checkPhoneRequired: true
+	});
+}
+
 //SCP 전송
 function scpSave() {
 	//alert(1);
@@ -964,7 +1000,7 @@ function addCrew() {
 					'<td class="text-center th-w-150">' + '<input name="department" type="text">' + '</td>' + 
 					'<td class="text-center  th-w-150">' + '<input name="name" type="text">' + '</td>' + 
 					'<td class="text-center th-w-100">' + '<input name="rank" type="text">' + '</td>' + 
-					'<td class="text-center">' + '<input name="idNo" type="text">' + 					'</td>' + 
+					'<td class="text-center th-w-120">' + '<input name="idNo" type="text">' + 					'</td>' + 
 					'<td class="text-center th-w-150">' + 
 						'<select name="workType1" onchange="setWorkType2(' + rowId + ', this.value)">' +
 							'<option value="A">시운전</option>' + 
@@ -1093,6 +1129,22 @@ function popDeleteCrewModal() {
 	}
 	
 	if($('input[name=listChk]:checked').length > 0) {
+		// 발주된 항목 체크
+		let hasOrderedItem = false;
+		$('input[name=listChk]:checked').each(function(index, checkbox) {
+			let tr = $(checkbox).closest('tr');
+			let orderStatusCheckbox = tr.find('input[name=orderStatus]');
+			if(orderStatusCheckbox.is(':checked')) {
+				hasOrderedItem = true;
+				return false; // break
+			}
+		});
+		
+		if(hasOrderedItem) {
+			alertPop('발주 된 항목은 삭제 불가 합니다.');
+			return;
+		}
+		
 		$('#delModal').modal();
 	}else {
 		alertPop($.i18n.t('delPop.selectMsg'));
@@ -1255,23 +1307,49 @@ function excelUpload(event) {
 		alertPop($.i18n.t('error.upload'));
 		return;
 	}
-	
+	console.log($('#ship').val());
 	//업로드시 호선 번호 필수 선택
-	if($('#ship').val() == "ALL") {
-			alertPop($.i18n.t('errorShip'));
-			isError = true;
+	let shipValue = $('#ship').val();
+	if(!shipValue || shipValue == "" || shipValue == "ALL") {
+		alertPop($.i18n.t('errorShip'));
+		return;
+	}
+	
+	let input = event.target;
+	
+	// 파일이 선택되었는지 확인
+	if(!input.files || input.files.length === 0) {
+		alertPop('파일을 선택해주세요.');
+		return;
 	}
 	
 	$('#loading').css('display','block');
 	
-	let input = event.target;
 	let reader = new FileReader();
+	
+	// FileReader 오류 처리
+	reader.onerror = function(e) {
+		console.error('FileReader error:', e);
+		$('#loading').css('display','none');
+		alertPop('파일을 읽는 중 오류가 발생했습니다. 파일이 손상되었거나 지원하지 않는 형식일 수 있습니다.');
+		input.value = '';
+	};
 	
 	reader.onload = function() {
 		try {
 			let fileData = reader.result;
 			let json = null;
-			alert(fileData.indexOf('Fasoo DRM'));
+			
+			// 파일 데이터가 비어있는지 확인
+			if(!fileData || fileData.length === 0) {
+				$('#loading').css('display','none');
+				alertPop('파일이 비어있거나 읽을 수 없습니다.');
+				input.value = '';
+				return;
+			}
+			
+			console.log('File data length:', fileData.length);
+			
 			// DRM 걸린 파일 인지 확인
 			if(fileData.indexOf('Fasoo DRM') > -1){
 				
@@ -1286,37 +1364,104 @@ function excelUpload(event) {
 					processData: false,
 					dataType: "json",
 					success: function(response, textStatus, xhr) {
-						if ("success" === textStatus) {
-							makeDataList(response.list);
+						$('#loading').css('display','none');
+						if ("success" === textStatus && response.list) {
+							try {
+								makeDataList(response.list);
+							} catch(e) {
+								console.error('Error in makeDataList:', e);
+								alertPop('데이터 처리 중 오류가 발생했습니다: ' + (e.message || '알 수 없는 오류'));
+							}
+						} else {
+							alertPop('파일 업로드에 실패했습니다.');
 						}
 					},
-					error: function(error) {
+					error: function(xhr, status, error) {
+						$('#loading').css('display','none');
 						console.error('Error DRM file:', error);
-					},
-					beforeSend: function() {
-						$('#loading').css("display","block");
+						alertPop('파일 업로드 중 오류가 발생했습니다: ' + error);
 					},
 					complete: function() {
-						// success나 error에서 이미 로딩을 숨김
+						input.value = '';
 					}
 				});
 				
 			} else{
 				
-				let fileBinary = XLSX.read(fileData, {type: 'binary', cellDates: true, cellText: true, cellNF: false, dateNF: 'yyyy-mm-dd'});
+				// XLSX 파일 읽기
+				let fileBinary;
+				try {
+					fileBinary = XLSX.read(fileData, {type: 'binary', cellDates: true, cellText: true, cellNF: false, dateNF: 'yyyy-mm-dd'});
+				} catch(e) {
+					$('#loading').css('display','none');
+					console.error('XLSX read error:', e);
+					alertPop('엑셀 파일을 읽는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.');
+					input.value = '';
+					return;
+				}
+				
+				if(!fileBinary || !fileBinary.SheetNames || fileBinary.SheetNames.length === 0) {
+					$('#loading').css('display','none');
+					alertPop('엑셀 파일에 시트가 없습니다.');
+					input.value = '';
+					return;
+				}
+				
 				let sheetNameList = fileBinary.SheetNames;
 				let sheet = fileBinary.Sheets[sheetNameList[0]];
-				json = XLSX.utils.sheet_to_json(sheet, {raw: false, dateNF: 'yyyy-mm-dd'});
 				
-				makeDataList(json);
+				if(!sheet) {
+					$('#loading').css('display','none');
+					alertPop('엑셀 파일의 첫 번째 시트를 읽을 수 없습니다.');
+					input.value = '';
+					return;
+				}			 
+				
+				try {
+					json = XLSX.utils.sheet_to_json(sheet, {raw: false, dateNF: 'yyyy-mm-dd'});
+					
+					// 디버깅: JSON 변환 후 컬럼명 확인
+					if(json && json.length > 0) {
+						console.log('JSON 변환 후 첫 번째 행의 모든 키:', Object.keys(json[0]));
+					}
+				} catch(e) {
+					$('#loading').css('display','none');
+					console.error('XLSX sheet_to_json error:', e);
+					alertPop('엑셀 데이터 변환 중 오류가 발생했습니다.');
+					input.value = '';
+					return;
+				}
+				
+				console.log('Parsed JSON data length:', json ? json.length : 0);
+				
+				if(!json || !Array.isArray(json)) {
+					$('#loading').css('display','none');
+					alertPop('엑셀 데이터를 읽을 수 없습니다. 파일 형식을 확인해주세요.');
+					input.value = '';
+					return;
+				}
+				
+				// makeDataList 함수 호출
+				try {
+					makeDataList(json);
+				} catch(e) {
+					$('#loading').css('display','none');
+					console.error('Error in makeDataList:', e);
+					alertPop('데이터 처리 중 오류가 발생했습니다: ' + (e.message || '알 수 없는 오류'));
+					input.value = '';
+					return;
+				}
 			}
 			
+			$('#loading').css('display','none');
+			
 		}catch(e) {
-			alertPop($.i18n.t('share:tryAgain'));
+			$('#loading').css('display','none');
+			console.error('Excel upload error:', e);
+			console.error('Error stack:', e.stack);
+			alertPop('파일 업로드 중 오류가 발생했습니다: ' + (e.message || '알 수 없는 오류'));
+			input.value = '';
 		}
-		
-		input.value = '';
-		$('#loading').css('display','none');
 	};
 	
 	reader.readAsBinaryString(input.files[0]);
@@ -1346,9 +1491,9 @@ function roomUpload(event) {
 		return;
 	}
 
-				let ship = $('#ship').val();
-				let schedulerInfoUid = ship && ship != '' && ship != 'ALL' ? ship : 0;
-				let trialKey = $('#ship option:selected').text();
+	let ship = $('#ship').val();
+	let schedulerInfoUid = ship && ship != '' && ship != 'ALL' ? ship : 0;
+	let trialKey = $('#ship option:selected').text();
 	let projNo = trialKey ? trialKey.substring(0, Math.min(6, trialKey.length)) : '';
 				
 	const formData = new FormData();
@@ -1394,8 +1539,96 @@ function roomProcessData(json) {
 	// getRegistrationCrewList(1);
 }
 
+// 역할2 한글값을 코드값으로 변환
+function convertWorkType2(workType1, workType2) {
+	if(!workType2 || workType2 == '-' || workType2 == '') {
+		if(workType1 == 'A') return 'A0';
+		else if(workType1 == 'B') return 'B0';
+		else if(workType1 == 'C') return 'C0';
+		else if(workType1 == 'D') return 'D0';
+		else if(workType1 == 'E') return 'E0';
+		return '-';
+	}
+	
+	// 이미 코드값인 경우 그대로 반환
+	if(/^[A-E][0-8]$/.test(workType2)) {
+		return workType2;
+	}
+	
+	// A: 시운전
+	if(workType1 == 'A') {
+		if(workType2 == '코맨더') return 'A1';
+		else if(workType2 == '기장운전') return 'A2';
+		else if(workType2 == '선장운전') return 'A3';
+		else if(workType2 == '전장운전') return 'A4';
+		else if(workType2 == '항통') return 'A5';
+		else if(workType2 == '안벽의장') return 'A6';
+		else if(workType2 == '기타') return 'A7';
+	}
+	// B: 생산
+	else if(workType1 == 'B') {
+		if(workType2 == '기관과') return 'B1';
+		else if(workType2 == '기타') return 'B2';
+	}
+	// C: 설계연구소
+	else if(workType1 == 'C') {
+		if(workType2 == '종합설계') return 'C1';
+		else if(workType2 == '기장설계') return 'C2';
+		else if(workType2 == '선장설계') return 'C3';
+		else if(workType2 == '전장설계') return 'C4';
+		else if(workType2 == '진동연구') return 'C5';
+		else if(workType2 == '기타') return 'C6';
+	}
+	// D: 지원
+	else if(workType1 == 'D') {
+		if(workType2 == '안전') return 'D1';
+		else if(workType2 == '캐터링') return 'D2';
+		else if(workType2 == 'QM') return 'D3';
+		else if(workType2 == 'PM') return 'D4';
+		else if(workType2 == '기타') return 'D5';
+	}
+	// E: 외부
+	else if(workType1 == 'E') {
+		if(workType2 == 'Owner') return 'E1';
+		else if(workType2 == 'Class') return 'E2';
+		else if(workType2 == 'S/E') return 'E3';
+		else if(workType2 == '선장') return 'E4';
+		else if(workType2 == '항해사') return 'E5';
+		else if(workType2 == '기관장') return 'E6';
+		else if(workType2 == '라인맨') return 'E7';
+		else if(workType2 == '기타') return 'E8';
+	}
+	
+	return workType2; // 변환되지 않은 경우 원래 값 반환
+}
+
+// 체크박스 값 변환 (Y/YES/예/1/true 등 → Y)
+function convertCheckboxValue(value) {
+	if(!value || value == '') return '';
+	let val = String(value).trim().toUpperCase();
+	if(val == 'Y' || val == 'YES' || val == '예' || val == '1' || val == 'TRUE' || val == 'TRUE' || val == 'ON') {
+		return 'Y';
+	}
+	return '';
+}
+
 // 데이터 리스트 생성 및 데이터 세팅 호출
 function makeDataList(json){
+	// 입력 검증
+	if(!json) {
+		console.error('makeDataList: json is null or undefined');
+		alertPop('데이터가 없습니다.');
+		$('#loading').css('display','none');
+		return;
+	}
+	
+	if(!Array.isArray(json)) {
+		console.error('makeDataList: json is not an array', json);
+		alertPop('데이터 형식이 올바르지 않습니다.');
+		$('#loading').css('display','none');
+		return;
+	}
+	
 	let isError = false;
 	let errMsg = '';	
 	let trialKeyList = [];
@@ -1423,9 +1656,18 @@ function makeDataList(json){
 	let foreignerList = [];
 	let passportNoList = [];
 	let orderStatusList = [];
+	let roomNoList = [];
+	let boatNmList = [];
 	//let deleteYnList = [];
 	
 	if(json.length > 0) {
+		// 디버깅: 첫 번째 행의 엑셀 컬럼명 확인
+		if(json.length > 0) {
+			let columnNames = Object.keys(json[0]);
+			console.log('엑셀 파일의 컬럼명 목록 (첫 번째 행):', columnNames);
+			console.log('첫 번째 행의 원본 데이터:', json[0]);
+		}
+		
 		for(let i = 0; i < json.length; i++) {
 			let data = json[i];		
 
@@ -1435,32 +1677,120 @@ function makeDataList(json){
 			//alert(trialKey + "/" + pjt);
 			
 			let kind = isNull(data['구분'], '');
+			// 구분 변환: 한글값 → 코드값
+			if(kind == 'SHI-기술지원직') kind = 'SHI-A';
+			else if(kind == 'SHI-생산직') kind = 'SHI-B';
+			else if(kind == 'SHI-협력사') kind = 'SHI-C';
+			else if(kind == '외부') kind = 'OUTSIDE';
+			
 			let company = isNull(data['회사'], '');
 			let department = isNull(data['부서'], '');
 			let name = isNull(data['성명'], '');
 			let rank = isNull(data['직급'], '');
-			let idNo = isNull(data['사번'], '');
+			
+			// 여러 가능한 컬럼명 시도 (공백, 대소문자 등 고려)
+			let idNo = isNull(data['사번'], '');		 
 			let workType1 = isNull(data['역할1'], '');
+			// 역할1 변환: 한글값 → 코드값
+			if(workType1 == '시운전') workType1 = 'A';
+			else if(workType1 == '생산') workType1 = 'B';
+			else if(workType1 == '설계연구소') workType1 = 'C';
+			else if(workType1 == '지원') workType1 = 'D';
+			else if(workType1 == '외부') workType1 = 'E';
+			
 			let workType2 = isNull(data['역할2'], '-');
+			// 역할2 변환: 한글값 → 코드값 (workType1에 따라 다름)
+			workType2 = convertWorkType2(workType1, workType2);
+			
 			let work = isNull(data['업무'], '');
+			
 			let mainSub = isNull(data['정/부'], '-');
+			// 정/부 변환
+			if(mainSub == '정') mainSub = 'M';
+			else if(mainSub == '부') mainSub = 'S';
+			else if(mainSub == '-' || mainSub == '') mainSub = 'N';
+			
 			let foodStyle = isNull(data['한식/양식'], '');
+			// 한식/양식 변환
+			if(foodStyle == '한식') foodStyle = 'K';
+			else if(foodStyle == '양식(Normal Western)' || foodStyle == '양식' || foodStyle == 'Normal Western') foodStyle = 'W';
+			else if(foodStyle == '양식(Halal)' || foodStyle == 'Halal') foodStyle = 'H';
+			else if(foodStyle == '양식(Veg. fruitarian)' || foodStyle == 'Veg. fruitarian') foodStyle = 'V1';
+			else if(foodStyle == '양식(Veg. vegan)' || foodStyle == 'Veg. vegan') foodStyle = 'V2';
+			else if(foodStyle == '양식(Veg. lacto-veg.)' || foodStyle == 'Veg. lacto-veg.') foodStyle = 'V3';
+			else if(foodStyle == '양식(Veg. ovo-veg.)' || foodStyle == 'Veg. ovo-veg.') foodStyle = 'V4';
+			else if(foodStyle == '양식(Veg. lacto-ovo-veg.)' || foodStyle == 'Veg. lacto-ovo-veg.') foodStyle = 'V5';
+			else if(foodStyle == '양식(Veg. pesco-veg.)' || foodStyle == 'Veg. pesco-veg.') foodStyle = 'V6';
+			else if(foodStyle == '양식(Veg. pollo-veg.)' || foodStyle == 'Veg. pollo-veg.') foodStyle = 'V7';
+			else if(foodStyle == '양식(Veg. flexitarian)' || foodStyle == 'Veg. flexitarian') foodStyle = 'V8';
+			
 			let personNo = isNull(data['생년월일'], '');
+			
 			let gender = isNull(data['성별'], '');
+			// 성별 변환
+			if(gender == '남') gender = 'M';
+			else if(gender == '여') gender = 'F';
+			
 			let phone = isNull(data['전화번호'], '');
 			let inDate = isNull(data['승선일'], '');
 			let outDate = isNull(data['하선일'], '');
+			let roomNo = isNull(data['방번호'], '');
+			
 			let terminal = isNull(data['터미널'], '');
+			// 터미널 변환: 'Y', 'YES', '예', '1', 체크박스 체크 등 → 'Y'
+			// '-' 값도 처리: '-'는 빈 값으로 처리
+			if(terminal == '-' || terminal == '') {
+				terminal = '';
+			} else {
+				terminal = convertCheckboxValue(terminal);
+			}
+			
 			let laptop = isNull(data['노트북'], '');
+			// 노트북 변환
+			// '-' 값도 처리: '-'는 빈 값으로 처리
+			if(laptop == '-' || laptop == '') {
+				laptop = '';
+			} else {
+				laptop = convertCheckboxValue(laptop);
+			}
+			
 			let modelNm = isNull(data['모델명'], '');
 			let serialNo = isNull(data['시리얼번호'], '');
+			
 			let foreigner = isNull(data['외국인여부'], '');
+			// 외국인여부 변환
+			// '-' 값도 처리: '-'는 빈 값으로 처리
+			if(foreigner == '-' || foreigner == '') {
+				foreigner = '';
+			} else {
+				foreigner = convertCheckboxValue(foreigner);
+			}
+			
 			let passportNo = isNull(data['여권번호'], '');
+			
 			let orderStatus = isNull(data['발주'], '');
+			// 발주 변환
+			orderStatus = convertCheckboxValue(orderStatus);
+			
+			let boatNm = isNull(data['배이름'], '');
 			//let deleteYn = isNull(data['삭제'], '');
 			
 			if(department == '' && name == '' && phone == '') {
 				break;
+			}
+			
+			// 디버깅: 첫 번째 행만 로그 출력
+			if(i === 0) {
+				console.log('엑셀 데이터 읽기 (첫 번째 행):', {
+					rank: rank,
+					idNo: idNo,
+					work: work,
+					mainSub: mainSub,
+					gender: gender,
+					terminal: terminal,
+					laptop: laptop,
+					foreigner: foreigner
+				});
 			}
 			
 			trialKeyList.push(trialKey);
@@ -1469,25 +1799,27 @@ function makeDataList(json){
 			companyList.push(company);
 			departmentList.push(department);
 			nameList.push(name);
-			rankList.push(rank);
-			idNoList.push(idNo);
-			workType1List.push(workType1);
-			workType2List.push(workType2);
-			workList.push(work);
-			mainSubList.push(mainSub);
-			foodStyleList.push(foodStyle);
-			personNoList.push(personNo);
-			genderList.push(gender);
-			phoneList.push(phone);
-			inDateList.push(inDate);
-			outDateList.push(outDate);
-			terminalList.push(terminal);
-			laptopList.push(laptop);
-			modelNmList.push(modelNm);
-			serialNoList.push(serialNo);
-			foreignerList.push(foreigner);
-			passportNoList.push(passportNo);
-			orderStatusList.push(orderStatus);
+			rankList.push(rank || '');
+			idNoList.push(idNo || '');
+			workType1List.push(workType1 || '');
+			workType2List.push(workType2 || '');
+			workList.push(work || '');
+			mainSubList.push(mainSub || 'N');
+			foodStyleList.push(foodStyle || '');
+			personNoList.push(personNo || '');
+			genderList.push(gender || '');
+			phoneList.push(phone || '');
+			inDateList.push(inDate || '');
+			outDateList.push(outDate || '');
+			roomNoList.push(roomNo || '');
+			terminalList.push(terminal || '');
+			laptopList.push(laptop || '');
+			modelNmList.push(modelNm || '');
+			serialNoList.push(serialNo || '');
+			foreignerList.push(foreigner || '');
+			passportNoList.push(passportNo || '');
+			orderStatusList.push(orderStatus || '');
+			boatNmList.push(boatNm || '');
 			//deleteYnList.push(deleteYn);
 		}
 		
@@ -1496,7 +1828,7 @@ function makeDataList(json){
 		}else {
 			setExcelData(trialKeyList, pjtList, kindList, companyList, departmentList, nameList, rankList, idNoList, workType1List,
 				 workType2List, workList, mainSubList, foodStyleList, personNoList, genderList, phoneList, inDateList, outDateList, 
-				 terminalList, laptopList, modelNmList, serialNoList, foreignerList, passportNoList, orderStatusList);
+				 roomNoList, terminalList, laptopList, modelNmList, serialNoList, foreignerList, passportNoList, orderStatusList, boatNmList);
 		}
 	}else {
 		alertPop($.i18n.t('excelUp.errorListMin'));
@@ -1508,48 +1840,71 @@ function makeDataList(json){
 // 양식 업로드 데이터 세팅.
 function setExcelData(trialKeyList, pjtList,kindList, companyList, departmentList, nameList, rankList, idNoList, workType1List,
 				 workType2List, workList, mainSubList, foodStyleList, personNoList, genderList, phoneList, inDateList, outDateList, 
-				 terminalList, laptopList, modelNmList, serialNoList, foreignerList, passportNoList, orderStatusList) {
+				 roomNoList, terminalList, laptopList, modelNmList, serialNoList, foreignerList, passportNoList, orderStatusList, boatNmList) {
 	$('#tbRowList').empty();
 	_crewCnt = 0;
+	
+	// ship 선택값 가져오기 (addCrew와 동일한 방식)
+	let selectedShip = $('#ship').val();
+	let selectedShipUid = selectedShip || ''; // scheduleUid
+	let selectedShipTrialKey = $('#ship option:selected').text() || ''; // trialKey 표시용
 	
 	for(let i = 0; i < kindList.length; i++) {
 		_crewCnt++;
 		let rowId = _tbRowId++;
 		let uid = -1;
-		let trialKey = trialKeyList[i];
-		let project = pjtList[i];		
+		let trialKey = trialKeyList[i] || selectedShipTrialKey;
+		let project = pjtList[i] || '';		
 		let kind = kindList[i];
 		let company = companyList[i];
 		
-		let department = departmentList[i];
-		let name = nameList[i];
-		let rank = rankList[i];
-		let idNo = idNoList[i];
-		let workType1 = workType1List[i];
-		let workType2 = workType2List[i];
+		let department = departmentList[i] || '';
+		let name = nameList[i] || '';
+		let rank = rankList[i] || '';
+		let idNo = idNoList[i] || '';
+		let workType1 = workType1List[i] || '';
+		let workType2 = workType2List[i] || '';
 		//alert(workType1 + "/" + workType2);
-		let work = workList[i];
-		let mainSub = mainSubList[i];
-		let foodStyle = foodStyleList[i];
-		let personNo = personNoList[i];
-		let gender = genderList[i];
-		let phone = phoneList[i];
-		let inDate = inDateList[i];
-		let outDate = outDateList[i];		
-		let terminal = terminalList[i];
-		let laptop = laptopList[i];
-		let modelNm = modelNmList[i];
-		let serialNo = serialNoList[i];
-		let foreigner = foreignerList[i];
-		let passportNo = passportNoList[i];
-		let orderStatus = orderStatusList[i];
+		let work = workList[i] || '';
+		let mainSub = mainSubList[i] || 'N';
+		let foodStyle = foodStyleList[i] || '';
+		let personNo = personNoList[i] || '';
+		let gender = genderList[i] || '';
+		let phone = phoneList[i] || '';
+		let inDate = inDateList[i] || '';
+		let outDate = outDateList[i] || '';
+		let roomNo = roomNoList && roomNoList[i] ? roomNoList[i] : '';
+		let terminal = terminalList[i] || '';
+		let laptop = laptopList[i] || '';
+		let modelNm = modelNmList[i] || '';
+		let serialNo = serialNoList[i] || '';
+		let foreigner = foreignerList[i] || '';
+		let passportNo = passportNoList[i] || '';
+		let orderStatus = orderStatusList[i] || '';
+		let boatNm = boatNmList && boatNmList[i] ? boatNmList[i] : '';
+		
+		// 디버깅: 첫 번째 행만 로그 출력
+		if(i === 0) {
+			console.log('setExcelData 데이터 확인 (첫 번째 행):', {
+				rank: rank,
+				idNo: idNo,
+				work: work,
+				mainSub: mainSub,
+				gender: gender,
+				terminal: terminal,
+				laptop: laptop,
+				foreigner: foreigner
+			});
+		}
 
+		// addCrew()와 동일한 구조로 HTML 생성
 		let text = '<tr id="tbRow_' + rowId + '">' + 
 						'<td class="text-center"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
 						'<td class="text-center"><div name="no">' + _crewCnt + '</div></td>' +
-						'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
-						'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' + 
-						'<td class="text-center" style="display: none">' + '<input name="pjt" type="text" value="' + project+ '" disabled>' + '</td>' + 
+						'<td class="text-center" style="display: none">'+ '<input name="uid" type="hidden" value="' + uid + '">' + '</td>' +
+						'<td class="text-center">' + '<div>' + selectedShipUid + '</div><input name="scheduleUid" type="hidden" value="' + selectedShipUid + '">' + '</td>' +
+						'<td class="text-center">' + '<div>' + trialKey + '</div><input name="trialKey" type="hidden" value="' + trialKey + '">' + '</td>' + 
+						'<td class="text-center">' + '<div>' + project + '</div><input name="pjt" type="hidden" value="' + project + '">' + '</td>' + 
 						'<td class="text-center th-w-150">' + 
 							'<select name="kind">';
 							
@@ -1565,15 +1920,15 @@ function setExcelData(trialKeyList, pjtList,kindList, companyList, departmentLis
 						'<td class="text-center th-w-150">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 
 						'<td class="text-center  th-w-150">' + '<input name="name" type="text" value="' + name + '">' + '</td>' + 
 						'<td class="text-center th-w-100">' + '<input name="rank" type="text" value="' + rank + '">' + '</td>' + 
-						'<td class="text-center">' + '<input name="idNo" type="text" value="' + idNo + '">' + '</td>' + 
+						'<td class="text-center th-w-120">' + '<input name="idNo" type="text" value="' + idNo + '">' + '</td>' + 
 						'<td class="text-center th-w-150">' + 
 							'<select name="workType1" onchange="setWorkType2(' + rowId + ', this.value)">';
 							
-						text += '<option value="A"' + (workType1 == '시운전' ? ' selected' : '') + '>시운전</option>' + 
-								'<option value="B"' + (workType1 == '생산' ? ' selected' : '') + '>생산</option>' + 
-								'<option value="C"' + (workType1 == '설계연구소' ? ' selected' : '') + '>설계연구소</option>' + 
-								'<option value="D"' + (workType1 == '지원' ? ' selected' : '') + '>지원</option>' + 
-								'<option value="E"' + (workType1 == '외부' ? ' selected' : '') + '>외부</option>';
+						text += '<option value="A"' + (workType1 == 'A' ? ' selected' : '') + '>시운전</option>' + 
+								'<option value="B"' + (workType1 == 'B' ? ' selected' : '') + '>생산</option>' + 
+								'<option value="C"' + (workType1 == 'C' ? ' selected' : '') + '>설계연구소</option>' + 
+								'<option value="D"' + (workType1 == 'D' ? ' selected' : '') + '>지원</option>' + 
+								'<option value="E"' + (workType1 == 'E' ? ' selected' : '') + '>외부</option>';
 								
 					text += '</select>' +
 						'</td>' + 
@@ -1581,43 +1936,43 @@ function setExcelData(trialKeyList, pjtList,kindList, companyList, departmentLis
 							'<select id="workType2_' + rowId + '" name="workType2">';
 							
 					if(workType1 == 'A') {
-						text += '<option value="A0"' + (workType2 == '-' ? ' selected' : '') + '>-</option>' + 
-								'<option value="A1"' + (workType2 == '코맨더' ? ' selected' : '') + '>코맨더</option>' + 
-								'<option value="A2"' + (workType2 == '기장운전' ? ' selected' : '') + '>기장운전</option>' + 
-								'<option value="A3"' + (workType2 == '선장운전' ? ' selected' : '') + '>선장운전</option>' + 
-								'<option value="A4"' + (workType2 == '전장운전' ? ' selected' : '') + '>전장운전</option>' + 
-								'<option value="A5"' + (workType2 == '항통' ? ' selected' : '') + '>항통</option>' + 
-								'<option value="A6"' + (workType2 == '안벽의장' ? ' selected' : '') + '>안벽의장</option>' + 
-								'<option value="A7"' + (workType2 == '기타' ? ' selected' : '') + '>기타</option>';
+						text += '<option value="A0"' + (workType2 == 'A0' || workType2 == '-' ? ' selected' : '') + '>-</option>' + 
+								'<option value="A1"' + (workType2 == 'A1' ? ' selected' : '') + '>코맨더</option>' + 
+								'<option value="A2"' + (workType2 == 'A2' ? ' selected' : '') + '>기장운전</option>' + 
+								'<option value="A3"' + (workType2 == 'A3' ? ' selected' : '') + '>선장운전</option>' + 
+								'<option value="A4"' + (workType2 == 'A4' ? ' selected' : '') + '>전장운전</option>' + 
+								'<option value="A5"' + (workType2 == 'A5' ? ' selected' : '') + '>항통</option>' + 
+								'<option value="A6"' + (workType2 == 'A6' ? ' selected' : '') + '>안벽의장</option>' + 
+								'<option value="A7"' + (workType2 == 'A7' ? ' selected' : '') + '>기타</option>';
 					}else if(workType1 == 'B') {
-						text += '<option value="B0"' + (workType2 == '-' ? ' selected' : '') + '>-</option>' + 
-								'<option value="B1"' + (workType2 == '기관과' ? ' selected' : '') + '>기관과</option>' + 
-								'<option value="B2"' + (workType2 == '기타' ? ' selected' : '') + '>기타</option>';
+						text += '<option value="B0"' + (workType2 == 'B0' || workType2 == '-' ? ' selected' : '') + '>-</option>' + 
+								'<option value="B1"' + (workType2 == 'B1' ? ' selected' : '') + '>기관과</option>' + 
+								'<option value="B2"' + (workType2 == 'B2' ? ' selected' : '') + '>기타</option>';
 					}else if(workType1 == 'C') {
-						text += '<option value="C0"' + (workType2 == '-' ? ' selected' : '') + '>-</option>' + 
-								'<option value="C1"' + (workType2 == '종합설계' ? ' selected' : '') + '>종합설계</option>' + 
-								'<option value="C2"' + (workType2 == '기장설계' ? ' selected' : '') + '>기장설계</option>' + 
-								'<option value="C3"' + (workType2 == '선장설계' ? ' selected' : '') + '>선장설계</option>' + 
-								'<option value="C4"' + (workType2 == '전장설계' ? ' selected' : '') + '>전장설계</option>' + 
-								'<option value="C5"' + (workType2 == '진동연구' ? ' selected' : '') + '>진동연구</option>' + 
-								'<option value="C6"' + (workType2 == '기타' ? ' selected' : '') + '>기타</option>';
+						text += '<option value="C0"' + (workType2 == 'C0' || workType2 == '-' ? ' selected' : '') + '>-</option>' + 
+								'<option value="C1"' + (workType2 == 'C1' ? ' selected' : '') + '>종합설계</option>' + 
+								'<option value="C2"' + (workType2 == 'C2' ? ' selected' : '') + '>기장설계</option>' + 
+								'<option value="C3"' + (workType2 == 'C3' ? ' selected' : '') + '>선장설계</option>' + 
+								'<option value="C4"' + (workType2 == 'C4' ? ' selected' : '') + '>전장설계</option>' + 
+								'<option value="C5"' + (workType2 == 'C5' ? ' selected' : '') + '>진동연구</option>' + 
+								'<option value="C6"' + (workType2 == 'C6' ? ' selected' : '') + '>기타</option>';
 					}else if(workType1 == 'D') {
-						text += '<option value="D0"' + (workType2 == '-' ? ' selected' : '') + '>-</option>' + 
-								'<option value="D1"' + (workType2 == '안전' ? ' selected' : '') + '>안전</option>' + 
-								'<option value="D2"' + (workType2 == '캐터링' ? ' selected' : '') + '>캐터링</option>' + 
-								'<option value="D3"' + (workType2 == 'QM' ? ' selected' : '') + '>QM</option>' + 
-								'<option value="D4"' + (workType2 == 'PM' ? ' selected' : '') + '>PM</option>' + 
-								'<option value="D5"' + (workType2 == '기타' ? ' selected' : '') + '>기타</option>';
+						text += '<option value="D0"' + (workType2 == 'D0' || workType2 == '-' ? ' selected' : '') + '>-</option>' + 
+								'<option value="D1"' + (workType2 == 'D1' ? ' selected' : '') + '>안전</option>' + 
+								'<option value="D2"' + (workType2 == 'D2' ? ' selected' : '') + '>캐터링</option>' + 
+								'<option value="D3"' + (workType2 == 'D3' ? ' selected' : '') + '>QM</option>' + 
+								'<option value="D4"' + (workType2 == 'D4' ? ' selected' : '') + '>PM</option>' + 
+								'<option value="D5"' + (workType2 == 'D5' ? ' selected' : '') + '>기타</option>';
 					}else if(workType1 == 'E') {
-						text += '<option value="E0"' + (workType2 == '-' ? ' selected' : '') + '>-</option>' + 
-								'<option value="E1"' + (workType2 == 'Owner' ? ' selected' : '') + '>Owner</option>' + 
-								'<option value="E2"' + (workType2 == 'Class' ? ' selected' : '') + '>Class</option>' + 
-								'<option value="E3"' + (workType2 == 'S/E' ? ' selected' : '') + '>S/E</option>' + 
-								'<option value="E4"' + (workType2 == '선장' ? ' selected' : '') + '>선장</option>' + 
-								'<option value="E5"' + (workType2 == '항해사' ? ' selected' : '') + '>항해사</option>' + 
-								'<option value="E6"' + (workType2 == '기관장' ? ' selected' : '') + '>기관장</option>' + 
-								'<option value="E7"' + (workType2 == '라인맨' ? ' selected' : '') + '>라인맨</option>' + 
-								'<option value="E8"' + (workType2 == '기타' ? ' selected' : '') + '>기타</option>';
+						text += '<option value="E0"' + (workType2 == 'E0' || workType2 == '-' ? ' selected' : '') + '>-</option>' + 
+								'<option value="E1"' + (workType2 == 'E1' ? ' selected' : '') + '>Owner</option>' + 
+								'<option value="E2"' + (workType2 == 'E2' ? ' selected' : '') + '>Class</option>' + 
+								'<option value="E3"' + (workType2 == 'E3' ? ' selected' : '') + '>S/E</option>' + 
+								'<option value="E4"' + (workType2 == 'E4' ? ' selected' : '') + '>선장</option>' + 
+								'<option value="E5"' + (workType2 == 'E5' ? ' selected' : '') + '>항해사</option>' + 
+								'<option value="E6"' + (workType2 == 'E6' ? ' selected' : '') + '>기관장</option>' + 
+								'<option value="E7"' + (workType2 == 'E7' ? ' selected' : '') + '>라인맨</option>' + 
+								'<option value="E8"' + (workType2 == 'E8' ? ' selected' : '') + '>기타</option>';
 							};
 					text += '</select>' +
 						'</td>' + 
@@ -1625,26 +1980,26 @@ function setExcelData(trialKeyList, pjtList,kindList, companyList, departmentLis
 						'<td class="text-center">' + 
 							'<select name="mainSub">';
 							
-						text += '<option value="N"' + (mainSub == '-' ? ' selected' : '') + '>-</option>' + 
-								'<option value="M"' + (mainSub == '정' ? ' selected' : '') + '>정</option>' + 
-								'<option value="S"' + (mainSub == '부' ? ' selected' : '') + '>부</option>';
+						text += '<option value="N"' + (mainSub == 'N' || mainSub == '-' ? ' selected' : '') + '>-</option>' + 
+								'<option value="M"' + (mainSub == 'M' ? ' selected' : '') + '>정</option>' + 
+								'<option value="S"' + (mainSub == 'S' ? ' selected' : '') + '>부</option>';
 								
 					text += '</select>' +
 						'</td>' + 
 						'<td class="text-center">' + 
 							'<select name="foodStyle">';
 							
-						text += '<option value="K"' + (foodStyle == '한식' ? ' selected' : '') + '>한식</option>' + 
-								'<option value="W"' + (foodStyle == '양식(Normal Western)' ? ' selected' : '') + '>양식(Normal Western)</option>' + 	
-								'<option value="H"' + (foodStyle == '양식(Halal)' ? ' selected' : '') + '>양식(Halal)</option>' + 	
-								'<option value="V1"' + (foodStyle == '양식(Veg. fruitarian)' ? ' selected' : '') + '>양식(Veg. fruitarian)</option>' + 	
-								'<option value="V2"' + (foodStyle == '양식(Veg. vegan)' ? ' selected' : '') + '>양식(Veg. vegan)</option>' + 	
-								'<option value="V3"' + (foodStyle == '양식(Veg. lacto-veg.)' ? ' selected' : '') + '>양식(Veg. lacto-veg.)</option>' + 	
-								'<option value="V4"' + (foodStyle == '양식(Veg. ovo-veg.)' ? ' selected' : '') + '>양식(Veg. ovo-veg.)</option>' + 	
-								'<option value="V5"' + (foodStyle == '양식(Veg. lacto-ovo-veg.)' ? ' selected' : '') + '>양식(Veg. lacto-ovo-veg.)</option>' + 	
-								'<option value="V6"' + (foodStyle == '양식(Veg. pesco-veg.)' ? ' selected' : '') + '>양식(Veg. pesco-veg.)</option>' + 	
-								'<option value="V7"' + (foodStyle == '양식(Veg. pollo-veg.)' ? ' selected' : '') + '>양식(Veg. pollo-veg.)</option>' + 	
-								'<option value="V8"' + (foodStyle == '양식(Veg. flexitarian)' ? ' selected' : '') + '>양식(Veg. flexitarian)</option>';
+						text += '<option value="K"' + (foodStyle == 'K' ? ' selected' : '') + '>한식</option>' + 
+								'<option value="W"' + (foodStyle == 'W' ? ' selected' : '') + '>양식(Normal Western)</option>' + 	
+								'<option value="H"' + (foodStyle == 'H' ? ' selected' : '') + '>양식(Halal)</option>' + 	
+								'<option value="V1"' + (foodStyle == 'V1' ? ' selected' : '') + '>양식(Veg. fruitarian)</option>' + 	
+								'<option value="V2"' + (foodStyle == 'V2' ? ' selected' : '') + '>양식(Veg. vegan)</option>' + 	
+								'<option value="V3"' + (foodStyle == 'V3' ? ' selected' : '') + '>양식(Veg. lacto-veg.)</option>' + 	
+								'<option value="V4"' + (foodStyle == 'V4' ? ' selected' : '') + '>양식(Veg. ovo-veg.)</option>' + 	
+								'<option value="V5"' + (foodStyle == 'V5' ? ' selected' : '') + '>양식(Veg. lacto-ovo-veg.)</option>' + 	
+								'<option value="V6"' + (foodStyle == 'V6' ? ' selected' : '') + '>양식(Veg. pesco-veg.)</option>' + 	
+								'<option value="V7"' + (foodStyle == 'V7' ? ' selected' : '') + '>양식(Veg. pollo-veg.)</option>' + 	
+								'<option value="V8"' + (foodStyle == 'V8' ? ' selected' : '') + '>양식(Veg. flexitarian)</option>';
 								
 					text += '</select>' +
 						'</td>' + 
@@ -1652,8 +2007,8 @@ function setExcelData(trialKeyList, pjtList,kindList, companyList, departmentLis
 						'<td class="text-center">' + 
 								'<select name="gender">';
 								
-							text += '<option value="M"' + (gender == '남' ? ' selected' : '') + '>남</option>' + 
-									'<option value="F"' + (gender == '여' ? ' selected' : '') + '>여</option>' ;
+							text += '<option value="M"' + (gender == 'M' ? ' selected' : '') + '>남</option>' + 
+									'<option value="F"' + (gender == 'F' ? ' selected' : '') + '>여</option>' ;
 									
 						text += '</select>' +
 						'</td>' + 
@@ -2178,7 +2533,7 @@ function getRegistrationCrewList(page) {
 									//     '<span class="mask">*****</span>' + '<input name="idNo" type="text" disabled value="' + idNo + '">' +
 									//   '</div>' + 
 									// '</td>' +  
-									'<td class="text-center">' + '<input name="idNo" type="text" disabled value="' + idNo + '">' + '</td>' +  
+									'<td class="text-center th-w-120">' + '<input name="idNo" type="text" disabled value="' + idNo + '">' + '</td>' +  
 									'<td class="text-center">' + 
 										'<select name="workType1" disabled onchange="setWorkType2(' + rowId + ', this.value)">';
 										
@@ -2325,7 +2680,7 @@ function getRegistrationCrewList(page) {
 										//     '<span class="mask">*****</span>' + '<input name="idNo" type="text" disabled value="' + idNo + '">' +
 										//   '</div>' + 
 										// '</td>' + 
-										'<td class="text-center">' + '<input name="idNo" type="text" disabled value="' + idNo + '">' + '</td>' + 
+										'<td class="text-center th-w-120">' + '<input name="idNo" type="text" disabled value="' + idNo + '">' + '</td>' + 
 										'<td class="text-center th-w-150">' + 
 											'<select name="workType1" onchange="setWorkType2(' + rowId + ', this.value)">';
 											

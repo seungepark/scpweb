@@ -118,6 +118,12 @@ public interface CrewDaoI {
 	// 앵카링 식사신청 실적 수량 삭제.
 	int deleteAnchResultList(int anchUid) throws Exception;
 	
+	// 앵카링 SMS수신자 정보 삭제.
+	int deleteAnchSmsUserInfo(int anchUid) throws Exception;
+	
+	// 앵카링 SMS수신자 정보 저장.
+	int insertAnchSmsUserInfo(Map<String, Object> map) throws Exception;
+	
 	// 앵카링 식사신청 저장.
 	int insertAnchorageMeal(AnchorageMealRequestBean bean) throws Exception;
 	

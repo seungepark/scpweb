@@ -34,6 +34,7 @@ public class AnchorageMealRequestBean {
 	private String inDate;
 	private String outDate;
 	
+	private String smsReceiver;
 	
 	private String foodStyle;
 	
@@ -294,6 +295,14 @@ public class AnchorageMealRequestBean {
 	}
 	public void setLateNightP(int lateNightP) {
 		this.lateNightP = lateNightP;
+	}
+	
+	public String getSmsReceiver() {
+		return smsReceiver;
+	}
+	
+	public void setSmsReceiver(String smsReceiver) {
+		this.smsReceiver = smsReceiver;
 	}
 	
 }

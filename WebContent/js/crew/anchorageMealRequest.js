@@ -173,7 +173,8 @@ function initTableHeader() {
 				'<th class="th-w-60"><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.deleteYn') + '</span></div></th>' + 
 				'<th class="th-w-200"><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.comment') + '</span></div></th>' + 
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.inputUid') + '</span></div></th>' + 
-				'<th><div class="tb-th-col-last"><span class="tb-th-content">' + $.i18n.t('list.inputDate') + '</span></div></th>';				
+				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.inputDate') + '</span></div></th>' +
+				'<th><div class="tb-th-col-last"><span class="tb-th-content">SMS수신자</span></div></th>';				
 	$('#tbHeader').empty();
 	$('#tbHeader').append(text);
 	setListEmpty();
@@ -227,6 +228,7 @@ function initData() {
 		let comment = _anchList[z].comment;
 		let inputUid = _anchList[z].inputUid;
 		let inputDate = _anchList[z].inputDate;
+		let smsReceiver = (_anchList[z].smsReceiver != null && _anchList[z].smsReceiver !== undefined) ? _anchList[z].smsReceiver : '';
 		
 		//alert(planList.length);
 		
@@ -379,7 +381,8 @@ function initData() {
 					'<td class="text-center th-w-60">' + '<input name="deleteYn" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (deleteYn === 'Y' ? 'checked' : '') + '>' + '</td>'+
 					'<td class="text-center">' + '<input name="comment" type="text" value="' + comment + '">' + '</td>' + 												
 					'<td class="text-center">' + '<input name="inputUid" type="text" disabled value="' + inputUid + '">' + '</td>' + 												
-					'<td class="text-center">' + '<input name="inputDate" type="text" disabled value="' + inputDate + '">' + '</td>' ;
+					'<td class="text-center">' + '<input name="inputDate" type="text" disabled value="' + inputDate + '">' + '</td>' +
+					'<td class="text-center"><textarea name="smsReceiver" rows="2" style="width: 100%; min-width: 200px;" placeholder="010-0000-0000,&#10;010-0000-0001,">' + (smsReceiver ? smsReceiver.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') : '') + '</textarea></td>';
 		text += '</tr>';	
 		
 		$('#tbRowList').append(text);
@@ -443,9 +446,13 @@ function getAnchorageMealList(page) {
 		return;
 	}	
 		
-	//페이지 셋팅(현재페이지 저장X)
+	//페이지 셋팅(검색시에는 1페이지로, 페이지 이동시에는 전달받은 페이지 사용)
+	if(!_isSetPage) {
+		page = 1;
+	} else if(page == null || page == undefined || page === '') {
+		page = anchPageNo || 1;
+	}
 	_isSetPage = false;
-	page = 1;
 
     jQuery.ajax({
         type: 'GET',
@@ -467,6 +474,8 @@ function getAnchorageMealList(page) {
 			//alert(88);
             listArr = json.list;
 			//alert(json.list.length);
+			//console.log('data:', json);
+			
 			for(var i = 0; i < json.list.length; i++) {					
 					let rowId = i+1;
 					let uid = json.list[i].uid;
@@ -485,6 +494,19 @@ function getAnchorageMealList(page) {
 					let resultList = json.list[i].resultList;
 					let inputUid = json.list[i].inputUid;
 					let inputDate = json.list[i].inputDate;
+					// SMS수신자 값 가져오기 (null 체크 및 기본값 처리)
+					let smsReceiver = '';
+					// JSON에서 smsReceiver 값 가져오기
+					if(json.list[i].smsReceiver != null && json.list[i].smsReceiver !== undefined && json.list[i].smsReceiver !== '') {
+						let receiverValue = json.list[i].smsReceiver;
+						// 문자열로 변환하고 trim 처리
+						let trimmedValue = String(receiverValue).trim();
+						// 빈 문자열이 아닌 경우에만 처리
+						if(trimmedValue !== '') {
+							smsReceiver = trimmedValue;
+						}
+					}
+					
 					let breakfastP = "";
 					let lunchP = "";
 					let dinnerP = "";
@@ -561,7 +583,7 @@ function getAnchorageMealList(page) {
 					//alert($('#inDate').val());
 					//승선일,하선일 필터링	
 					if(($('#inDate').val() != null && $('#outDate').val() != null) && ($('#inDate').val() != '' && $('#outDate').val() != '')){
-						alert(($('#inDate').val() <= mealDate && mealDate <= $('#outDate').val()));
+						//alert(($('#inDate').val() <= mealDate && mealDate <= $('#outDate').val()));
 						
 						if(!($('#inDate').val() <= mealDate && mealDate <= $('#outDate').val())) {
 							//alert(1);
@@ -664,7 +686,8 @@ function getAnchorageMealList(page) {
 								'<td class="text-center th-w-60">' + '<input name="deleteYn" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (deleteYn === 'Y' ? 'checked' : '') + '>' + '</td>'+
 								'<td class="text-center">' + '<input name="comment" type="text" value="' + comment + '">' + '</td>' + 												
 								'<td class="text-center">' + '<input name="inputUid" type="text" disabled value="' + inputUid + '">' + '</td>' + 												
-								'<td class="text-center">' + '<input name="inputDate" type="text" disabled value="' + inputDate + '">' + '</td>' ;
+								'<td class="text-center">' + '<input name="inputDate" type="text" disabled value="' + inputDate + '">' + '</td>' +
+								'<td class="text-center"><textarea name="smsReceiver" rows="2" style="width: 100%; min-width: 200px;" placeholder="010-0000-0000,&#10;010-0000-0001,">' + (smsReceiver ? smsReceiver.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') : '') + '</textarea></td>';
 					text += '</tr>';	
 				}
 
@@ -674,7 +697,7 @@ function getAnchorageMealList(page) {
             if(json.list.length > 0) {
                 $('#tbRowList').append(text);
             }else {
-                $('#tbRowList').append('<tr><td class="text-center" colspan="13">' + $.i18n.t('share:noList') + '</td></tr>');
+                $('#tbRowList').append('<tr><td class="text-center" colspan="18">' + $.i18n.t('share:noList') + '</td></tr>');
             }
 
 			$('[data-toggle="tooltip"]').tooltip();
@@ -923,6 +946,49 @@ function orderSave() {
 	}
 }
 
+//QR발송 - 앵카링 식사신청
+function sendQRSMS() {
+	// 공통 함수 사용 (앵카링용)
+	sendQRSMSCommon({
+		qrType: 'AC',  // AC : 앵카링, SCH : 시운전
+		getTrialKey: function() {
+			// shipInput에서 trialKey 가져오기 (호선번호)
+			let shipValue = deriveShipValueFromInput();
+			if(!shipValue || shipValue === '' || shipValue === 'ALL') {
+				return '';
+			}
+			// shipInput의 텍스트 값(호선번호) 가져오기
+			return $('#shipInput').val() || getShipDescription(shipValue) || shipValue;
+		},
+		getReceiver: function(tr) {
+			// SMS수신자 필드에서 가져오기 (textarea)
+			let smsReceiver = tr.find('textarea[name=smsReceiver]').val() || '';
+			// 쉼표로 구분된 번호를 배열로 변환하고, 첫 번째 번호 반환 (또는 여러 번호 처리)
+			if(smsReceiver && smsReceiver.trim()) {
+				// 쉼표로 분리하여 각 번호를 배열로 반환
+				let phones = smsReceiver.split(',').map(function(phone) {
+					return phone.trim();
+				}).filter(function(phone) {
+					return phone && phone.length > 0;
+				});
+				// 첫 번째 번호만 반환 (또는 여러 번호를 모두 사용하도록 수정 가능)
+				return phones.length > 0 ? phones[0] : '';
+			}
+			return '';
+		},
+		getContent: function(itemData) {
+			// 앵카링: 호선%26부서명 (trialKey%26department)
+			let department = itemData.department || '';
+			return itemData.trialKey + '%26' + department;
+		},
+		getItemName: function(tr) {
+			let department = tr.find('input[name=department]').val() || '부서없음';
+			return department;
+		},
+		checkPhoneRequired: false  // 앵카링의 경우 receiver 검증 방식이 다를 수 있음
+	});
+}
+
 // 신청자 row 추가
 function addAnch() {
 	if(_status == 'ONGO' || _status == 'ARRIVE') {
@@ -1024,7 +1090,8 @@ function addAnch() {
 					'<td class="text-center th-w-60">' + '<input name="deleteYn" type="checkbox" value="N" onclick="setCheckBox(this)">' + '</td>' +
 					'<td class="text-center">' + '<input name="comment" type="text">' + '</td>' +
 					'<td class="text-center">' + '<input name="inputUid" type="text" disabled>' + '</td>' +
-					'<td class="text-center">' + '<input name="inputDate" type="text" disabled>' + '</td>';
+					'<td class="text-center">' + '<input name="inputDate" type="text" disabled>' + '</td>' +
+					'<td class="text-center"><textarea name="smsReceiver" rows="2" style="width: 100%; min-width: 200px;" placeholder="010-0000-0000,&#10;010-0000-0001,"></textarea></td>';
 	text += '</tr>';
 
 	$('#tbRowList').append(text);
@@ -1118,7 +1185,6 @@ function resetRowNo() {
 
 // 양식 다운로드.
 function downAnchExcel() {
-	//alert("오나요");
 	window.location.href = contextPath + '/crew/downAnchExcel.html';
 }
 
@@ -1218,6 +1284,7 @@ function makeDataList(json){
 	let orderStatusList = [];
 	let commentList = [];
 	let foodStyleList = [];
+	let smsReceiverList = [];
 	
 	let breakfastPList = [];
 	let lunchPList = [];
@@ -1243,6 +1310,7 @@ function makeDataList(json){
 			let lateNightP = isNull(data['야식(계획)'], 0);
 			let orderStatus = isNull(data['발주'], 'N');
 			let comment = isNull(data['특이사항'], '');
+			let smsReceiver = isNull(data['SMS수신자'], '');
 			
 			if(department == '' && name == '' && phone == '') {
 				break;
@@ -1260,13 +1328,14 @@ function makeDataList(json){
 			lunchPList.push(lateNightP);
 			dinnerPList.push(orderStatus);
 			lateNightPList.push(comment);
+			smsReceiverList.push(smsReceiver);
 		}
 		
 		if(isError) {
 			alertPop(errMsg);
 		}else {
 			setExcelData(projNoList, kindList, domesticYnList, departmentList, mealDateList, orderStatusList, commentList, foodStyleList, breakfastPList,
-				 lunchPList, dinnerPList, lateNightPList);
+				 lunchPList, dinnerPList, lateNightPList, smsReceiverList);
 		}
 	}else {
 		alertPop($.i18n.t('excelUp.errorListMin'));
@@ -1309,7 +1378,7 @@ function initShipAutocomplete() {
 			event.preventDefault();
 			if (ui && ui.item) {
 				setShipValue(ui.item.value, ui.item.label);
-				getAnchMealList();
+				// getAnchMealList(); // shipSource select 선택시 조회 웹서비스 바로 실행 방지
 			}
 		}
 	});
@@ -1416,7 +1485,7 @@ function getShipSourceArray() {
 
 // 양식 업로드 데이터 세팅.
 function setExcelData(projNoList, kindList, domesticYnList, departmentList, mealDateList, orderStatusList, commentList, foodStyleList, breakfastPList,
-				 lunchPList, dinnerPList, lateNightPList) {
+				 lunchPList, dinnerPList, lateNightPList, smsReceiverList) {
 	$('#tbRowList').empty();
 	_anchCnt = 0;
 	
@@ -1438,6 +1507,7 @@ function setExcelData(projNoList, kindList, domesticYnList, departmentList, meal
 		let lateNightP = lateNightPList[i];
 		let orderStatus = orderStatusList[i];
 		let comment = commentList[i];
+		let smsReceiver = smsReceiverList && smsReceiverList[i] ? smsReceiverList[i] : '';
 		
 		let breakfastR = 0;
 		let lunchR = 0;
@@ -1538,7 +1608,8 @@ function setExcelData(projNoList, kindList, domesticYnList, departmentList, meal
 							'<td class="text-center th-w-60">' + '<input name="deleteYn" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (deleteYn === 'Y' ? 'checked' : '') + '>' + '</td>'+
 							'<td class="text-center">' + '<input name="comment" type="text" value="' + comment + '">' + '</td>' + 												
 							'<td class="text-center">' + '<input name="inputUid" type="text" disabled value="' + inputUid + '">' + '</td>' + 												
-							'<td class="text-center">' + '<input name="inputDate" type="text" disabled value="' + inputDate + '">' + '</td>' ;
+							'<td class="text-center">' + '<input name="inputDate" type="text" disabled value="' + inputDate + '">' + '</td>' +
+							'<td class="text-center"><textarea name="smsReceiver" rows="2" style="width: 100%; min-width: 200px;" placeholder="010-0000-0000,&#10;010-0000-0001,">' + (smsReceiver ? smsReceiver.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;') : '') + '</textarea></td>';
 				text += '</tr>';	
 	
 		$('#tbRowList').append(text);
@@ -1567,6 +1638,7 @@ function save() {
 	let deleteYn = [];
 	let comment = [];
 	let foodStyle = [];
+	let smsReceiver = [];
 	
 	let breakfastP = [];
 	let lunchP = [];
@@ -1616,6 +1688,7 @@ function save() {
 	let lunchRVl = document.getElementsByName('lunchR');
 	let dinnerRVl = document.getElementsByName('dinnerR');
 	let lateNightRVl = document.getElementsByName('lateNightR');
+	let smsReceiverVl = document.getElementsByName('smsReceiver');
 	
 	//alert(projNoVl.length);
 	//alert(lateNightPVl.length);
@@ -1739,6 +1812,22 @@ function save() {
 		lunchR.push(lunchRVl[i].value);
 		dinnerR.push(dinnerRVl[i].value);
 		lateNightR.push(lateNightRVl[i].value);
+		
+		// SMS수신자 파싱 (쉼표 또는 줄바꿈으로 구분)
+		let smsReceiverText = smsReceiverVl[i] ? (smsReceiverVl[i].value || '') : '';
+		let smsReceiverParsed = '';
+		if(smsReceiverText && smsReceiverText.trim() !== '') {
+			// 쉼표 또는 줄바꿈으로 구분하여 전화번호 추출
+			let phoneNumbers = smsReceiverText.split(/[,\n\r]+/).map(function(phone) {
+				return phone.trim();
+			}).filter(function(phone) {
+				return phone && phone.length > 0;
+			});
+			// 쉼표로 다시 연결하여 전송 (서버에서 다시 파싱)
+			smsReceiverParsed = phoneNumbers.join(',');
+		}
+		// SMS수신자는 서버에서 개별 저장하므로 전체 문자열로 전송
+		smsReceiver.push(smsReceiverParsed);
 		/*planMealDate.push(planMealDateVl[i].value);
 		planMealTime.push(planMealTimeVl[i].value);
 		planMealGubun.push(planMealGubunVl[i].value);
@@ -1778,7 +1867,8 @@ function save() {
 			breakfastR: breakfastR,
 			lunchR: lunchR,
 			dinnerR: dinnerR,
-			lateNightR: lateNightR
+			lateNightR: lateNightR,
+			smsReceiver: smsReceiver
 			
 			/*planMealDate: planMealDate,
 			planMealTime: planMealTime,

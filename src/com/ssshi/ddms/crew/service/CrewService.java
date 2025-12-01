@@ -51,6 +51,7 @@ import com.ssshi.ddms.dto.AnchorageMealRequestBean;
 import com.ssshi.ddms.dto.AnchorageMealQtyBean;
 import com.ssshi.ddms.dto.AnchorageMealListBean;
 import com.ssshi.ddms.dto.RegistrationCrewRequestBean;
+import com.ssshi.ddms.dto.SmsRequestBean;
 import com.ssshi.ddms.dto.RegistrationCrewQtyBean;
 
 /********************************************************************************
@@ -711,12 +712,12 @@ public class CrewService implements CrewServiceI {
 		// schedulerInfoUid가 있으면 해당 스케줄의 승선자 리스트 조회
 		if(bean.getSchedulerInfoUid() > 0) {
 			anchList = crewDao.getAnchorageMealListBySchedulerInfoUid(bean.getSchedulerInfoUid());
-		 
+			 
 			//계획
 			if(anchList != null) {
 				for(int i = 0; i < anchList.size(); i++) {
 					anchList.get(i).setPlanList(crewDao.getAnchorageMealPlanQtyList(anchList.get(i).getUid()));
-					System.out.println("getUid :"+ anchList.get(i).getUid());
+					System.out.println("getUid :"+ anchList.get(i).getUid()+""+anchList.get(i).getSmsReceiver());
 					System.out.println("setPlanList :"+ anchList.get(i).getPlanList().size());
 				}
 				
@@ -771,6 +772,28 @@ public class CrewService implements CrewServiceI {
 	public Map<String, Object> getAnchorageMealList(HttpServletRequest request, AnchorageMealRequestBean bean) throws Exception {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		List<AnchorageMealRequestBean> anchList = crewDao.getAnchorageMealList(bean);
+		// anchList 데이터 값 출력
+//		System.out.println("========== anchList 데이터 출력 시작 ==========");
+//		if(anchList != null) {
+//			System.out.println("anchList.size(): " + anchList.size());
+//			for(int i = 0; i < anchList.size(); i++) {
+//				AnchorageMealRequestBean item = anchList.get(i);
+//				System.out.println("--- anchList[" + i + "] ---");
+//				System.out.println("  uid: " + item.getUid());
+//				System.out.println("  projNo: " + item.getProjNo());
+//				System.out.println("  department: " + item.getDepartment());
+//				System.out.println("  mealDate: " + item.getMealDate());
+//				System.out.println("  smsReceiver: " + item.getSmsReceiver());
+//				System.out.println("  smsReceiver 타입: " + (item.getSmsReceiver() != null ? item.getSmsReceiver().getClass().getName() : "null"));
+//				if(item.getSmsReceiver() != null) {
+//					System.out.println("  smsReceiver 길이: " + item.getSmsReceiver().length());
+//					System.out.println("  smsReceiver isEmpty: " + item.getSmsReceiver().isEmpty());
+//				}
+//			}
+//		} else {
+//			System.out.println("anchList is null");
+//		}
+//		System.out.println("========== anchList 데이터 출력 종료 ==========");
 		resultMap.put(Const.LIST_CNT, crewDao.getAnchorageMealListCnt());
 
 		//계획
@@ -823,6 +846,7 @@ public class CrewService implements CrewServiceI {
 							newBean.setComment(originalBean.getComment());
 							newBean.setInputDate(originalBean.getInputDate());
 							newBean.setInputUid(originalBean.getInputUid());
+							newBean.setSmsReceiver(originalBean.getSmsReceiver());
 							newBean.setFoodStyle(mealGubun);
 							
 							// 해당 MEAL_GUBUN에 맞는 planList 필터링
@@ -843,6 +867,23 @@ public class CrewService implements CrewServiceI {
 			}
 		}
 		anchList = expandedList;
+		
+		// smsReceiver를 JSON에 안전하게 변환
+		if(anchList != null) {
+			for(int i = 0; i < anchList.size(); i++) {
+				AnchorageMealRequestBean item = anchList.get(i);
+				if(item.getSmsReceiver() != null && !item.getSmsReceiver().isEmpty()) {
+					// JSON에 안전한 형태로 변환 (줄바꿈, 따옴표 이스케이프)
+					String smsReceiver = item.getSmsReceiver();
+					smsReceiver = smsReceiver.replace("\\", "\\\\")  // 백슬래시 먼저
+					                          .replace("\"", "\\\"")  // 따옴표
+					                          .replace("\n", "\\n")   // 줄바꿈
+					                          .replace("\r", "\\r")   // 캐리지 리턴
+					                          .replace("\t", "\\t");  // 탭
+					item.setSmsReceiver(smsReceiver);
+				}
+			}
+		}
 		
 		//실적 - 조회기간 전체에 대한 실적을 한번에 조회
 		if(anchList != null) {
@@ -920,6 +961,7 @@ public class CrewService implements CrewServiceI {
 				crewDao.deleteAnchList(bean.getUid()[i]);
 				crewDao.deleteAnchPlanList(bean.getUid()[i]);
 				crewDao.deleteAnchResultList(bean.getUid()[i]);
+				crewDao.deleteAnchSmsUserInfo(bean.getUid()[i]);
 			}
 			
 			//재저장 
@@ -1003,6 +1045,41 @@ public class CrewService implements CrewServiceI {
 					System.out.println("/오나용7888"+mealQty.getAnchorMealUid());
 					crewDao.insertMealQty(mealQty);
 				}
+				
+				// SMS수신자 저장
+				if(bean.getSmsReceiver() != null && bean.getSmsReceiver().length > i && bean.getSmsReceiver()[i] != null && !bean.getSmsReceiver()[i].trim().isEmpty()) {
+					String smsReceiverText = bean.getSmsReceiver()[i].trim();
+					// 쉼표 또는 줄바꿈으로 구분하여 전화번호 추출
+					String[] phoneNumbers = smsReceiverText.split("[,\\n\\r]+");
+					
+					for(String phone : phoneNumbers) {
+						phone = phone.trim();
+						if(phone != null && !phone.isEmpty()) {
+							// 전화번호 형식 정리 (하이픈 제거 후 다시 추가)
+							phone = phone.replaceAll("[^0-9]", ""); // 숫자만 추출
+							if(phone.length() >= 10) {
+								// 전화번호 형식 정리 (010-1234-5678)
+								if(phone.length() == 11) {
+									phone = phone.substring(0, 3) + "-" + phone.substring(3, 7) + "-" + phone.substring(7);
+								} else if(phone.length() == 10) {
+									phone = phone.substring(0, 3) + "-" + phone.substring(3, 6) + "-" + phone.substring(6);
+								}
+								
+								// SMS수신자 정보 저장
+								java.util.Map<String, Object> smsMap = new java.util.HashMap<String, Object>();
+								smsMap.put("projNo", bean.getProjNo()[i]);
+								smsMap.put("schedulerInfoUid", anch.getSchedulerInfoUid());
+								smsMap.put("trialKey", anch.getTrialKey());
+								smsMap.put("anchorMealUid", anch.getUid());
+								UserInfoBean userInfo = (UserInfoBean)(request.getSession().getAttribute(Const.SS_USERINFO));
+								String regUsername = (userInfo.getFirstName() != null ? userInfo.getFirstName() : "") + " " + (userInfo.getLastName() != null ? userInfo.getLastName() : "");
+								smsMap.put("regUsername", regUsername.trim());
+								smsMap.put("phone", phone);
+								crewDao.insertAnchSmsUserInfo(smsMap);
+							}
+						}
+					}
+				}
 			}
 		}
 		
@@ -1084,7 +1161,7 @@ public class CrewService implements CrewServiceI {
 		double endDate = DateUtil.getExcelDate(java.sql.Date.valueOf("2100-12-31"));
 		
 		/// Columm *****/
-		/// No., 구분, 내국/외국, 부서, 날자, 한식/양식, 발주, 특이사항
+		/// No., 구분, 내국/외국, 부서, 날자, 한식/양식, 발주, 특이사항, SMS수신자
 		sheet.setColumnWidth(1, 3500);
 		sheet.setColumnWidth(2, 3500);
 		sheet.setColumnWidth(3, 3500);
@@ -1097,6 +1174,7 @@ public class CrewService implements CrewServiceI {
 		sheet.setColumnWidth(10, 3500);
 		sheet.setColumnWidth(11, 3500);
 		sheet.setColumnWidth(12, 3500);
+		sheet.setColumnWidth(13, 4000); // SMS수신자 컬럼 너비
 		
 		/// Style *****/		
 		CellStyle headStyle = wb.createCellStyle();
@@ -1120,6 +1198,14 @@ public class CrewService implements CrewServiceI {
 		bodyCenterStyle.setBorderTop(CellStyle.BORDER_THIN);
 		bodyCenterStyle.setBorderRight(CellStyle.BORDER_THIN);
 		bodyCenterStyle.setAlignment(CellStyle.ALIGN_CENTER);
+		
+		// SMS수신자 셀용 스타일 (줄바꿈 표시용)
+		CellStyle bodyWrapStyle = wb.createCellStyle();
+		bodyWrapStyle.setBorderBottom(CellStyle.BORDER_THIN);
+		bodyWrapStyle.setBorderLeft(CellStyle.BORDER_THIN);
+		bodyWrapStyle.setBorderTop(CellStyle.BORDER_THIN);
+		bodyWrapStyle.setBorderRight(CellStyle.BORDER_THIN);
+		bodyWrapStyle.setWrapText(true); // 줄바꿈 표시 활성화
 		
 		// 날짜 입력 형식(DatePicker 스타일)
 		CreationHelper creationHelper = wb.getCreationHelper();
@@ -1166,6 +1252,9 @@ public class CrewService implements CrewServiceI {
 		cell = row.createCell(cellIdx++);
 		cell.setCellStyle(headStyle);
 		cell.setCellValue("특이사항");
+		cell = row.createCell(cellIdx++);
+		cell.setCellStyle(headStyle);
+		cell.setCellValue("SMS수신자");
 		
 		for(int i = 0; i < 20; i++) {
 			cellIdx = 0;
@@ -1248,6 +1337,15 @@ public class CrewService implements CrewServiceI {
 			cell = row.createCell(cellIdx++);
 			cell.setCellStyle(bodyStyle);
 			cell.setCellType(Cell.CELL_TYPE_STRING);
+			
+			//SMS수신자
+			cell = row.createCell(cellIdx++);
+			cell.setCellStyle(bodyWrapStyle); // 줄바꿈이 가능한 스타일 사용
+			cell.setCellType(Cell.CELL_TYPE_STRING);
+			// 샘플 데이터 (2행에만)
+			if(i == 0) {
+				cell.setCellValue("010-0000-0000,\n010-0000-0001,");
+			} 
 			
 			rowNo++;
 		}
@@ -2556,6 +2654,171 @@ public class CrewService implements CrewServiceI {
 		}
 		
 		return value.length() >= 10 ? value.substring(0, 10) : value;
+	}
+	
+	@Override
+	public Map<String, Object> crewQRSend(HttpServletRequest request, List<SmsRequestBean> smsList) throws Exception {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		
+		// SMS API URL
+		String apiUrl = "http://pse.iptime.org:7090/scp_mapi/mobileAppAPI/smsSendMessage";
+		
+		if(smsList == null || smsList.isEmpty()) {
+			resultMap.put(Const.RESULT, DBConst.FAIL);
+			resultMap.put("msg", "발송할 데이터가 없습니다.");
+			return resultMap;
+		}
+		
+		// 유효한 SMS 목록 필터링
+		java.util.List<SmsRequestBean> validSmsList = new ArrayList<SmsRequestBean>();
+		for(int i = 0; i < smsList.size(); i++) {
+			SmsRequestBean sms = smsList.get(i);
+			
+			if(sms == null || sms.getReceiver() == null || sms.getReceiver().trim().isEmpty() 
+				|| sms.getContent() == null || sms.getContent().trim().isEmpty()) {
+				continue;
+			}
+			
+			// qrType 기본값 설정
+			if(sms.getQrType() == null || sms.getQrType().trim().isEmpty()) {
+				sms.setQrType("SCH");
+			}
+			
+			validSmsList.add(sms);
+		}
+		
+		int validCount = validSmsList.size();
+		
+		if(validCount == 0) {
+			resultMap.put(Const.RESULT, DBConst.FAIL);
+			resultMap.put("msg", "발송할 유효한 데이터가 없습니다.");
+			return resultMap;
+		}
+		
+		// 각 항목을 하나씩 개별 호출
+		int successCount = 0;
+		int failCount = 0;
+		int lastResponseCode = 0;
+		String lastErrorMsg = "";
+		
+		for(int i = 0; i < validSmsList.size(); i++) {
+			SmsRequestBean sms = validSmsList.get(i);
+			
+			// 단일 객체 JSON 생성
+			String jsonBody;
+			try {
+				com.google.gson.Gson gson = new com.google.gson.Gson();
+				jsonBody = gson.toJson(sms);
+			} catch (Exception e) {
+				// Gson이 없을 경우 수동 생성
+				String qrType = sms.getQrType() != null ? sms.getQrType() : "SCH";
+				jsonBody = "{\"qrType\":\"" + escapeJson(qrType) + "\",\"receiver\":\"" 
+					+ escapeJson(sms.getReceiver()) + "\",\"content\":\"" 
+					+ escapeJson(sms.getContent()) + "\"}";
+			}
+			
+			try {
+				java.net.URL url = new java.net.URL(apiUrl);
+				java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+				
+				// POST 요청 설정
+				conn.setRequestMethod("POST");
+				conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+				conn.setDoOutput(true);
+				conn.setConnectTimeout(10000);
+				conn.setReadTimeout(10000);
+				
+				// JSON 단일 객체 데이터 전송
+				try (java.io.OutputStream os = conn.getOutputStream()) {
+					byte[] input = jsonBody.getBytes("UTF-8");
+					os.write(input, 0, input.length);
+				}
+				
+				// 응답 확인
+				int responseCode = conn.getResponseCode();
+				lastResponseCode = responseCode;
+				
+				// 응답 읽기
+				String responseBody = "";
+				try (java.io.BufferedReader br = new java.io.BufferedReader(
+						new java.io.InputStreamReader(
+							responseCode >= 200 && responseCode < 300 ? conn.getInputStream() : conn.getErrorStream(), "UTF-8"))) {
+					StringBuilder response = new StringBuilder();
+					String responseLine;
+					while ((responseLine = br.readLine()) != null) {
+						response.append(responseLine);
+					}
+					responseBody = response.toString();
+				} catch(Exception ex) {
+					// 응답 읽기 실패 시 무시
+				}
+				
+				conn.disconnect();
+				
+				if(responseCode == 200 || responseCode == 201) {
+					successCount++;
+				} else {
+					failCount++;
+					// 오류 응답 본문 로깅 (디버깅용 - 서버 로그에만 기록)
+					System.err.println("========================================");
+					System.err.println("QR SMS API 호출 실패 [" + (i+1) + "/" + validCount + "]: 응답코드=" + responseCode);
+					System.err.println("요청 URL: " + apiUrl);
+					System.err.println("요청 JSON: " + jsonBody);
+					System.err.println("응답 본문: " + responseBody);
+					System.err.println("========================================");
+					
+					lastErrorMsg = "응답코드: " + responseCode;
+					if(responseCode == 400) {
+						lastErrorMsg += " - 잘못된 요청 형식";
+					} else if(responseCode == 404) {
+						lastErrorMsg += " - API 경로 없음";
+					} else if(responseCode == 500) {
+						lastErrorMsg += " - 서버 내부 오류";
+					}
+				}
+			} catch(Exception e) {
+				failCount++;
+				lastResponseCode = 0;
+				lastErrorMsg = "오류: " + e.getMessage();
+				System.err.println("QR SMS API 호출 중 예외 발생 [" + (i+1) + "/" + validCount + "]: " + e.getMessage());
+				e.printStackTrace();
+			}
+		}
+		
+		// 결과 집계
+		if(failCount == 0) {
+			resultMap.put(Const.RESULT, DBConst.SUCCESS);
+			resultMap.put("msg", "QR발송이 완료되었습니다. (발송: " + successCount + "건)");
+			resultMap.put("responseCode", 200);
+			resultMap.put("successCount", successCount);
+			resultMap.put("failCount", 0);
+		} else if(successCount > 0) {
+			resultMap.put(Const.RESULT, DBConst.SUCCESS);
+			resultMap.put("msg", "QR발송 완료. (성공: " + successCount + "건, 실패: " + failCount + "건, 마지막 오류: " + lastErrorMsg + ")");
+			resultMap.put("responseCode", lastResponseCode);
+			resultMap.put("successCount", successCount);
+			resultMap.put("failCount", failCount);
+		} else {
+			resultMap.put(Const.RESULT, DBConst.FAIL);
+			resultMap.put("msg", "QR발송에 실패했습니다. (" + lastErrorMsg + ")");
+			resultMap.put("responseCode", lastResponseCode);
+			resultMap.put("successCount", 0);
+			resultMap.put("failCount", failCount);
+		}
+		
+		return resultMap;
+	}
+	
+	// JSON 문자열 이스케이프 처리
+	private String escapeJson(String str) {
+		if(str == null) {
+			return "";
+		}
+		return str.replace("\\", "\\\\")
+				 .replace("\"", "\\\"")
+				 .replace("\n", "\\n")
+				 .replace("\r", "\\r")
+				 .replace("\t", "\\t");
 	}
 }
 	

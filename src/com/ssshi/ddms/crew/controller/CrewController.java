@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-
+ import com.google.gson.Gson;
 import com.ssshi.ddms.constant.Const;
 import com.ssshi.ddms.constant.DBConst;
 import com.ssshi.ddms.crew.service.CrewServiceI;
@@ -33,6 +33,7 @@ import com.ssshi.ddms.dto.AnchorageMealRequestBean;
 import com.ssshi.ddms.dto.AnchorageMealQtyBean;
 import com.ssshi.ddms.dto.AnchorageMealListBean;
 import com.ssshi.ddms.dto.RegistrationCrewRequestBean;
+import com.ssshi.ddms.dto.SmsRequestBean;
 
 /********************************************************************************
  * 프로그램 개요 : Crew
@@ -126,6 +127,194 @@ public class CrewController {
 		model.addAllAttributes(service.crewOrderUpdate(request, bean));
 	   
 	    return "share/resultCode";
+	}
+	
+	//QR 발송
+	@RequestMapping(value="/crew/crewQRSend.html", method=RequestMethod.POST)
+	public void crewQRSend(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		// Request Body에서 JSON 문자열 읽기
+		StringBuilder jsonString = new StringBuilder();
+		try (java.io.BufferedReader reader = request.getReader()) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				jsonString.append(line);
+			}
+		}
+		
+		// JSON 문자열을 List<SmsRequestBean>으로 변환 (Gson 사용)
+		List<SmsRequestBean> smsList;
+		try {
+			// Gson 라이브러리 사용 (gson-2.3.1.jar 필요)
+			Gson gson = new Gson();
+			java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<List<SmsRequestBean>>(){}.getType();
+			smsList = gson.fromJson(jsonString.toString(), listType);
+			
+			if(smsList == null) {
+				smsList = new ArrayList<SmsRequestBean>();
+			}
+		} catch (Exception e) {
+			// Gson이 없을 경우 수동 파싱 사용
+			smsList = parseJsonToSmsList(jsonString.toString());
+		}
+		
+		Map<String, Object> resultMap = service.crewQRSend(request, smsList);
+		
+		// 응답 Content-Type 및 인코딩 설정
+		response.setContentType("application/json; charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		
+		// JSON 응답 생성 및 전송
+		try {
+			// Gson으로 JSON 응답 생성
+			Gson gson = new Gson();
+			String jsonResponse = gson.toJson(resultMap);
+			response.getWriter().write(jsonResponse);
+			response.getWriter().flush();
+		} catch (Exception e) {
+			// Gson이 없을 경우 수동 JSON 생성
+			StringBuilder json = new StringBuilder("{");
+			json.append("\"result\":").append(resultMap.get(Const.RESULT));
+			if(resultMap.get("msg") != null) {
+				json.append(",\"msg\":\"").append(escapeJsonString(resultMap.get("msg").toString())).append("\"");
+			}
+			if(resultMap.get("responseCode") != null) {
+				json.append(",\"responseCode\":").append(resultMap.get("responseCode"));
+			}
+			if(resultMap.get("successCount") != null) {
+				json.append(",\"successCount\":").append(resultMap.get("successCount"));
+			}
+			if(resultMap.get("failCount") != null) {
+				json.append(",\"failCount\":").append(resultMap.get("failCount"));
+			}
+			json.append("}");
+			response.getWriter().write(json.toString());
+			response.getWriter().flush();
+		}
+	}
+	
+	// JSON 문자열을 List<SmsRequestBean>으로 파싱
+	private List<SmsRequestBean> parseJsonToSmsList(String jsonString) throws Exception {
+		List<SmsRequestBean> smsList = new ArrayList<SmsRequestBean>();
+		
+		if(jsonString == null || jsonString.trim().isEmpty()) {
+			return smsList;
+		}
+		
+		// JSON 배열에서 각 객체 추출
+		jsonString = jsonString.trim();
+		if(!jsonString.startsWith("[") || !jsonString.endsWith("]")) {
+			throw new Exception("Invalid JSON array format");
+		}
+		
+		// 대괄호 제거
+		jsonString = jsonString.substring(1, jsonString.length() - 1).trim();
+		
+		if(jsonString.isEmpty()) {
+			return smsList;
+		}
+		
+		// 각 객체를 분리 (중첩 객체 처리)
+		java.util.List<String> objects = new ArrayList<String>();
+		int braceCount = 0;
+		int startIndex = 0;
+		boolean inString = false;
+		boolean escapeNext = false;
+		
+		for(int i = 0; i < jsonString.length(); i++) {
+			char c = jsonString.charAt(i);
+			
+			if(escapeNext) {
+				escapeNext = false;
+				continue;
+			}
+			
+			if(c == '\\') {
+				escapeNext = true;
+				continue;
+			}
+			
+			if(c == '"') {
+				inString = !inString;
+				continue;
+			}
+			
+			if(inString) {
+				continue;
+			}
+			
+			if(c == '{') {
+				if(braceCount == 0) {
+					startIndex = i;
+				}
+				braceCount++;
+			} else if(c == '}') {
+				braceCount--;
+				if(braceCount == 0) {
+					objects.add(jsonString.substring(startIndex, i + 1));
+				}
+			}
+		}
+		
+		// 각 객체를 SmsRequestBean으로 변환
+		for(String objStr : objects) {
+			SmsRequestBean sms = parseJsonObjectToSms(objStr);
+			if(sms != null) {
+				smsList.add(sms);
+			}
+		}
+		
+		return smsList;
+	}
+	
+	// JSON 객체 문자열을 SmsRequestBean으로 파싱
+	private SmsRequestBean parseJsonObjectToSms(String jsonObject) {
+		SmsRequestBean sms = new SmsRequestBean();
+		
+		// JSON 객체에서 각 필드 추출 (이스케이프된 문자열 처리)
+		// "qrType":"SCH" 형식
+		java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\"qrType\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"");
+		java.util.regex.Matcher matcher = pattern.matcher(jsonObject);
+		if(matcher.find()) {
+			sms.setQrType(unescapeJsonString(matcher.group(1)));
+		}
+		
+		pattern = java.util.regex.Pattern.compile("\"receiver\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"");
+		matcher = pattern.matcher(jsonObject);
+		if(matcher.find()) {
+			sms.setReceiver(unescapeJsonString(matcher.group(1)));
+		}
+		
+		pattern = java.util.regex.Pattern.compile("\"content\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"");
+		matcher = pattern.matcher(jsonObject);
+		if(matcher.find()) {
+			sms.setContent(unescapeJsonString(matcher.group(1)));
+		}
+		
+		return sms;
+	}
+	
+	// JSON 문자열 이스케이프 해제
+	private String unescapeJsonString(String str) {
+		if(str == null) {
+			return "";
+		}
+		return str.replace("\\\"", "\"")
+				 .replace("\\\\", "\\")
+				 .replace("\\n", "\n")
+				 .replace("\\r", "\r")
+				 .replace("\\t", "\t");
+	}
+	
+	// JSON 문자열 이스케이프
+	private String escapeJsonString(String str) {
+		if(str == null) {
+			return "";
+		}
+		return str.replace("\\", "\\\\")
+				 .replace("\"", "\\\"")
+				 .replace("\n", "\\n")
+				 .replace("\r", "\\r")
+				 .replace("\t", "\\t");
 	}
 	
 	//Main(앵카링 식사 신청)
