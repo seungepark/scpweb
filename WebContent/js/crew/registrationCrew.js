@@ -740,7 +740,12 @@ function setListEmpty() {
 
 //전체리스트 엑셀 다운로드
 function crewListDownloadAll() {
-	var search = $("#search").val();
+	//var search = $("#search").val();
+	var shipUid = $("#ship option:selected").val();
+    var shipKey = $("#ship option:selected").text();
+    var inDate = $('#inDate').val();
+    var outDate = $('#outDate').val();
+	
 	var _cnt = 0;
 
 	$.ajax({
@@ -758,6 +763,12 @@ function crewListDownloadAll() {
 		},
 		data : {
 			isAll: 'Y',
+            sort: listSort,
+            order: listOrder,
+            ship: shipKey && shipKey !== '선택하세요' ? shipKey : '',
+            schedulerInfoUid: (shipUid && shipUid !== '' && shipUid !== 'ALL') ? shipUid : '',
+            inDate: inDate,
+            outDate: outDate,
             sort: listSort,
             order: listOrder
 		}
@@ -799,8 +810,24 @@ function crewListDownloadAll() {
 						'<tbody id="getUserList">';
 
 			for(var i in jsonResult) {
+				let inDate = "";
+				let outDate = "";
+				let inOutList = jsonResult[i].inOutList;
+				
 				if(jsonResult[i].boatNm != null && jsonResult[i].boatNm != '')
 					jsonResult[i].boatNm = jsonResult[i].boatNm + "(" + jsonResult[i].role + ")";
+				
+				//승선일,하선일 지정
+				for(let x = 0; x < jsonResult[i].inOutList.length; x++) {
+					let code = inOutList[x].schedulerInOut;
+					let inOutDate = inOutList[x].inOutDate;
+					
+					if(code == 'B') {
+						inDate = inOutDate;
+					}else if(code == 'U') {
+						outDate = inOutDate;
+					}
+				}
 				
 				text += '<tr class="even pointer">';
 				text += '  <td>' + _cnt++ + '</td>';
@@ -820,8 +847,8 @@ function crewListDownloadAll() {
 				text += '  <td>' + jsonResult[i].personNo + '</td>';
 				text += '  <td>' + jsonResult[i].gender + '</td>';
 				text += '  <td>' + jsonResult[i].phone + '</td>';
-				text += '  <td>' + jsonResult[i].inDate + '</td>';
-				text += '  <td>' + jsonResult[i].outDate + '</td>';
+				text += '  <td>' + inDate + '</td>';
+				text += '  <td>' + outDate + '</td>';
 				text += '  <td>' + jsonResult[i].roomNo + '</td>';
 				text += '  <td>' + jsonResult[i].terminal + '</td>';
 				text += '  <td>' + jsonResult[i].laptop + '</td>';
@@ -2510,7 +2537,7 @@ function getRegistrationCrewList(page) {
 					
 					text += '<tr id="tbRow_' + rowId + '">' + 
 								'<td class="text-center th-w-40"><input type="checkbox" name="listChk" onclick="setRowSelected()"></td>' +
-								'<td class="text-center th-w-20"><div name="no">' + rowId  +'('+ uid +')'+ + '</div></td>' + 
+								'<td class="text-center th-w-20"><div name="no">' + rowId  +'('+ uid +')'+ '</div></td>' + 
 								'<td class="text-center" style="display: none">'+ '<input name="uid" type="text" value="' + uid + '">' + '</td>' +
 								'<td class="text-center">' + '<input name="scheduleUid" type="text" disabled value="' + actualScheduleUid + '">' + '</td>' +
 								'<td class="text-center">' + '<input name="trialKey" type="text" value="' + trialKey + '" disabled>' + '</td>' +

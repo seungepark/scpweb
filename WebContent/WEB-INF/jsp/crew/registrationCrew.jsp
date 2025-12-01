@@ -165,7 +165,8 @@
 						-->
 						
 						<c:choose>
-							<c:when test="${bean.isOff eq 'Y' or empty P_REG_CREW_W}">
+							<%-- <c:when test="${bean.isOff eq 'Y' or empty P_REG_CREW_W}"> --%>
+							<c:when test="${empty P_REG_CREW_W}">
 								<button class="bt-obj bt-primary" disabled><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
 							</c:when>
 							<c:otherwise>
