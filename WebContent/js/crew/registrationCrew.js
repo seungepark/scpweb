@@ -283,23 +283,23 @@ function initTableHeader() {
 				'<th>스케줄UID</th>' +
 				'<th>스케줄KEY</th>' +
 				'<th>호선Y</th>' +
-				'<th class="th-w-150">' + $.i18n.t('list.kind') + '</th>' +
-				'<th class="th-w-150">' + $.i18n.t('list.company') + '</th>' +
-				'<th class="th-w-150">' + $.i18n.t('list.department') + '</th>' +
+				'<th class="text-center th-w-150">' + $.i18n.t('list.kind') + '</th>' +
+				'<th class="text-center th-w-150">' + $.i18n.t('list.company') + '</th>' +
+				'<th class="text-center th-w-150">' + $.i18n.t('list.department') + '</th>' +
 				'<th>' + $.i18n.t('list.name') + '</th>' +
 				'<th>' + $.i18n.t('list.rank') + '</th>' +
-				'<th class="th-w-120">' + $.i18n.t('list.idNo') + '</th>' +
-				'<th class="th-w-150">' + $.i18n.t('list.workType1') + '</th>' +
-				'<th class="th-w-150">' + $.i18n.t('list.workType2') + '</th>' +
-				'<th class="th-w-150">' + $.i18n.t('list.work') + '</th>' +
+				'<th class="text-center th-w-120">' + $.i18n.t('list.idNo') + '</th>' +
+				'<th class="text-center th-w-150">' + $.i18n.t('list.workType1') + '</th>' +
+				'<th class="text-center th-w-150">' + $.i18n.t('list.workType2') + '</th>' +
+				'<th class="text-center th-w-150">' + $.i18n.t('list.work') + '</th>' +
 				'<th>' + $.i18n.t('list.mainSub') + '</th>' +
 				'<th>' + $.i18n.t('list.foodStyle') + '</th>' +
 				'<th>' + $.i18n.t('list.personNo') + '</th>' + 
 				'<th>' + $.i18n.t('list.gender') + '</th>' + 
-				'<th class="th-w-150">' + $.i18n.t('list.phone') + '</th>' + 
-				'<th class="th-w-200">' + $.i18n.t('list.in') + '</th>' + 
-				'<th class="th-w-200">' + $.i18n.t('list.out') + '</th>' + 
-				'<th class="th-w-150">방번호</th>' +
+				'<th class="text-center th-w-150">' + $.i18n.t('list.phone') + '</th>' + 
+				'<th class="text-center th-w-200">' + $.i18n.t('list.in') + '</th>' + 
+				'<th class="text-center th-w-200">' + $.i18n.t('list.out') + '</th>' + 
+				'<th class="text-center th-w-150">방번호</th>' +
 				'<th>' + $.i18n.t('list.terminal') + '</th>' + 
 				'<th>' + $.i18n.t('list.laptop') + '</th>' + 
 				'<th>' + $.i18n.t('list.modelNm') + '</th>' + 
@@ -307,7 +307,7 @@ function initTableHeader() {
 				'<th>' + $.i18n.t('list.foreigner') + '</th>' + 
 				'<th>' + $.i18n.t('list.passportNo') + '</th>' + 
 				'<th>' + $.i18n.t('list.orderStatus') + '</th>' +
-				'<th class="th-w-150">' + $.i18n.t('list.boatNm') + '</th>' ;
+				'<th class="text-center th-w-150">' + $.i18n.t('list.boatNm') + '</th>' ;
 				
 	$('#tbHeader').empty();
 	$('#tbHeader').append(text);
@@ -733,7 +733,7 @@ function initData() {
 function setListEmpty() {
 	if(_crewCnt <= 0) {
 		$('#tbRowList').empty();
-		$("#tbRowList").append('<tr><td class="text-center" colspan="16">' + $.i18n.t('share:noList') + '</td></tr>');
+		$("#tbRowList").append('<tr><td class="text-center" colspan="27">' + $.i18n.t('share:noList') + '</td></tr>');
 	}
  
 }
