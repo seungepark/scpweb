@@ -80,17 +80,17 @@
 						</div>
 					</div>  	
 					<!-- 두 번째 줄: 필터 영역(왼쪽) + 버튼 영역(오른쪽) -->
-					<div class="d-flex justify-content-between align-items-center">
+					<div class="d-flex flex-wrap justify-content-between align-items-center" style="gap: 1rem;">
 						<!-- 왼쪽: 필터 영역 -->
-						<div class="d-flex align-items-center">
-							<select id="filterKind" onchange="searchList()" class="mr-3">
+						<div class="d-flex flex-wrap align-items-center" style="flex: 1; min-width: 300px; margin-bottom: 0.5rem;">
+							<select id="filterKind" onchange="searchList()" class="mr-3 mb-2" style="min-width: 110px;">
 								<option value="ALL">[구분] All</option>
 								<option value="SHI-A">SHI-기술지원직</option>
 								<option value="SHI-B">SHI-생산직</option>
 								<option value="SHI-C">SHI-협력사</option>
 								<option value="OUTSIDE">외부</option>
 							</select>
-							<select id="filterWorkType1" onchange="setFilterWorkType2(this.value)" class="mr-3">
+							<select id="filterWorkType1" onchange="setFilterWorkType2(this.value)" class="mr-3 mb-2" style="min-width: 110px;">
 								<option value="ALL">[역할 1] All</option>
 								<option value="A">시운전</option>
 								<option value="B">생산</option>
@@ -98,16 +98,16 @@
 								<option value="D">지원</option>
 								<option value="E">외부</option>
 							</select>
-							<select id="filterWorkType2" onchange="searchList()" class="mr-3">
+							<select id="filterWorkType2" onchange="searchList()" class="mr-3 mb-2" style="min-width: 110px;">
 								<option value="ALL">[역할 2] All</option>
 							</select>
-							<select id="filterMainSub" onchange="searchList()" class="mr-3">
+							<select id="filterMainSub" onchange="searchList()" class="mr-3 mb-2" style="min-width: 100px;">
 								<option value="ALL">[정/부] All</option>
 								<option value="N">-</option>
 								<option value="M">정</option>
 								<option value="S">부</option>
 							</select>
-							<select id="filterFoodStyle" onchange="searchList()" class="mr-3">
+							<select id="filterFoodStyle" onchange="searchList()" class="mr-3 mb-2" style="min-width: 200px;">
 								<option value="ALL">[한식/양식] All</option>
 								<option value="K">한식</option>
 								<option value="W">양식(Normal Western)</option>
@@ -121,18 +121,18 @@
 								<option value="V7">양식(Veg. pollo-veg.)</option>
 								<option value="V8">양식(Veg. flexitarian)</option>
 							</select>
-							<div class="input-wrap">
-								<input id="filterWord" type="text" placeholder="검색어">
-								<button id="filterSearchBtn" onclick="searchList()"><img src="${pageContext.request.contextPath}/img/new/search.png"></button>
+							<div class="input-wrap mb-2" style="flex: 1; min-width: 120px; max-width: 150px;">
+								<input id="filterWord" type="text" placeholder="검색어" style="width: 100%;">
+								<button id="filterSearchBtn" onclick="searchList()" style="right: 2px;"><img src="${pageContext.request.contextPath}/img/new/search.png"></button>
 							</div>
 						</div>
 						
 						<!-- 오른쪽: filled 스타일 버튼 영역 -->
-						<div class="d-flex align-items-center">
+						<div class="d-flex flex-wrap align-items-center" style="flex: 0 0 auto; margin-bottom: 0.5rem;">
 							
 							
 							<!-- 승선일/하선일 반영 -->
-							<div style="margin-left: 16px; padding-left: 16px;">										
+							<div class="mb-2" style="margin-left: 16px; padding-left: 16px;">										
 								<div class="form-check form-check-inline">
 									<input class="form-check-input" type="radio" name="ioCheck" id="ioCheckIn" value="B" checked="checked">
 									<label class="form-check-label" for="ioCheckIn" data-i18n="list.in"></label>
@@ -144,26 +144,26 @@
 								<input type="date" id="ioDate" style="margin-right: 8px;"/>								
 								<button class="bt-obj bt-primary" onclick="setInOutDate()" style="margin-right: 8px;" data-i18n="list.btnInOut"></button>
 							</div>
-							<button class="bt-obj bt-primary" onclick="addCrew()" style="margin-right: 8px;"><i class="fa-solid fa-plus"></i></button>
-							<button class="bt-obj bt-primary" onclick="popDeleteCrewModal()" style="margin-right: 8px;"><i class="fa-solid fa-minus"></i></button>
-							<button class="bt-obj bt-primary" onclick="orderSave()" style="margin-right: 8px;">발주</button>
+							<button class="bt-obj bt-primary mb-2" onclick="addCrew()" style="margin-right: 8px;"><i class="fa-solid fa-plus"></i></button>
+							<button class="bt-obj bt-primary mb-2" onclick="popDeleteCrewModal()" style="margin-right: 8px;"><i class="fa-solid fa-minus"></i></button>
+							<button class="bt-obj bt-primary mb-2" onclick="orderSave()" style="margin-right: 8px;">발주</button>
 							
 							<c:choose>
 								<c:when test="${empty P_REG_CREW_W}">
-									<button class="bt-obj bt-primary" disabled><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
+									<button class="bt-obj bt-primary mb-2" disabled><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
 								</c:when>
 								<c:otherwise>
-									<button class="bt-obj bt-primary" onclick="save()"><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
+									<button class="bt-obj bt-primary mb-2" onclick="save()"><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>
 								</c:otherwise>
 							</c:choose>
 							
 							
-							<a href="javascript:void(0);" class="bt-obj bt-secondary" onclick="sendQRSMS()">
+							<a href="javascript:void(0);" class="bt-obj bt-secondary mb-2" onclick="sendQRSMS()">
 								<i class="fas fa-mobile-alt"></i> QR발송
 							</a>
 							
 							
-							<button class="bt-obj bt-primary" onClick="crewListDownloadAll()" style="margin-right: 8px;">
+							<button class="bt-obj bt-primary mb-2" onClick="crewListDownloadAll()" style="margin-right: 8px;">
 								<img src="${pageContext.request.contextPath}/img/i_download.svg" height="16px">&nbsp&nbsp다운로드
 							</button>
 						</div>

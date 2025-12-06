@@ -61,9 +61,9 @@
                 </div>
 				<div class="tb-area">
 					<div class="d-flex flex-row-reverse">
-						<a href="${pageContext.request.contextPath}/mobile/mobileCrewinfo.html?uid=${bean.uid}" class="bt-obj bt-secondary mr-2" target="_blank">
+						<%-- <a href="${pageContext.request.contextPath}/mobile/mobileCrewinfo.html?uid=${bean.uid}" class="bt-obj bt-secondary mr-2" target="_blank">
 							<i class="fas fa-mobile-alt"></i> 모바일 등록
-						</a>
+						</a> --%>
 						<c:choose>
 							<c:when test="${bean.isOff eq 'Y' or empty P_RESULT_SCHE_W}">
 								<button class="bt-obj bt-primary" disabled><img src="${pageContext.request.contextPath}/img/new/save.png" class="bt-icon"><span data-i18n="btnSave"></span></button>

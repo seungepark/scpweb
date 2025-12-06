@@ -406,7 +406,7 @@ function initData() {
 function setListEmpty() {
 	if(_anchCnt <= 0) {
 		$('#tbRowList').empty();
-		$("#tbRowList").append('<tr><td class="text-center" colspan="16">' + $.i18n.t('share:noList') + '</td></tr>');
+		$("#tbRowList").append('<tr><td class="text-center" colspan="21">' + $.i18n.t('share:noList') + '</td></tr>');
 	}
 }
 
