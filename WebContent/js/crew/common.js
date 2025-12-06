@@ -200,3 +200,150 @@ function sendQRSMSCommon(options) {
 }
 
 
+// 구분 표시명 가져오기 함수 (전역)
+function getKindLabelForExcel(value) {
+	const kindMap = {
+		'S': '직영',
+		'H': '협력사',
+		'V': '방문객',
+		'O': 'Owner/Class'
+	};
+	return kindMap[value] || value;
+}
+
+// 한식/양식 표시명 가져오기 함수 (전역)
+function getFoodStyleLabelForExcel(value) {
+	const foodStyleMap = {
+		'K': '한식',
+		'W': '양식(Normal Western)',
+		'H': '양식(Halal)',
+		'V1': '양식(Veg. fruitarian)',
+		'V2': '양식(Veg. vegan)',
+		'V3': '양식(Veg. lacto-veg.)',
+		'V4': '양식(Veg. ovo-veg.)',
+		'V5': '양식(Veg. lacto-ovo-veg.)',
+		'V6': '양식(Veg. pesco-veg.)',
+		'V7': '양식(Veg. pollo-veg.)',
+		'V8': '양식(Veg. flexitarian)'
+	};
+	return foodStyleMap[value] || value;
+}
+
+// 날짜시간 포맷 함수
+function formatDateTimeForExcel(dateStr) {
+	if(!dateStr || dateStr === '' || dateStr === 'null' || dateStr === null) {
+		return '';
+	}
+	// 문자열로 변환
+	dateStr = String(dateStr);
+	// 날짜 문자열이 이미 시간 포함인 경우 (YYYY-MM-DD HH:MM:SS 형식)
+	if(dateStr.length > 10) {
+		// T가 있으면 공백으로 변환
+		dateStr = dateStr.replace('T', ' ');
+		// 19자리까지만 (YYYY-MM-DD HH:MM:SS)
+		if(dateStr.length > 19) {
+			dateStr = dateStr.substring(0, 19);
+		}
+		return dateStr;
+	}
+	// 날짜만 있는 경우 시간 추가
+	if(dateStr.length === 10) {
+		return dateStr + ' 00:00:00';
+	}
+	return dateStr;
+}
+
+// 날짜만 포맷 함수 (YYYY-MM-DD)
+function formatDateForExcel(dateStr) {
+	if(!dateStr || dateStr === '' || dateStr === 'null' || dateStr === null) {
+		return '';
+	}
+	// 문자열로 변환
+	dateStr = String(dateStr);
+	// 날짜 문자열이 이미 시간 포함인 경우 날짜만 추출
+	if(dateStr.length > 10) {
+		// T가 있으면 공백으로 변환
+		dateStr = dateStr.replace('T', ' ');
+		// 날짜 부분만 추출 (YYYY-MM-DD)
+		dateStr = dateStr.substring(0, 10);
+	}
+	// 날짜만 있는 경우 그대로 반환
+	if(dateStr.length === 10) {
+		return dateStr;
+	}
+	return dateStr;
+}
+
+// 현재일자시간 포맷 함수 (파일명용)
+function getCurrentDateTimeForFileName() {
+	var dateNow = new Date();
+	var year = dateNow.getFullYear();
+	var month = String(dateNow.getMonth() + 1).padStart(2, '0');
+	var date = String(dateNow.getDate()).padStart(2, '0');
+	var hours = String(dateNow.getHours()).padStart(2, '0');
+	var minutes = String(dateNow.getMinutes()).padStart(2, '0');
+	var seconds = String(dateNow.getSeconds()).padStart(2, '0');
+	
+	return year + month + date + hours + minutes + seconds;
+}
+
+// 날짜 범위 값 가져오기 함수 (공통)
+function getDateRangeValues() {
+	let startDate = ($('#inDate').val() || '').trim();
+	let endDate = ($('#outDate').val() || '').trim();
+
+	const today = new Date();
+	const todayStr = today.toISOString().slice(0, 10);
+
+	if (!startDate) {
+		startDate = todayStr;
+		$('#inDate').val(startDate);
+	}
+	if (!endDate) {
+		endDate = todayStr;
+		$('#outDate').val(endDate);
+	}
+
+	if (startDate > endDate) {
+		const temp = startDate;
+		startDate = endDate;
+		endDate = temp;
+		$('#inDate').val(startDate);
+		$('#outDate').val(endDate);
+	}
+	return { startDate, endDate };
+}
+
+// 커스텀 파일명을 지원하는 Excel 다운로드 함수
+function excelDownloadAllWithCustomFileName(exportTable, fileName) {
+	var tab_text = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+	tab_text = tab_text + '<head><meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">';
+	tab_text = tab_text + '<xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>'
+	tab_text = tab_text + '<x:Name>Sheet</x:Name>';
+	tab_text = tab_text + '<x:WorksheetOptions><x:Panes></x:Panes></x:WorksheetOptions></x:ExcelWorksheet>';
+	tab_text = tab_text + '</x:ExcelWorksheets></x:ExcelWorkbook></xml></head><body>';
+	tab_text = tab_text + "<table border='1px'>";
+	
+	tab_text = tab_text + exportTable;
+	tab_text = tab_text + '</table></body></html>';
+	
+	var data_type = 'data:application/vnd.ms-excel';
+	var ua = window.navigator.userAgent;
+	var msie = ua.indexOf("MSIE ");
+	
+	//Explorer
+	if(msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
+		if(window.navigator.msSaveBlob) {
+			var blob = new Blob([tab_text], {type: "application/csv;charset=utf-8;"});
+			navigator.msSaveBlob(blob, fileName);
+		}
+	}else {
+		var blob2 = new Blob([tab_text], {type: "application/csv;charset=utf-8;"});
+		var elem = window.document.createElement('a');
+		elem.href = window.URL.createObjectURL(blob2);
+		elem.download = fileName;
+		document.body.appendChild(elem);
+		elem.click();
+		document.body.removeChild(elem);
+	}
+}

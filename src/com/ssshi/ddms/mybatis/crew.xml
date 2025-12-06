@@ -209,20 +209,24 @@
 			info.MEAL_DATE as mealDate, 
 			info.ORDER_STATUS as orderStatus, 
 			info.ORDER_DATE as orderDate,
-			info.ORDER_UID as orderUid, 
+			COALESCE(CONCAT(orderUser.FIRSTNAME, ' ', orderUser.LASTNAME), info.ORDER_UID) as orderUid, 
 			info.DEL_YN as deleteYn, 
 			info.COMMENT as comment, 
 			info.REG_DATE as inputDate, 
-			info.REG_USERNAME as inputUid,
+			COALESCE(CONCAT(inputUser.FIRSTNAME, ' ', inputUser.LASTNAME), info.REG_USERNAME) as inputUid,
 			GROUP_CONCAT(DISTINCT sms.PHONE ORDER BY sms.PHONE SEPARATOR ',\n') as smsReceiver
 		from mobile_anchor_meal_info info
 		LEFT JOIN mobile_meal_sms_userinfo sms 
 			ON info.PROJ_NO = sms.PROJ_NO 
 			AND info.UID = sms.ANCHOR_MEAL_UID 
 			AND sms.SMSYN = 'N'
+		LEFT JOIN USERINFO inputUser 
+			ON (inputUser.UID = CAST(info.REG_USERNAME AS UNSIGNED) OR inputUser.USERID = info.REG_USERNAME)
+		LEFT JOIN USERINFO orderUser 
+			ON (orderUser.UID = CAST(info.ORDER_UID AS UNSIGNED) OR orderUser.USERID = info.ORDER_UID)
 		where 1=1 
 		 <if test="ship != null and ship != 'ALL'" >
-			AND info.PROJ_NO <![CDATA[ = ]]> #{ship}			
+			AND UPPER(info.PROJ_NO) = UPPER(#{ship})			
 		 </if>
 		 <if test="inDate != null and inDate != ''">
 		   AND info.MEAL_DATE <![CDATA[ >= ]]> #{inDate}
@@ -232,7 +236,9 @@
 		 </if>
 		 GROUP BY info.UID, info.SCHEDULERINFOUID, info.PROJ_NO, info.TRIALKEY, info.KIND, 
 		          info.DOMESTIC_YN, info.DEPT_NAME, info.MEAL_DATE, info.ORDER_STATUS, 
-		          info.ORDER_DATE, info.ORDER_UID, info.DEL_YN, info.COMMENT, info.REG_DATE, info.REG_USERNAME
+		          info.ORDER_DATE, info.ORDER_UID, info.DEL_YN, info.COMMENT, info.REG_DATE, info.REG_USERNAME,
+		          orderUser.FIRSTNAME, orderUser.LASTNAME, inputUser.FIRSTNAME, inputUser.LASTNAME
+		 ORDER BY info.MEAL_DATE, info.DEPT_NAME
 	</select>
 	
 	<select id="getAnchorageMealListBySchedulerInfoUid" parameterType="int" resultType="AnchorageMealRequestBean">
@@ -247,23 +253,29 @@
 			info.MEAL_DATE as mealDate, 
 			info.ORDER_STATUS as orderStatus, 
 			info.ORDER_DATE as orderDate,
-			info.ORDER_UID as orderUid, 
+			COALESCE(CONCAT(orderUser.FIRSTNAME, ' ', orderUser.LASTNAME), info.ORDER_UID) as orderUid, 
 			info.DEL_YN as deleteYn, 
 			info.COMMENT as comment, 
 			info.REG_DATE as inputDate, 
-			info.REG_USERNAME as inputUid,
+			COALESCE(CONCAT(inputUser.FIRSTNAME, ' ', inputUser.LASTNAME), info.REG_USERNAME) as inputUid,
 			GROUP_CONCAT(DISTINCT sms.PHONE ORDER BY sms.PHONE SEPARATOR ',\n') as smsReceiver
 		from mobile_anchor_meal_info info
 		LEFT JOIN mobile_meal_sms_userinfo sms 
 			ON info.PROJ_NO = sms.PROJ_NO 
 			AND info.UID = sms.ANCHOR_MEAL_UID 
 			AND sms.SMSYN = 'N'
+		LEFT JOIN USERINFO inputUser 
+			ON (inputUser.UID = CAST(info.REG_USERNAME AS UNSIGNED) OR inputUser.USERID = info.REG_USERNAME)
+		LEFT JOIN USERINFO orderUser 
+			ON (orderUser.UID = CAST(info.ORDER_UID AS UNSIGNED) OR orderUser.USERID = info.ORDER_UID)
 		 where 1=1 
 		   AND info.UID IS NOT NULL
 		   AND info.PROJ_NO = #{schedulerInfoUid}
 		 GROUP BY info.UID, info.SCHEDULERINFOUID, info.PROJ_NO, info.TRIALKEY, info.KIND, 
 		          info.DOMESTIC_YN, info.DEPT_NAME, info.MEAL_DATE, info.ORDER_STATUS, 
-		          info.ORDER_DATE, info.ORDER_UID, info.DEL_YN, info.COMMENT, info.REG_DATE, info.REG_USERNAME
+		          info.ORDER_DATE, info.ORDER_UID, info.DEL_YN, info.COMMENT, info.REG_DATE, info.REG_USERNAME,
+		          orderUser.FIRSTNAME, orderUser.LASTNAME, inputUser.FIRSTNAME, inputUser.LASTNAME
+		 ORDER BY info.MEAL_DATE, info.DEPT_NAME
 	</select>
 	
 	<select id="getAnchorageMealListCnt" resultType="int">
@@ -297,7 +309,7 @@
 		  FROM mobile_anchor_meal_userinfo
 		 where 1=1
 		 <if test="ship != null and ship != '' and ship != 'ALL'">
-		   AND PROJ_NO <![CDATA[ = ]]> #{ship}
+		   AND UPPER(PROJ_NO) = UPPER(#{ship})
 		 </if>
 		 <if test="inDate != null and inDate != ''">
 		   AND MEAL_DATE <![CDATA[ >= ]]> #{inDate}
@@ -514,7 +526,7 @@
 			   AND info.MEAL_DATE <![CDATA[ >= ]]> #{inDate}
 			   AND info.MEAL_DATE <![CDATA[ <= ]]> #{outDate}
 			 <if test="ship != null and ship != '' and ship != 'ALL'">
-				AND info.PROJ_NO <![CDATA[ = ]]> #{ship}
+				AND UPPER(info.PROJ_NO) = UPPER(#{ship})
 			 </if>
 			UNION
 			SELECT 
@@ -538,7 +550,7 @@
 			   AND userinfo.MEAL_DATE <![CDATA[ >= ]]> #{inDate}
 			   AND userinfo.MEAL_DATE <![CDATA[ <= ]]> #{outDate}
 			 <if test="ship != null and ship != '' and ship != 'ALL'">
-				AND userinfo.PROJ_NO <![CDATA[ = ]]> #{ship}
+				AND UPPER(userinfo.PROJ_NO) = UPPER(#{ship})
 			 </if>
 		) merged
 		WHERE merged.department IS NOT NULL AND merged.department <![CDATA[ <> ]]> ''
@@ -760,7 +772,7 @@
 				AND MEAL_DATE <![CDATA[ <= ]]> #{outDate}
 			 </if>
 			 <if test="ship != null and ship != '' and ship != 'ALL'">
-				AND PROJ_NO <![CDATA[ = ]]> #{ship}
+				AND UPPER(PROJ_NO) = UPPER(#{ship})
 			 </if>
 			UNION
 			SELECT DISTINCT DEPT_NAME AS dept_name
@@ -773,7 +785,7 @@
 				AND MEAL_DATE <![CDATA[ <= ]]> #{outDate}
 			 </if>
 			 <if test="ship != null and ship != '' and ship != 'ALL'">
-				AND PROJ_NO <![CDATA[ = ]]> #{ship}
+				AND UPPER(PROJ_NO) = UPPER(#{ship})
 			 </if>
 		  ) dept
 		 WHERE dept_name IS NOT NULL AND dept_name <![CDATA[ <> ]]> ''
@@ -794,7 +806,7 @@
 			AND MEAL_DATE <![CDATA[ <= ]]> #{outDate}
 		 </if>
 		 <if test="ship != null and ship != '' and ship != 'ALL'">
-			AND PROJ_NO <![CDATA[ = ]]> #{ship}
+			AND UPPER(PROJ_NO) = UPPER(#{ship})
 		 </if>
 		 ORDER BY projNo, mealDate, department
 	</select>

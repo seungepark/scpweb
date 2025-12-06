@@ -20,6 +20,19 @@ const VISIBLE_BODY_ROWS = 4;
 const BODY_ROW_HEIGHT = 56;
 const SHIP_AUTOCOMPLETE_MIN_LENGTH = 4;
 
+// 현재일자시간 포맷 함수 (파일명용)
+function getCurrentDateTimeForFileName() {
+	var dateNow = new Date();
+	var year = dateNow.getFullYear();
+	var month = String(dateNow.getMonth() + 1).padStart(2, '0');
+	var date = String(dateNow.getDate()).padStart(2, '0');
+	var hours = String(dateNow.getHours()).padStart(2, '0');
+	var minutes = String(dateNow.getMinutes()).padStart(2, '0');
+	var seconds = String(dateNow.getSeconds()).padStart(2, '0');
+	
+	return year + month + date + hours + minutes + seconds;
+}
+
 function t(key, fallback) {
 	let value;
 	try {
@@ -45,32 +58,6 @@ function escapeHtml(value) {
 
 function escapeAttr(value) {
 	return escapeHtml(value).replace(/`/g, '&#96;');
-}
-
-function getDateRangeValues() {
-	let startDate = ($('#inDate').val() || '').trim();
-	let endDate = ($('#outDate').val() || '').trim();
-
-	const today = new Date();
-	const todayStr = today.toISOString().slice(0, 10);
-
-	if (!startDate) {
-		startDate = todayStr;
-		$('#inDate').val(startDate);
-	}
-	if (!endDate) {
-		endDate = todayStr;
-		$('#outDate').val(endDate);
-	}
-
-	if (startDate > endDate) {
-		const temp = startDate;
-		startDate = endDate;
-		endDate = temp;
-		$('#inDate').val(startDate);
-		$('#outDate').val(endDate);
-	}
-	return { startDate, endDate };
 }
 
 function buildDateRange(startDate, endDate) {
@@ -835,7 +822,31 @@ function anchListDownloadAll() {
 			const list = result.list || [];
 			const table = buildMealTableHtml(list, inDate, outDate, { asText: true });
 			const tableHtml = '<thead>' + table.headerHtml + '</thead><tbody>' + table.bodyHtml + '</tbody>';
-			excelDownloadAll(tableHtml, 'anch_Result_list');
+			
+			// 호선명 가져오기
+			var shipName = getShipDescription(ship) || ship || '';
+			if(shipName) {
+				shipName = shipName.replace(/[\/\\?%*:|"<>]/g, '_'); // 파일명에 사용할 수 없는 문자 제거
+			}
+			
+			// 조회기간 가져오기
+			var dateRange = '';
+			if(inDate && outDate) {
+				dateRange = inDate.replace(/-/g, '') + '-' + outDate.replace(/-/g, '');
+			}
+			
+			// 파일명: 실적집계(앵카링)_호선_조회기간(현재시간).xls
+			var fileNameParts = ['실적집계(앵카링)'];
+			if(shipName) {
+				fileNameParts.push(shipName);
+			}
+			if(dateRange) {
+				fileNameParts.push(dateRange);
+			}
+			fileNameParts.push('(' + getCurrentDateTimeForFileName() + ')');
+			var fileName = fileNameParts.join('_') + '.xls';
+			
+			excelDownloadAllWithCustomFileName(tableHtml, fileName);
 		}else {
 			alertPop($.i18n.t('share:tryAgain'));
 		}

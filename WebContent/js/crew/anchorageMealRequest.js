@@ -121,6 +121,17 @@ function setSearchOption() {
 		$('#outDate').val(paramOutDate);
 	}
 	
+	// 날짜 값이 없으면 오늘 날짜로 설정
+	const today = new Date();
+	const todayStr = today.toISOString().slice(0, 10);
+	
+	if(!$('#inDate').val() || $('#inDate').val() === '') {
+		$('#inDate').val(todayStr);
+	}
+	if(!$('#outDate').val() || $('#outDate').val() === '') {
+		$('#outDate').val(todayStr);
+	}
+	
 	// 필터 조건들 설정
 	if(paramFilterKind) {
 		$('#filterKind').val(paramFilterKind);
@@ -671,16 +682,16 @@ function getAnchorageMealList(page) {
 											'</div>' + 
 										'</td>';							
 
-								text += '<td  class="text-center align-middle p-0">' + 
-											'<divclass="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
+								text += '<td class="text-center align-middle p-0">' + 
+											'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
 											'<input style="width: 100px;" name="lateNightP" class="text-center" type="text" value="' + lateNightP + '" >' +
 											'</div>' + 
-											'<div  class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
+											'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
 												'<input style="width: 100px;" name="lateNightR" disabled class="text-center" type="text" value="' + lateNightR + '" >' +
 											'</div>' + 
-										'</td>'+						
+										'</td>';						
 																	
-								'<td class="text-center th-w-90">' + '<input name="orderStatus" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>'+
+								text += '<td class="text-center th-w-90">' + '<input name="orderStatus" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (orderStatus === 'Y' ? 'checked' : '') + '>' + '</td>'+
 								'<td class="text-center">' + '<input name="orderDate" type="text" disabled value="' + orderDate + '">' + '</td>' + 												
 								'<td class="text-center">' + '<input name="orderUid" type="text" disabled value="' + orderUid + '">' + '</td>' + 												
 								'<td class="text-center th-w-60">' + '<input name="deleteYn" type="checkbox" disabled value="Y" onclick="setCheckBox(this)"' + (deleteYn === 'Y' ? 'checked' : '') + '>' + '</td>'+
@@ -696,8 +707,11 @@ function getAnchorageMealList(page) {
 //alert(text);
             if(json.list.length > 0) {
                 $('#tbRowList').append(text);
+                // 검색 결과 로드 후 행 개수 업데이트
+                _anchCnt = json.list.length;
             }else {
                 $('#tbRowList').append('<tr><td class="text-center" colspan="18">' + $.i18n.t('share:noList') + '</td></tr>');
+                _anchCnt = 0;
             }
 
 			$('[data-toggle="tooltip"]').tooltip();
@@ -719,8 +733,19 @@ function getAnchorageMealList(page) {
 
 //전체리스트 엑셀 다운로드
 function anchListDownloadAll() {
+	// 호선 입력 여부 확인
+	const shipValue = deriveShipValueFromInput();
+	if(!shipValue || shipValue === '' || shipValue === 'ALL') {
+		alertPop('호선을 선택해주세요.');
+		return;
+	}
+	
 	var search = $("#search").val();
 	var _cnt = 0;
+	
+	// 조회 기간 가져오기
+	var inDate = $('#inDate').val() || '';
+	var outDate = $('#outDate').val() || '';
 
 	$.ajax({
 		type : "GET",
@@ -737,6 +762,9 @@ function anchListDownloadAll() {
 		},
 		data : {
 			isAll: 'Y',
+			ship: shipValue,
+			inDate: inDate,
+			outDate: outDate,
             sort: listSort,
             order: listOrder
 		}
@@ -784,9 +812,14 @@ function anchListDownloadAll() {
 				let lateNightR = "";
 				
 				//식사신청 수량(계획)
+				let foodStyleCode = '';
 				for(let x = 0; x < planList.length; x++) {
 					let code = planList[x].planMealTime;
 					let qty = planList[x].planMealQty;
+					// foodStyle은 planMealGubun에서 가져오기
+					if(!foodStyleCode && planList[x].planMealGubun) {
+						foodStyleCode = planList[x].planMealGubun;
+					}
 					//alert(code);
 					if(code == '조식') {
 						breakfastP = qty;
@@ -814,57 +847,90 @@ function anchListDownloadAll() {
 					}
 				}
 				
+				// 변환된 값 준비
+				let kindLabel = getKindLabelForExcel(jsonResult[i].kind || '');
+				let foodStyleLabel = getFoodStyleLabelForExcel(foodStyleCode || '');
+				let mealDateFormatted = formatDateForExcel(jsonResult[i].mealDate);
+				let orderDateFormatted = formatDateTimeForExcel(jsonResult[i].orderDate);
+				let inputDateFormatted = formatDateTimeForExcel(jsonResult[i].inputDate);
+				let inputUidDisplay = jsonResult[i].inputUid || '';
+				let orderUidDisplay = jsonResult[i].orderUid || '';
+				
 				//계획
 				text += '<tr class="even pointer">';
 				text += '  <td>' + _cnt++ + '</td>';
-				text += '  <td>' + jsonResult[i].projNo + '</td>';
-				text += '  <td>' + jsonResult[i].kind + '</td>';
-				text += '  <td>' + jsonResult[i].domesticYn + '</td>';
-				text += '  <td>' + jsonResult[i].department + '</td>';
-				text += '  <td>' + jsonResult[i].mealDate + '</td>';
-				text += '  <td>' + jsonResult[i].foodStyle + '</td>';
+				text += '  <td>' + (jsonResult[i].projNo || '') + '</td>';
+				text += '  <td>' + kindLabel + '</td>';
+				text += '  <td>' + (jsonResult[i].domesticYn || '') + '</td>';
+				text += '  <td>' + (jsonResult[i].department || '') + '</td>';
+				text += '  <td>' + mealDateFormatted + '</td>';
+				text += '  <td>' + foodStyleLabel + '</td>';
 				text += '  <td>' + '계획' + '</td>';
-				text += '  <td>' + breakfastP + '</td>';
-				text += '  <td>' + lunchP + '</td>';
-				text += '  <td>' + dinnerP + '</td>';
-				text += '  <td>' + lateNightP + '</td>';
-				text += '  <td>' + jsonResult[i].orderStatus + '</td>';
-				text += '  <td>' + jsonResult[i].orderDate + '</td>';
-				text += '  <td>' + jsonResult[i].orderUid + '</td>';
-				text += '  <td>' + jsonResult[i].deleteYn + '</td>';
-				text += '  <td>' + jsonResult[i].comment + '</td>';
-				text += '  <td>' + jsonResult[i].inputUid + '</td>';
-				text += '  <td>' + jsonResult[i].inputDate + '</td>';
+				text += '  <td>' + (breakfastP || '') + '</td>';
+				text += '  <td>' + (lunchP || '') + '</td>';
+				text += '  <td>' + (dinnerP || '') + '</td>';
+				text += '  <td>' + (lateNightP || '') + '</td>';
+				text += '  <td>' + (jsonResult[i].orderStatus || '') + '</td>';
+				text += '  <td>' + orderDateFormatted + '</td>';
+				text += '  <td>' + orderUidDisplay + '</td>';
+				text += '  <td>' + (jsonResult[i].deleteYn || '') + '</td>';
+				text += '  <td>' + (jsonResult[i].comment || '') + '</td>';
+				text += '  <td>' + inputUidDisplay + '</td>';
+				text += '  <td>' + inputDateFormatted + '</td>';
 				text += '</tr>';
 				
 				//실적
-				text += '</tr>';
 				text += '<tr class="even pointer">';
 				text += '  <td>' + _cnt++ + '</td>';
-				text += '  <td>' + jsonResult[i].projNo + '</td>';
-				text += '  <td>' + jsonResult[i].kind + '</td>';
-				text += '  <td>' + jsonResult[i].domesticYn + '</td>';
-				text += '  <td>' + jsonResult[i].department + '</td>';
-				text += '  <td>' + jsonResult[i].mealDate + '</td>';
-				text += '  <td>' + jsonResult[i].foodStyle + '</td>';
+				text += '  <td>' + (jsonResult[i].projNo || '') + '</td>';
+				text += '  <td>' + kindLabel + '</td>';
+				text += '  <td>' + (jsonResult[i].domesticYn || '') + '</td>';
+				text += '  <td>' + (jsonResult[i].department || '') + '</td>';
+				text += '  <td>' + mealDateFormatted + '</td>';
+				text += '  <td>' + foodStyleLabel + '</td>';
 				text += '  <td>' + '실적' + '</td>';
-				text += '  <td>' + breakfastR + '</td>';
-				text += '  <td>' + lunchR + '</td>';
-				text += '  <td>' + dinnerR + '</td>';
-				text += '  <td>' + lateNightR + '</td>';
-				text += '  <td>' + jsonResult[i].orderStatus + '</td>';
-				text += '  <td>' + jsonResult[i].orderDate + '</td>';
-				text += '  <td>' + jsonResult[i].orderUid + '</td>';
-				text += '  <td>' + jsonResult[i].deleteYn + '</td>';
-				text += '  <td>' + jsonResult[i].comment + '</td>';
-				text += '  <td>' + jsonResult[i].inputUid + '</td>';
-				text += '  <td>' + jsonResult[i].inputDate + '</td>';
+				text += '  <td>' + (breakfastR || '') + '</td>';
+				text += '  <td>' + (lunchR || '') + '</td>';
+				text += '  <td>' + (dinnerR || '') + '</td>';
+				text += '  <td>' + (lateNightR || '') + '</td>';
+				text += '  <td>' + (jsonResult[i].orderStatus || '') + '</td>';
+				text += '  <td>' + orderDateFormatted + '</td>';
+				text += '  <td>' + orderUidDisplay + '</td>';
+				text += '  <td>' + (jsonResult[i].deleteYn || '') + '</td>';
+				text += '  <td>' + (jsonResult[i].comment || '') + '</td>';
+				text += '  <td>' + inputUidDisplay + '</td>';
+				text += '  <td>' + inputDateFormatted + '</td>';
 				text += '</tr>';
 			}
 
 			text += '</tbody>';
 			
-			excelDownloadAll(text, 'anch_list');
+			// 호선명 가져오기
+			var shipName = getShipDescription(shipValue) || shipValue || '';
+			if(shipName) {
+				shipName = shipName.replace(/[\/\\?%*:|"<>]/g, '_'); // 파일명에 사용할 수 없는 문자 제거
+			}
+			
+			// 조회기간 가져오기
+			var inDate = $('#inDate').val() || '';
+			var outDate = $('#outDate').val() || '';
+			var dateRange = '';
+			if(inDate && outDate) {
+				dateRange = inDate.replace(/-/g, '') + '-' + outDate.replace(/-/g, '');
+			}
+			
+			// 파일명: 앵카링식사신청_호선_조회기간(현재시간).xls
+			var fileNameParts = ['앵카링식사신청'];
+			if(shipName) {
+				fileNameParts.push(shipName);
+			}
+			if(dateRange) {
+				fileNameParts.push(dateRange);
+			}
+			fileNameParts.push('(' + getCurrentDateTimeForFileName() + ')');
+			var fileName = fileNameParts.join('_') + '.xls';
+			
+			excelDownloadAllWithCustomFileName(text, fileName);
 		}else {
 			alertPop($.i18n.t('share:tryAgain'));
 		}
@@ -996,11 +1062,14 @@ function addAnch() {
 		return;
 	}
 	
-	if(_anchCnt == 0) {
-		$('#tbRowList').empty();
-	}
+	// 실제 테이블에 있는 행 개수 확인 (빈 행, "There is no data to display" 행 제외)
+	let existingRows = $('#tbRowList tr').filter(function() {
+		let tr = $(this);
+		// colspan이 있는 행이나 uid input이 없는 행은 데이터 행이 아님
+		return tr.find('td[colspan]').length === 0 && tr.find('input[name="uid"]').length > 0;
+	}).length;
 	
-	_anchCnt++;
+	_anchCnt = existingRows + 1;
 	let rowId = _tbRowId++;
 		
 	let text = '<tr id="tbRow_' + rowId + '">' + 
@@ -1075,16 +1144,16 @@ function addAnch() {
 													'</div>' + 
 												'</td>';							
 
-										text += '<td  class="text-center align-middle p-0">' + 
-													'<divclass="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
+										text += '<td class="text-center align-middle p-0">' + 
+													'<div class="d-flex align-items-center justify-content-center border-bottom px-1 inout_scheduler_h">' + 
 													'<input style="width: 100px;" name="lateNightP" class="text-center" type="text">' +
 													'</div>' + 
-													'<div  class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
+													'<div class="d-flex align-items-center justify-content-center px-1 inout_performance_h">' + 
 														'<input style="width: 100px;" name="lateNightR" disabled class="text-center" type="text">' +
 													'</div>' + 
-												'</td>'+
+												'</td>';
 					
-					'<td class="text-center th-w-90">' + '<input name="orderStatus" type="checkbox" value="N" onclick="setCheckBox(this)">' + '</td>' +
+					text += '<td class="text-center th-w-90">' + '<input name="orderStatus" type="checkbox" value="N" onclick="setCheckBox(this)">' + '</td>' +
 					'<td class="text-center">' + '<input name="orderDate" type="text" disabled>' + '</td>' +
 					'<td class="text-center">' + '<input name="orderUid" type="text" disabled>' + '</td>'+
 					'<td class="text-center th-w-60">' + '<input name="deleteYn" type="checkbox" value="N" onclick="setCheckBox(this)">' + '</td>' +
@@ -1095,6 +1164,9 @@ function addAnch() {
 	text += '</tr>';
 
 	$('#tbRowList').append(text);
+	
+	// 행 번호 재설정
+	resetRowNo();
 }
 
 
@@ -1735,6 +1807,52 @@ function save() {
 	alert($("#ship option:selected").text());
 	alert(trialKeyVl[1].value);*/
 	
+	// 구분, 부서명, 날짜, 한식/양식 중복 체크용 맵
+	let duplicateCheckMap = new Map();
+	
+	// 구분 표시명 가져오기 함수
+	function getKindLabel(value) {
+		const kindMap = {
+			'S': '직영',
+			'H': '협력사',
+			'V': '방문객',
+			'O': 'Owner/Class'
+		};
+		return kindMap[value] || value;
+	}
+	
+	// 한식/양식 표시명 가져오기 함수
+	function getFoodStyleLabel(value) {
+		const foodStyleMap = {
+			'K': '한식',
+			'W': '양식(Normal Western)',
+			'H': '양식(Halal)',
+			'V1': '양식(Veg. fruitarian)',
+			'V2': '양식(Veg. vegan)',
+			'V3': '양식(Veg. lacto-veg.)',
+			'V4': '양식(Veg. ovo-veg.)',
+			'V5': '양식(Veg. lacto-ovo-veg.)',
+			'V6': '양식(Veg. pesco-veg.)',
+			'V7': '양식(Veg. pollo-veg.)',
+			'V8': '양식(Veg. flexitarian)'
+		};
+		return foodStyleMap[value] || value;
+	}
+	
+	// 날짜시간 포맷 함수
+	function formatDateTime(dateStr) {
+		if(!dateStr || dateStr === '' || dateStr === 'null') {
+			return '';
+		}
+		// 날짜 문자열이 이미 시간 포함인 경우
+		if(dateStr.length > 10) {
+			// YYYY-MM-DD HH:MM:SS 형식으로 변환
+			return dateStr.replace('T', ' ').substring(0, 19);
+		}
+		// 날짜만 있는 경우 시간 추가
+		return dateStr + ' 00:00:00';
+	}
+	
 	for(let i = 0; i < kindVl.length; i++) {
 		//alert(3);
 		uidVl[i].value = uidVl[i] && uidVl[i].value !== "" ? uidVl[i].value : -1;
@@ -1780,6 +1898,51 @@ function save() {
 			departmentVl[i].focus();
 			isError = true;
 			break;
+		}
+		
+		if(isEmpty(mealDateVl[i].value)) {
+			alertPop('날짜를 선택해 주세요.');
+			mealDateVl[i].focus();
+			isError = true;
+			break;
+		}
+		
+		// 구분, 부서명, 날짜, 한식/양식 중복 체크
+		let kindValue = (kindVl[i].value || '').trim();
+		let deptValue = (departmentVl[i].value || '').trim();
+		let mealDateValue = (mealDateVl[i].value || '').trim();
+		let foodStyleValue = (foodStyleVl[i].value || '').trim();
+		
+		if(kindValue && deptValue && mealDateValue && foodStyleValue) {
+			let key = kindValue + '|' + deptValue + '|' + mealDateValue + '|' + foodStyleValue;
+			
+			if(duplicateCheckMap.has(key)) {
+				// 중복 발견
+				let kindLabel = getKindLabel(kindValue);
+				let foodStyleLabel = foodStyleVl[i].options[foodStyleVl[i].selectedIndex].text || foodStyleValue;
+				
+				let duplicateMsg = ' 저장실패 데이터 중복 :' +
+								   kindLabel + ','+ deptValue + ','+ mealDateValue + ','+ foodStyleLabel 
+				// 중복되는 마지막 row 인덱스 저장
+				let duplicateRowIndex = i;
+				
+				// 알람 팝업이 닫힌 후 포커스 설정
+				let $modal = $('#alertPop, #alertPopLg');
+				$modal.one('hidden.bs.modal', function() {
+					setTimeout(function() {
+						if(departmentVl[duplicateRowIndex]) {
+							departmentVl[duplicateRowIndex].focus();
+							departmentVl[duplicateRowIndex].select();
+						}
+					}, 100);
+				});
+				
+				alertPopHtml(duplicateMsg);
+				isError = true;
+				break;
+			} else {
+				duplicateCheckMap.set(key, i);
+			}
 		}
 		//alert(3);
 		//alert("dhsdfsdf");
