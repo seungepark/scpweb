@@ -84,14 +84,6 @@ function saveSearchOption() {
     setSearchCookie('SK_SHIP', $("#ship option:selected").val());
 }
 
-function setCheckBox(input) {
-    if (input.checked) {
-        input.value = "Y";
-    } else {
-        input.value = "N";
-    }
-}
-
 //검색 옵션
 // 고정 열 위치 계산 및 설정
 // 고정 열 위치 계산 및 설정
@@ -1240,15 +1232,6 @@ function deleteCrew() {
 	setListEmpty();
 }
 
-// 목록 No. 리셋.
-function resetRowNo() {
-	let noList = document.getElementsByName('no');
-	
-	for(let i = 0; i < noList.length; i++) {
-		noList[i].innerText = i + 1;
-	}
-}
-
 // 양식 다운로드.
 function downCrewExcel() {
 	//alert("오나요");
@@ -1321,11 +1304,6 @@ function roomDownExcel() {
 		alertPop('다운로드 중 오류가 발생했습니다.');
 		console.error('Error download:', e);
 	}
-}
-
-// 양식 파일 열기.
-function openFileInput() {
-	document.getElementById('fileInput').click();
 }
 
 // 양식 업로드.
@@ -3003,6 +2981,13 @@ function searchAndReload() {
 	let filterMainSub = $('#filterMainSub').val();
 	let filterFoodStyle = $('#filterFoodStyle').val();
 	let filterWord = $('#filterWord').val();
+	
+	// 날짜 기간 validation 체크
+	let dateValidation = validateDateRange('inDate', 'outDate');
+	if (!dateValidation.valid) {
+		alertPop(dateValidation.message);
+		return;
+	}
 	
 	// URL 파라미터 생성
 	let params = new URLSearchParams();

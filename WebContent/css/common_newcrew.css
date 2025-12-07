@@ -4323,3 +4323,11 @@ td > select {
   padding: 0;
   margin: 0;
 }
+
+/* 작은 버튼 사이즈 클래스 (padding 포함) */
+.bt-obj.bt-sm-full {
+  padding: 5px 10px;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 18px;
+}

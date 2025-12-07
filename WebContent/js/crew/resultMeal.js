@@ -634,14 +634,6 @@ function saveSearchOption() {
 }
 
 //체크박스 전환
-function setCheckBox(input) {
-    if (input.checked) {
-        input.value = "Y";
-    } else {
-        input.value = "N";
-    }
-}
-
 //검색 옵션
 function setSearchOption() {
 	let page = getSearchCookie('SK_PAGE');	
@@ -711,6 +703,13 @@ function getAnchMealList() {
 	let projNo = deriveShipValueFromInput();
 	let inDate = $('#inDate').val();
 	let outDate = $('#outDate').val();
+	
+	// 날짜 기간 validation 체크
+	let dateValidation = validateDateRange('inDate', 'outDate');
+	if (!dateValidation.valid) {
+		alertPop(dateValidation.message);
+		return;
+	}
 	
 	if(isValidDate(inDate) && isValidDate(outDate)) {
 		getMealResultList(1);

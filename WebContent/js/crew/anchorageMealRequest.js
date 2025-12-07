@@ -74,15 +74,6 @@ function saveSearchOption() {
     setSearchCookie('SK_SHIP', shipValue);
 }
 
-//체크박스 전환
-function setCheckBox(input) {
-    if (input.checked) {
-        input.value = "Y";
-    } else {
-        input.value = "N";
-    }
-}
-
 //검색 옵션
 function setSearchOption() {
 	let page = getSearchCookie('SK_PAGE');	
@@ -170,7 +161,7 @@ function initTableHeader() {
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.projNo') + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.kind') + '</span></div></th>' +				
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.domesticYn') + '</span></div></th>' +
-				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.department') + '</span></div></th>' +
+				'<th><div class="th-w-150"><span class="tb-th-content">' + $.i18n.t('list.department') + '</span></div></th>' +
 				'<th class="th-w-200"><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.mealDate') + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + $.i18n.t('list.foodStyle') + '</span></div></th>' +
 				'<th><div class="tb-th-col"><span class="tb-th-content">' + ' ' +'</span></div></th>' +
@@ -326,7 +317,7 @@ function initData() {
 							'<option value="N"' + (domesticYn == 'N' ? ' selected' : '') + '>외국</option>';
 				text += '</select>' +
 					
-					'<td class="text-center">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 												
+					'<td class="text-center th-w-150">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 												
 					'<td class="text-center th-w-200">' + '<input name="mealDate" class="text-center" type="date" value="' + mealDate + '" >' + '</td>'+							
 					'<td class="text-center">' + 
 						'<select name="foodStyle" >';
@@ -416,6 +407,13 @@ function getAnchMealList() {
 	let projNo = shipValue;
 	let inDate = $('#inDate').val();
 	let outDate = $('#outDate').val();
+	
+	// 날짜 기간 validation 체크
+	let dateValidation = validateDateRange('inDate', 'outDate');
+	if (!dateValidation.valid) {
+		alertPop(dateValidation.message);
+		return;
+	}
 	
 	if(isValidDate(inDate) && isValidDate(outDate)) {
 		$('input[name=listChk]').each(function(idx, obj) {
@@ -631,7 +629,7 @@ function getAnchorageMealList(page) {
 										'<option value="N"' + (domesticYn == 'N' ? ' selected' : '') + '>외국</option>';
 							text += '</select>' +
 								
-								'<td class="text-center">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 												
+								'<td class="text-center th-w-150">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 												
 								'<td class="text-center th-w-200">' + '<input name="mealDate" class="text-center" type="date" value="' + mealDate + '" >' + '</td>'+							
 								'<td class="text-center">' + 
 									'<select name="foodStyle" >';
@@ -1062,6 +1060,9 @@ function addAnch() {
 		return;
 	}
 	
+	// "데이터가 없습니다" 메시지 행 제거
+	$('#tbRowList tr').has('td[colspan]').remove();
+	
 	// 실제 테이블에 있는 행 개수 확인 (빈 행, "There is no data to display" 행 제외)
 	let existingRows = $('#tbRowList tr').filter(function() {
 		let tr = $(this);
@@ -1096,7 +1097,7 @@ function addAnch() {
 						'</select>' +
 					'</td>' + 
 					
-					'<td class="text-center">' + '<input name="department" type="text">' + '</td>' + 
+					'<td class="text-center th-w-150">' + '<input name="department" type="text">' + '</td>' + 
 					'<td class="text-center th-w-200">' + '<input name="mealDate" class="text-center" type="date">' + '</td>' +
 					'<td class="text-center">' + 
 						'<select name="foodStyle">' +
@@ -1246,23 +1247,9 @@ function deleteAnch() {
 	setListEmpty();
 }
 
-// 목록 No. 리셋.
-function resetRowNo() {
-	let noList = document.getElementsByName('no');
-	
-	for(let i = 0; i < noList.length; i++) {
-		noList[i].innerText = i + 1;
-	}
-}
-
 // 양식 다운로드.
 function downAnchExcel() {
 	window.location.href = contextPath + '/crew/downAnchExcel.html';
-}
-
-// 양식 파일 열기.
-function openFileInput() {
-	document.getElementById('fileInput').click();
 }
 
 // 양식 업로드.
@@ -1609,7 +1596,7 @@ function setExcelData(projNoList, kindList, domesticYnList, departmentList, meal
 									'<option value="N"' + (domesticYn == '외국' ? ' selected' : '') + '>외국</option>';
 						text += '</select>' +
 							
-							'<td class="text-center">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 												
+							'<td class="text-center th-w-150">' + '<input name="department" type="text" value="' + department + '">' + '</td>' + 												
 							'<td class="text-center th-w-200">' + '<input name="mealDate" class="text-center" type="date" value="' + mealDate + '" >' + '</td>'+							
 							'<td class="text-center">' + 
 								'<select name="foodStyle" >';

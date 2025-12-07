@@ -347,3 +347,56 @@ function excelDownloadAllWithCustomFileName(exportTable, fileName) {
 		document.body.removeChild(elem);
 	}
 }
+
+// 체크박스 값 설정 함수 (공통)
+function setCheckBox(input) {
+    if (input.checked) {
+        input.value = "Y";
+    } else {
+        input.value = "N";
+    }
+}
+
+// 목록 No. 리셋 함수 (공통)
+function resetRowNo() {
+	let noList = document.getElementsByName('no');
+	
+	for(let i = 0; i < noList.length; i++) {
+		noList[i].innerText = i + 1;
+	}
+}
+
+// 파일 입력 열기 함수 (공통)
+function openFileInput() {
+	document.getElementById('fileInput').click();
+}
+
+// 날짜 기간 validation 체크 함수 (공통)
+// inDate가 outDate보다 작거나 같아야 함 (inDate <= outDate)
+function validateDateRange(inDateId, outDateId) {
+	inDateId = inDateId || 'inDate';
+	outDateId = outDateId || 'outDate';
+	
+	let inDate = ($('#' + inDateId).val() || '').trim();
+	let outDate = ($('#' + outDateId).val() || '').trim();
+	
+	// 둘 다 비어있으면 validation 통과
+	if (!inDate && !outDate) {
+		return { valid: true };
+	}
+	
+	// 하나만 입력되어 있으면 validation 통과 (각 화면에서 별도로 체크)
+	if (!inDate || !outDate) {
+		return { valid: true };
+	}
+	
+	// inDate가 outDate보다 큰 경우 validation 실패
+	if (inDate > outDate) {
+		return { 
+			valid: false, 
+			message: '시작일은 종료일보다 작거나 같아야 합니다.' 
+		};
+	}
+	
+	return { valid: true };
+}
